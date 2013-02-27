@@ -200,5 +200,25 @@ function SetKeyCallback(callback::Function)
 	ccall( (:glfwSetKeyCallback, lib), Void, (Ptr{Void},), cfunc)
 end
 
+function SetCharCallback(callback::Function)
+	cfunc = cfunction(callback, Void, (Int32, Int32))
+	ccall( (:glfwSetCharCallback, lib), Void, (Ptr{Void},), cfunc)
+end
+
+function SetMouseButtonCallback(callback::Function)
+	cfunc = cfunction(callback, Void, (Int32, Int32))
+	ccall( (:glfwSetMouseButtonCallback, lib), Void, (Ptr{Void},), cfunc)
+end
+
+function SetMousePosCallback(callback::Function)
+	cfunc = cfunction(callback, Void, (Int32, Int32))
+	ccall( (:glfwSetMousePosCallback, lib), Void, (Ptr{Void},), cfunc)
+end
+
+function SetMouseWheelCallback(callback::Function)
+	cfunc = cfunction(callback, Void, (Int32,))
+	ccall( (:glfwSetMouseWheelCallback, lib), Void, (Ptr{Void},), cfunc)
+end
+
 end # module
 
