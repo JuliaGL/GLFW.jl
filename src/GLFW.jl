@@ -62,6 +62,11 @@ function CloseWindow()
 	ccall( (:glfwCloseWindow, lib), Void, ())
 end
 
+function SetWindowCloseCallback(callback::Function)
+	cfunc = cfunction(callback, Int32, ())
+	ccall( (:glfwSetWindowCloseCallback, lib), Void, (Ptr{Void},), cfunc)
+end
+
 function SetWindowTitle(title::String)
 	ccall( (:glfwSetWindowTitle, lib), Void, (Ptr{Uint8},), bytestring(title))
 end
