@@ -71,6 +71,11 @@ function SetWindowTitle(title::String)
 	ccall( (:glfwSetWindowTitle, lib), Void, (Ptr{Uint8},), bytestring(title))
 end
 
+function SetWindowSizeCallback(callback::Function)
+	cfunc = cfunction(callback, Void, (Int32, Int32))
+	ccall( (:glfwSetWindowSizeCallback, lib), Void, (Ptr{Void},), cfunc)
+end
+
 function GetWindowParam(param::Integer)
 	ret = ccall( (:glfwGetWindowParam, lib), Int32, (Int32,), param)
 	if contains(boolParams, param)
