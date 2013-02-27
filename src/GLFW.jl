@@ -38,7 +38,7 @@ function OpenWindowHint(target::Integer, hint::Integer)
 	ccall( (:glfwOpenWindowHint, lib), Void, (Int32, Int32), target, hint)
 end
 
-# OpenWindowHint targets
+# OpenWindowHint targets and GetWindowParam parameters
 const REFRESH_RATE          = 0x0002000B
 const ACCUM_RED_BITS        = 0x0002000C
 const ACCUM_GREEN_BITS      = 0x0002000D
@@ -60,6 +60,38 @@ const OPENGL_COMPAT_PROFILE = 0x00050002
 
 function CloseWindow()
 	ccall( (:glfwCloseWindow, lib), Void, ())
+end
+
+function SetWindowTitle(title::String)
+	ccall( (:glfwSetWindowTitle, lib), Void, (Ptr{Uint8},), bytestring(title))
+end
+
+function GetWindowParam(param::Integer)
+	ret = ccall( (:glfwGetWindowParam, lib), Int32, (Int32,), param)
+	if contains(boolParams, param)
+		ret == 1
+	else
+		ret
+	end
+end
+
+# GetWindowParam parameters
+const OPENED       = 0x00020001
+const ACTIVE       = 0x00020002
+const ICONIFIED    = 0x00020003
+const ACCELERATED  = 0x00020004
+const RED_BITS     = 0x00020005
+const GREEN_BITS   = 0x00020006
+const BLUE_BITS    = 0x00020007
+const ALPHA_BITS   = 0x00020008
+const DEPTH_BITS   = 0x00020009
+const STENCIL_BITS = 0x0002000A
+
+const boolParams = (OPENED, ACTIVE, ICONIFIED, ACCELERATED, STEREO,
+	WINDOW_NO_RESIZE, OPENGL_FORWARD_COMPAT, OPENGL_DEBUG_CONTEXT)
+
+function SwapBuffers()
+	ccall( (:glfwSwapBuffers, lib), Void, ())
 end
 
 end # module
