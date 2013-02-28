@@ -53,6 +53,6 @@ end
 GLFW.SetMouseWheelCallback(mouse_wheel_cb)
 
 while GLFW.GetWindowParam(GLFW.OPENED)
-    GLFW.SwapBuffers()
+	GLFW.SwapBuffers()
 end
 
