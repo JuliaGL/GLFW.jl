@@ -7,7 +7,7 @@ const lib = "libglfw"
 ################################################################################
 
 function Init()
-	ret = ccall( (:glfwInit, lib), Int32, ())
+	ret = ccall( (:glfwInit, lib), Cint, ())
 	if ret != 1
 		error("initialization failed")
 	end
@@ -25,8 +25,8 @@ function OpenWindow(width::Integer, height::Integer, redbits::Integer,
 	greenbits::Integer, bluebits::Integer, alphabits::Integer,
 	depthbits::Integer, stencilbits::Integer, mode::Integer)
 
-	ret = ccall( (:glfwOpenWindow, lib), Int32,
-		(Int32, Int32, Int32, Int32, Int32, Int32, Int32, Int32, Int32),
+	ret = ccall( (:glfwOpenWindow, lib), Cint,
+		(Cint, Cint, Cint, Cint, Cint, Cint, Cint, Cint, Cint),
 		width, height, redbits, greenbits, bluebits, alphabits, depthbits,
 		stencilbits, mode)
 	if ret != 1
@@ -39,7 +39,7 @@ const WINDOW     = 0x00010001
 const FULLSCREEN = 0x00010002
 
 function OpenWindowHint(target::Integer, hint::Integer)
-	ccall( (:glfwOpenWindowHint, lib), Void, (Int32, Int32), target, hint)
+	ccall( (:glfwOpenWindowHint, lib), Void, (Cint, Cint), target, hint)
 end
 
 # OpenWindowHint targets and GetWindowParam parameters
@@ -67,7 +67,7 @@ function CloseWindow()
 end
 
 function SetWindowCloseCallback(callback::Function)
-	cfunc = cfunction(callback, Int32, ())
+	cfunc = cfunction(callback, Cint, ())
 	ccall( (:glfwSetWindowCloseCallback, lib), Void, (Ptr{Void},), cfunc)
 end
 
@@ -76,12 +76,12 @@ function SetWindowTitle(title::String)
 end
 
 function SetWindowSizeCallback(callback::Function)
-	cfunc = cfunction(callback, Void, (Int32, Int32))
+	cfunc = cfunction(callback, Void, (Cint, Cint))
 	ccall( (:glfwSetWindowSizeCallback, lib), Void, (Ptr{Void},), cfunc)
 end
 
 function GetWindowParam(param::Integer)
-	ret = ccall( (:glfwGetWindowParam, lib), Int32, (Int32,), param)
+	ret = ccall( (:glfwGetWindowParam, lib), Cint, (Cint,), param)
 	if contains(boolParams, param)
 		ret == 1
 	else
@@ -117,7 +117,7 @@ function PollEvents()
 end
 
 function GetKey(key::Integer)
-	ccall( (:glfwGetKey, lib), Int32, (Int32,), key) == 1
+	ccall( (:glfwGetKey, lib), Cint, (Cint,), key) == 1
 end
 
 # Keyboard key identifiers
@@ -196,27 +196,27 @@ const KEY_MENU        = (KEY_SPECIAL+69)
 const KEY_LAST        = KEY_MENU
 
 function SetKeyCallback(callback::Function)
-	cfunc = cfunction(callback, Void, (Int32, Int32))
+	cfunc = cfunction(callback, Void, (Cint, Cint))
 	ccall( (:glfwSetKeyCallback, lib), Void, (Ptr{Void},), cfunc)
 end
 
 function SetCharCallback(callback::Function)
-	cfunc = cfunction(callback, Void, (Int32, Int32))
+	cfunc = cfunction(callback, Void, (Cint, Cint))
 	ccall( (:glfwSetCharCallback, lib), Void, (Ptr{Void},), cfunc)
 end
 
 function SetMouseButtonCallback(callback::Function)
-	cfunc = cfunction(callback, Void, (Int32, Int32))
+	cfunc = cfunction(callback, Void, (Cint, Cint))
 	ccall( (:glfwSetMouseButtonCallback, lib), Void, (Ptr{Void},), cfunc)
 end
 
 function SetMousePosCallback(callback::Function)
-	cfunc = cfunction(callback, Void, (Int32, Int32))
+	cfunc = cfunction(callback, Void, (Cint, Cint))
 	ccall( (:glfwSetMousePosCallback, lib), Void, (Ptr{Void},), cfunc)
 end
 
 function SetMouseWheelCallback(callback::Function)
-	cfunc = cfunction(callback, Void, (Int32,))
+	cfunc = cfunction(callback, Void, (Cint,))
 	ccall( (:glfwSetMouseWheelCallback, lib), Void, (Ptr{Void},), cfunc)
 end
 
