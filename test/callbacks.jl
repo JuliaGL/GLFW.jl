@@ -2,7 +2,7 @@ import GLFW
 
 GLFW.Init()
 GLFW.OpenWindow(0, 0, 0, 0, 0, 0, 0, 0, GLFW.WINDOW)
-GLFW.SetWindowTitle("GLFW for Julia")
+GLFW.SetWindowTitle("GLFW Callback Test")
 
 function close_cb()
 	println("window closed")
@@ -55,4 +55,6 @@ GLFW.SetMouseWheelCallback(mouse_wheel_cb)
 while GLFW.GetWindowParam(GLFW.OPENED)
 	GLFW.SwapBuffers()
 end
+
+GLFW.Terminate()
 
