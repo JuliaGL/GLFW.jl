@@ -195,6 +195,45 @@ const KEY_RSUPER      = (KEY_SPECIAL+68)
 const KEY_MENU        = (KEY_SPECIAL+69)
 const KEY_LAST        = KEY_MENU
 
+function GetMouseButton(button::Integer)
+	ccall( (:glfwGetMouseButton, lib), Cint, (Cint,), button) == 1
+end
+
+# Mouse button definitions
+const MOUSE_BUTTON_1    = 0
+const MOUSE_BUTTON_2    = 1
+const MOUSE_BUTTON_3    = 2
+const MOUSE_BUTTON_4    = 3
+const MOUSE_BUTTON_5    = 4
+const MOUSE_BUTTON_6    = 5
+const MOUSE_BUTTON_7    = 6
+const MOUSE_BUTTON_8    = 7
+const MOUSE_BUTTON_LAST = MOUSE_BUTTON_8
+
+# Mouse button aliases
+const MOUSE_BUTTON_LEFT   = MOUSE_BUTTON_1
+const MOUSE_BUTTON_RIGHT  = MOUSE_BUTTON_2
+const MOUSE_BUTTON_MIDDLE = MOUSE_BUTTON_3
+
+function GetMousePos()
+	xpos = Cint[0]
+	ypos = Cint[0]
+	ccall( (:glfwGetMousePos, lib), Void, (Ptr{Cint}, Ptr{Cint}), xpos, ypos)
+	return (xpos[1], ypos[1])
+end
+
+function SetMousePos(x::Integer, y::Integer)
+	ccall( (:glfwSetMousePos, lib), Void, (Cint, Cint), x, y)
+end
+
+function GetMouseWheel()
+	ccall( (:glfwGetMouseWheel, lib), Cint, ())
+end
+
+function SetMouseWheel(pos::Integer)
+	ccall( (:glfwSetMouseWheel, lib), Void, (Cint,), pos)
+end
+
 function SetKeyCallback(callback::Function)
 	cfunc = cfunction(callback, Void, (Cint, Cint))
 	ccall( (:glfwSetKeyCallback, lib), Void, (Ptr{Void},), cfunc)
@@ -219,6 +258,26 @@ function SetMouseWheelCallback(callback::Function)
 	cfunc = cfunction(callback, Void, (Cint,))
 	ccall( (:glfwSetMouseWheelCallback, lib), Void, (Ptr{Void},), cfunc)
 end
+
+################################################################################
+#   Miscellaneous
+################################################################################
+
+function Enable(token::Integer)
+	ccall( (:glfwEnable, lib), Void, (Cint,), token)
+end
+
+function Disable(token::Integer)
+	ccall( (:glfwDisable, lib), Void, (Cint,), token)
+end
+
+# Enable and disable tokens
+const MOUSE_CURSOR         = 0x00030001
+const STICKY_KEYS          = 0x00030002
+const STICKY_MOUSE_BUTTONS = 0x00030003
+const SYSTEM_KEYS          = 0x00030004
+const KEY_REPEAT           = 0x00030005
+const AUTO_POLL_EVENTS     = 0x00030006
 
 end # module
 
