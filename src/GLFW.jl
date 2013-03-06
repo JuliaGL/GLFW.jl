@@ -108,6 +108,10 @@ function SwapBuffers()
 	ccall( (:glfwSwapBuffers, lib), Void, ())
 end
 
+function SwapInterval(interval::Integer)
+	ccall( (:glfwSwapInterval, lib), Void, (Cint,), interval)
+end
+
 ################################################################################
 #   Input Handling
 ################################################################################
