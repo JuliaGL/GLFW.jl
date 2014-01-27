@@ -1,4 +1,4 @@
-module GLFW
+module GLFW2
 
 const lib = "libglfw"
 
