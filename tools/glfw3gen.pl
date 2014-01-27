@@ -64,7 +64,7 @@ sub julia_type {
 	return $t;
 }
 
-print "\nmodule GLFW3\n";
+print "\nmodule GLFW\n";
 
 while (<>) {
 	if ($str) {

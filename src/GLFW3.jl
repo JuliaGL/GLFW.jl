@@ -1,5 +1,5 @@
 
-module GLFW3
+module GLFW
 
 const VERSION_MAJOR = 3
 const VERSION_MINOR = 0
