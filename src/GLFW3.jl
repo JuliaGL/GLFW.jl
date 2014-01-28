@@ -298,7 +298,7 @@ function GetVersion()
 	minor = Cint[0]
 	rev = Cint[0]
 	ccall((:glfwGetVersion, "libglfw3"), Void, (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}), major, minor, rev)
-	return (major, minor, rev)
+	return (major[1], minor[1], rev[1])
 end
 
 function SetErrorCallback(cbfun::Function)
@@ -308,7 +308,7 @@ end
 function GetMonitors()
 	count = Cint[0]
 	r = ccall((:glfwGetMonitors, "libglfw3"), Ptr{Monitor}, (Ptr{Cint},), count)
-	return (count)
+	return pointer_to_array(r, count[1])
 end
 
 function GetPrimaryMonitor()
@@ -319,14 +319,14 @@ function GetMonitorPos(monitor::Monitor)
 	xpos = Cint[0]
 	ypos = Cint[0]
 	ccall((:glfwGetMonitorPos, "libglfw3"), Void, (Monitor, Ptr{Cint}, Ptr{Cint}), monitor, xpos, ypos)
-	return (xpos, ypos)
+	return (xpos[1], ypos[1])
 end
 
 function GetMonitorPhysicalSize(monitor::Monitor)
 	width = Cint[0]
 	height = Cint[0]
 	ccall((:glfwGetMonitorPhysicalSize, "libglfw3"), Void, (Monitor, Ptr{Cint}, Ptr{Cint}), monitor, width, height)
-	return (width, height)
+	return (width[1], height[1])
 end
 
 function SetMonitorCallback(cbfun::Function)
@@ -373,7 +373,7 @@ function GetWindowPos(window::Window)
 	xpos = Cint[0]
 	ypos = Cint[0]
 	ccall((:glfwGetWindowPos, "libglfw3"), Void, (Window, Ptr{Cint}, Ptr{Cint}), window, xpos, ypos)
-	return (xpos, ypos)
+	return (xpos[1], ypos[1])
 end
 
 function SetWindowPos(window::Window, xpos::Integer, ypos::Integer)
@@ -384,7 +384,7 @@ function GetWindowSize(window::Window)
 	width = Cint[0]
 	height = Cint[0]
 	ccall((:glfwGetWindowSize, "libglfw3"), Void, (Window, Ptr{Cint}, Ptr{Cint}), window, width, height)
-	return (width, height)
+	return (width[1], height[1])
 end
 
 function SetWindowSize(window::Window, width::Integer, height::Integer)
@@ -395,7 +395,7 @@ function GetFramebufferSize(window::Window)
 	width = Cint[0]
 	height = Cint[0]
 	ccall((:glfwGetFramebufferSize, "libglfw3"), Void, (Window, Ptr{Cint}, Ptr{Cint}), window, width, height)
-	return (width, height)
+	return (width[1], height[1])
 end
 
 function IconifyWindow(window::Window)
@@ -486,7 +486,7 @@ function GetCursorPos(window::Window)
 	xpos = Cdouble[0]
 	ypos = Cdouble[0]
 	ccall((:glfwGetCursorPos, "libglfw3"), Void, (Window, Ptr{Cdouble}, Ptr{Cdouble}), window, xpos, ypos)
-	return (xpos, ypos)
+	return (xpos[1], ypos[1])
 end
 
 function SetCursorPos(window::Window, xpos::FloatingPoint, ypos::FloatingPoint)

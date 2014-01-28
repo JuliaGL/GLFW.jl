@@ -194,8 +194,10 @@ while (<>) {
 
 		print ")\n";
 
-		if (scalar @rav > 0) {
-			print "\treturn (".join(', ', map {/(\w+)$/ ? $1 : ''} @rav).")\n";
+		if (scalar @rav == 1 && $r =~ /\*/) {
+			print "\treturn pointer_to_array(r, ".join('[1], ', map {/(\w+)$/ ? $1 : ''} @rav)."[1])\n";
+		} elsif (scalar @rav > 0) {
+			print "\treturn (".join('[1], ', map {/(\w+)$/ ? $1 : ''} @rav)."[1])\n";
 		}
 
 		print "end\n";
