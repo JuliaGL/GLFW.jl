@@ -82,7 +82,7 @@ end
 
 function GetWindowParam(param::Integer)
 	ret = ccall( (:glfwGetWindowParam, lib), Cint, (Cint,), param)
-	if contains(boolParams, param)
+	if param in boolParams
 		return ret == 1
 	else
 		return ret
