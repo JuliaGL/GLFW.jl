@@ -1,5 +1,3 @@
-const lib = "libglfw"
-
 function GetVersion()
 	major, minor, rev = Cint[0], Cint[0], Cint[0]
 	ccall( (:glfwGetVersion, lib), Void, (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}), major, minor, rev)
@@ -16,4 +14,3 @@ end
 function Terminate()
 	ccall( (:glfwTerminate, lib), Void, ())
 end
-
