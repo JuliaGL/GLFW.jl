@@ -1,15 +1,18 @@
 module GLFW
 
-const lib = find_library(["glfw3", "libglfw3", "glfw", "libglfw"])
+const deps_path = Pkg.dir("GLFW/deps")
+if !(deps_path in DL_LOAD_PATH)
+	push!(DL_LOAD_PATH, deps_path)
+end
 
+const lib = find_library(["glfw3", "libglfw3", "glfw", "libglfw"])
 if isempty(lib)
 	error("could not find GLFW library")
 end
 
 include("common.jl")
 
-version = GetVersion()
-
+const version = GetVersion()
 if version[1] == 2
 	include("glfw2.jl")
 	info("loaded GLFW ", join(version, '.'))
