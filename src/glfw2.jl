@@ -324,7 +324,7 @@ function GetJoystickPos(joy::Integer, numaxes::Integer=GetJoystickParam(joy, AXE
 	axes[1:num]
 end
 
-function GetJoystickButtons(joy::Integer, numbuttons::Integer = GetJoystickParam(joy, BUTTONS))
+function GetJoystickButtons(joy::Integer, numbuttons::Integer=GetJoystickParam(joy, BUTTONS))
 	buttons = Array(Cuchar, numbuttons)
 	num = ccall( (:glfwGetJoystickButtons, lib), Cuint, (Cuint, Ptr{Cuchar}, Cuint), joy, buttons, numbuttons)
 	buttons[1:num]
@@ -332,12 +332,6 @@ end
 
 # Extension support
 ExtensionSupported(extension::String) = bool(ccall( (:glfwExtensionSupported, lib), Cuint, (Ptr{Cchar},), bytestring(extension)))
-
-function GetGLVersion()
-	major, minor, rev = Cint[0], Cint[0], Cint[0]
-	ccall( (:glfwGetGLVersion, lib), Void, (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}), major, minor, rev)
-	(major[1], minor[1], rev[1])
-end
 
 # Enable/disable functions
 Enable(token::Integer) = ccall( (:glfwEnable, lib), Void, (Cuint,), token)
