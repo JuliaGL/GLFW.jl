@@ -1,22 +1,21 @@
 import GLFW
 
 GLFW.Init()
-GLFW.OpenWindow(0, 0, 0, 0, 0, 0, 0, 0, GLFW.WINDOW)
-GLFW.SetWindowTitle("GLFW Callback Test")
+window = GLFW.CreateWindow(800, 600, "GLFW Callback Test")
 
-function close_cb()
+function close_cb(win::GLFW.Window)
 	println("window closed")
-	return convert(Cint, 1)
+	return
 end
-GLFW.SetWindowCloseCallback(close_cb)
+GLFW.SetWindowCloseCallback(window, close_cb)
 
-function size_cb(w::Cint, h::Cint)
+function size_cb(win::GLFW.Window, w::Cint, h::Cint)
 	println("window size: ", h, "x", w)
 	return
 end
-GLFW.SetWindowSizeCallback(size_cb)
+GLFW.SetWindowSizeCallback(window, size_cb)
 
-function key_cb(key::Cint, action::Cint)
+function key_cb(win::GLFW.Window, key::Cint, scancode::Cint, action::Cint, mods::Cint)
 	if '!' <= key && key <= '~'
 		key = convert(Char, key)
 		key = string("'", key, "'")
@@ -24,36 +23,37 @@ function key_cb(key::Cint, action::Cint)
 	println("key ", action == 1 ? "dn" : "up", ": ", key)
 	return
 end
-GLFW.SetKeyCallback(key_cb)
+GLFW.SetKeyCallback(window, key_cb)
 
-function char_cb(key::Cint, action::Cint)
-	key = convert(Char, key)
-	key = string("'", key, "'")
-	println("char ", action == 1 ? "dn" : "up", ": ", key)
+function char_cb(win::GLFW.Window, key::Cuint)
+	c = convert(Char, key)
+	c = string("'", c, "'")
+	println("char: ", c)
 	return
 end
-GLFW.SetCharCallback(char_cb)
+GLFW.SetCharCallback(window, char_cb)
 
-function mouse_button_cb(button::Cint, action::Cint)
+function mouse_button_cb(win::GLFW.Window, button::Cint, action::Cint, mods::Cint)
 	println("mouse button ", action == 1 ? "dn" : "up", ": ", button)
 	return
 end
-GLFW.SetMouseButtonCallback(mouse_button_cb)
+GLFW.SetMouseButtonCallback(window, mouse_button_cb)
 
-function mouse_pos_cb(x::Cint, y::Cint)
-	println("mouse pos: ", x, ", ", y)
+function cursor_pos_cb(win::GLFW.Window, x::Cdouble, y::Cdouble)
+	println("cursor pos: ", x, ", ", y)
 	return
 end
-GLFW.SetMousePosCallback(mouse_pos_cb)
+GLFW.SetCursorPosCallback(window, cursor_pos_cb)
 
-function mouse_wheel_cb(pos::Cint)
-	println("mouse wheel: ", pos)
+function scroll_cb(win::GLFW.Window, xoff::Cdouble, yoff::Cdouble)
+	println("scroll: ", xoff, "x", yoff)
 	return
 end
-GLFW.SetMouseWheelCallback(mouse_wheel_cb)
+GLFW.SetScrollCallback(window, scroll_cb)
 
-while GLFW.GetWindowParam(GLFW.OPENED)
-	GLFW.SwapBuffers()
+while !GLFW.WindowShouldClose(window)
+	GLFW.SwapBuffers(window)
+	GLFW.PollEvents()
 end
 
 GLFW.Terminate()
