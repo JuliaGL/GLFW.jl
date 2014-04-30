@@ -10,6 +10,14 @@ See the [GLFW documentation][4] for detailed instructions on how to use the libr
 [3]: https://wikipedia.org/wiki/OpenGL
 [4]: http://www.glfw.org/documentation.html
 
+
+Supported Versions
+------------------
+
+GLFW.jl supports multiple versions of the library, including 3.0.x and older 2.7.x. When the module is imported, it will search for a GLFW shared library with Julia's [`find_library`][5] function, detect the API version provided by the library, and then load the corresponding functions for that API version.
+
+[5]: http://docs.julialang.org/en/latest/stdlib/base/#Base.find_library
+
 Simple Window Example
 ---------------------
 ```julia
