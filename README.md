@@ -12,13 +12,15 @@ See the [GLFW documentation][4] for detailed instructions on how to use the libr
 
 Minimal Window Example
 ----------------------
-```
+```julia
 import GLFW
+
 GLFW.Init()
-GLFW.OpenWindow(0, 0, 0, 0, 0, 0, 0, 0, GLFW.WINDOW)
-while GLFW.GetWindowParam(GLFW.OPENED) && !GLFW.GetKey(GLFW.KEY_ESC)
-  GLFW.SwapBuffers()
+window = GLFW.CreateWindow(800, 600, "GLFW.jl")
+while !GLFW.WindowShouldClose(window) && !GLFW.GetKey(window, GLFW.KEY_ESCAPE)
+	GLFW.SwapBuffers(window)
+	GLFW.PollEvents()
 end
-GLFW.CloseWindow()
+GLFW.DestroyWindow(window)
 GLFW.Terminate()
 ```
