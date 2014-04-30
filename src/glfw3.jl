@@ -281,7 +281,12 @@ end
 #************************************************************************
 
 # Initialization and version information
-Init() = ccall( (:glfwInit, lib), Cuint, ())
+function Init()
+	status = ccall( (:glfwInit, lib), Cuint, ())
+	if status != 1
+		error("initialization failed")
+	end
+end
 Terminate() = ccall( (:glfwTerminate, lib), Void, ())
 GetVersionString() = bytestring(ccall( (:glfwGetVersionString, lib), Ptr{Cchar}, ()))
 
