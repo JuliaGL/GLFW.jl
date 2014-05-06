@@ -250,12 +250,14 @@ const DISCONNECTED           = 0x00040002
 immutable Monitor
 	ref::Ptr{Void}
 end
-Base.show(io::IO, m::Monitor) = write(io, m.ref != C_NULL ? "Monitor($(GetMonitorName(m)))" : "Monitor(NULL)")
+Monitor(None) = Monitor(C_NULL)
+Base.show(io::IO, m::Monitor) = write(io, "Monitor($(m.ref != C_NULL ? GetMonitorName(m) : None))")
 
 # Opaque window object.
 immutable Window
 	ref::Ptr{Void}
 end
+Window(None) = Window(C_NULL)
 
 # Video mode type.
 immutable VidMode
@@ -335,7 +337,8 @@ SetGammaRamp(monitor::Monitor, ramp::GammaRamp) = ccall( (:glfwSetGammaRamp, lib
 # Window handling
 DefaultWindowHints() = ccall( (:glfwDefaultWindowHints, lib), Void, ())
 WindowHint(target::Integer, hint::Integer) = ccall( (:glfwWindowHint, lib), Void, (Cuint, Cuint), target, hint)
-CreateWindow(width::Integer, height::Integer, title::String, monitor::Monitor=Monitor(C_NULL), share::Window=Window(C_NULL)) = ccall( (:glfwCreateWindow, lib), Window, (Cuint, Cuint, Ptr{Cchar}, Monitor, Window), width, height, bytestring(title), monitor, share)
+CreateWindow(width::Integer, height::Integer, title::String, monitor::Monitor=Monitor(None), share::Window=Window(None)) =
+	ccall( (:glfwCreateWindow, lib), Window, (Cuint, Cuint, Ptr{Cchar}, Monitor, Window), width, height, bytestring(title), monitor, share)
 DestroyWindow(window::Window) = ccall( (:glfwDestroyWindow, lib), Void, (Window,), window)
 WindowShouldClose(window::Window) = bool(ccall( (:glfwWindowShouldClose, lib), Cuint, (Window,), window))
 SetWindowShouldClose(window::Window, value::Integer) = ccall( (:glfwSetWindowShouldClose, lib), Void, (Window, Cuint), window, value)
