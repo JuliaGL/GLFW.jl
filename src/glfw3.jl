@@ -439,10 +439,6 @@ end
 
 GetJoystickName(joy::Integer) = bytestring(ccall( (:glfwGetJoystickName, lib), Ptr{Cchar}, (Cuint,), joy))
 
-# Clipboard support
-SetClipboardString(window::Window, string::String) = ccall( (:glfwSetClipboardString, lib), Void, (Window, Ptr{Char}), window, string)
-GetClipboardString(window::Window) = bytestring(ccall( (:glfwGetClipboardString, lib), Ptr{Cchar}, (Window,), window))
-
 # Context handling
 MakeContextCurrent(window::Window) = ccall( (:glfwMakeContextCurrent, lib), Void, (Window,), window)
 GetCurrentContext() = ccall( (:glfwGetCurrentContext, lib), Window, ())
