@@ -1,5 +1,5 @@
 # Julia workarounds
-Base.pointer_to_array(p, d::Cint) = pointer_to_array(p, int(d))
+Base.pointer_to_array(p, d::Integer) = pointer_to_array(p, int(d))
 
 #************************************************************************
 # Global definitions
