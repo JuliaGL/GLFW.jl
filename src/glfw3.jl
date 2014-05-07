@@ -1,6 +1,3 @@
-# Julia workarounds
-Base.pointer_to_array(p, d::Integer) = pointer_to_array(p, int(d))
-
 #************************************************************************
 # Global definitions
 #************************************************************************
@@ -470,3 +467,6 @@ SwapBuffers(window::Window) = ccall( (:glfwSwapBuffers, lib), Void, (Window,), w
 SwapInterval(interval::Integer) = ccall( (:glfwSwapInterval, lib), Void, (Cuint,), interval)
 ExtensionSupported(extension::String) = bool(ccall( (:glfwExtensionSupported, lib), Cuint, (Ptr{Cchar},), bytestring(extension)))
 GetProcAddress(procname::String) = ccall((:glfwGetProcAddress, lib), Ptr{Void}, (Ptr{Cchar},), bytestring(procname))
+
+# https://github.com/JuliaLang/julia/pull/4497
+Base.pointer_to_array(p, d::Integer) = pointer_to_array(p, int(d))
