@@ -250,14 +250,16 @@ const DISCONNECTED           = 0x00040002
 immutable Monitor
 	ref::Ptr{Void}
 end
-Monitor() = Monitor(C_NULL)
-Base.show(io::IO, m::Monitor) = write(io, "Monitor($(m.ref != C_NULL ? GetMonitorName(m) : None))")
+const NullMonitor = Monitor(C_NULL)
+Base.show(io::IO, m::Monitor) = write(io, "Monitor($(m == NullMonitor ? "Null" : GetMonitorName(m)))")
 
 # Opaque window object.
 immutable Window
 	ref::Ptr{Void}
 end
-Window() = Window(C_NULL)
+const NullWindow = Window(C_NULL)
+const windowtitles = Dict{Window, String}()
+Base.show(io::IO, w::Window) = write(io, "Window($(w == NullWindow ? "Null" : get(windowtitles, w, w.ref)))")
 
 # Video mode type.
 immutable VidMode
@@ -289,7 +291,12 @@ function Init()
 		error("initialization failed")
 	end
 end
-Terminate() = ccall( (:glfwTerminate, lib), Void, ())
+
+function Terminate()
+	empty!(windowtitles)
+	ccall( (:glfwTerminate, lib), Void, ())
+end
+
 GetVersionString() = bytestring(ccall( (:glfwGetVersionString, lib), Ptr{Cchar}, ()))
 
 # Error handling
@@ -337,12 +344,29 @@ SetGammaRamp(monitor::Monitor, ramp::GammaRamp) = ccall( (:glfwSetGammaRamp, lib
 # Window handling
 DefaultWindowHints() = ccall( (:glfwDefaultWindowHints, lib), Void, ())
 WindowHint(target::Integer, hint::Integer) = ccall( (:glfwWindowHint, lib), Void, (Cuint, Cuint), target, hint)
-CreateWindow(width::Integer, height::Integer, title::String, monitor::Monitor=Monitor(), share::Window=Window()) =
-	ccall( (:glfwCreateWindow, lib), Window, (Cuint, Cuint, Ptr{Cchar}, Monitor, Window), width, height, bytestring(title), monitor, share)
-DestroyWindow(window::Window) = ccall( (:glfwDestroyWindow, lib), Void, (Window,), window)
+
+function CreateWindow(width::Integer, height::Integer, title::String, monitor::Monitor=NullMonitor, share::Window=NullWindow)
+	window = ccall( (:glfwCreateWindow, lib), Window, (Cuint, Cuint, Ptr{Cchar}, Monitor, Window), width, height, bytestring(title), monitor, share)
+	if window != NullWindow
+		windowtitles[window] = title
+	end
+	return window
+end
+
+function DestroyWindow(window::Window)
+	ccall( (:glfwDestroyWindow, lib), Void, (Window,), window)
+	delete!(windowtitles, window)
+	return nothing
+end
+
 WindowShouldClose(window::Window) = bool(ccall( (:glfwWindowShouldClose, lib), Cuint, (Window,), window))
 SetWindowShouldClose(window::Window, value::Integer) = ccall( (:glfwSetWindowShouldClose, lib), Void, (Window, Cuint), window, value)
-SetWindowTitle(window::Window, title::String) = ccall( (:glfwSetWindowTitle, lib), Void, (Window, Ptr{Cchar}), window, bytestring(title))
+
+function SetWindowTitle(window::Window, title::String)
+	ccall( (:glfwSetWindowTitle, lib), Void, (Window, Ptr{Cchar}), window, bytestring(title))
+	windowtitles[window] = title
+	return nothing
+end
 
 function GetWindowPos(window::Window)
 	xpos, ypos = Cint[0], Cint[0]
