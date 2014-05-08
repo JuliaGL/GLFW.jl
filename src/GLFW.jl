@@ -24,7 +24,7 @@ const (VERSION_MAJOR, VERSION_MINOR, VERSION_REVISION) = GetVersion()
 if VERSION_MAJOR == 2
 	include("glfw2.jl")
 	info("loaded GLFW ", join(GetVersion(), '.'))
-	warn("GLFW 2 is outdated; consider upgrading to GLFW 3")
+	warn("GLFW 2 is outdated, consider upgrading to GLFW 3")
 elseif VERSION_MAJOR == 3
 	include("glfw3.jl")
 	info("loaded GLFW ", GetVersionString())
