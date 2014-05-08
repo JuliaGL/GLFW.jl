@@ -297,9 +297,7 @@ end
 GetVersionString() = bytestring(ccall( (:glfwGetVersionString, lib), Ptr{Cchar}, ()))
 
 # Error handling
-SetErrorCallback(cbfun::Ptr{Void}) = ccall( (:glfwSetErrorCallback, lib), Ptr{Void}, (Ptr{Void},), cbfun)
-SetErrorCallback(cbfun::Function) = SetErrorCallback(cfunction(cbfun, Void, (Cint, Ptr{Cchar})))
-SetErrorCallback(::Nothing) = SetErrorCallback(C_NULL)
+@SetCallback(Error, Void, (Cint, Ptr{Cchar}))
 Base.error(code::Cint, desc::Ptr{Cchar}) = error(bytestring(desc))
 
 # Monitor handling
@@ -324,10 +322,7 @@ function GetMonitorPhysicalSize(monitor::Monitor)
 end
 
 GetMonitorName(monitor::Monitor) = bytestring(ccall( (:glfwGetMonitorName, lib), Ptr{Cchar}, (Monitor,), monitor))
-
-SetMonitorCallback(cbfun::Ptr{Void}) = ccall( (:glfwSetMonitorCallback, lib), Ptr{Void}, (Ptr{Void},), cbfun)
-SetMonitorCallback(cbfun::Function) = SetMonitorCallback(cfunction(cbfun, Void, (Monitor, Cint)))
-SetMonitorCallback(::Nothing) = SetMonitorCallback(C_NULL)
+@SetCallback(Monitor, Void, (Monitor, Cint))
 
 function GetVideoModes(monitor::Monitor)
 	count = Cint[0]
@@ -398,35 +393,13 @@ GetWindowMonitor(window::Window) = ccall( (:glfwGetWindowMonitor, lib), Monitor,
 GetWindowAttrib(window::Window, attrib::Integer) = ccall( (:glfwGetWindowAttrib, lib), Cuint, (Window, Cuint), window, attrib)
 SetWindowUserPointer(window::Window, pointer::Ptr{Void}) = ccall( (:glfwSetWindowUserPointer, lib), Void, (Window, Ptr{Void}), window, pointer)
 GetWindowUserPointer(window::Window) = ccall( (:glfwGetWindowUserPointer, lib), Ptr{Void}, (Window,), window)
-
-SetWindowPosCallback(window::Window, cbfun::Ptr{Void}) = ccall( (:glfwSetWindowPosCallback, lib), Ptr{Void}, (Window, Ptr{Void}), window, cbfun)
-SetWindowPosCallback(window::Window, cbfun::Function) = SetWindowPosCallback(window, cfunction(cbfun, Void, (Window, Cint, Cint)))
-SetWindowPosCallback(window::Window, ::Nothing) = SetWindowPosCallback(window, C_NULL)
-
-SetWindowSizeCallback(window::Window, cbfun::Ptr{Void}) = ccall( (:glfwSetWindowSizeCallback, lib), Ptr{Void}, (Window, Ptr{Void}), window, cbfun)
-SetWindowSizeCallback(window::Window, cbfun::Function) = SetWindowSizeCallback(window, cfunction(cbfun, Void, (Window, Cint, Cint)))
-SetWindowSizeCallback(window::Window, ::Nothing) = SetWindowSizeCallback(window, C_NULL)
-
-SetWindowCloseCallback(window::Window, cbfun::Ptr{Void}) = ccall( (:glfwSetWindowCloseCallback, lib), Ptr{Void}, (Window, Ptr{Void}), window, cbfun)
-SetWindowCloseCallback(window::Window, cbfun::Function) = SetWindowCloseCallback(window, cfunction(cbfun, Void, (Window,)))
-SetWindowCloseCallback(window::Window, ::Nothing) = SetWindowCloseCallback(window, C_NULL)
-
-SetWindowRefreshCallback(window::Window, cbfun::Ptr{Void}) = ccall( (:glfwSetWindowRefreshCallback, lib), Ptr{Void}, (Window, Ptr{Void}), window, cbfun)
-SetWindowRefreshCallback(window::Window, cbfun::Function) = SetWindowRefreshCallback(window, cfunction(cbfun, Void, (Window,)))
-SetWindowRefreshCallback(window::Window, ::Nothing) = SetWindowRefreshCallback(window, C_NULL)
-
-SetWindowFocusCallback(window::Window, cbfun::Ptr{Void}) = ccall( (:glfwSetWindowFocusCallback, lib), Ptr{Void}, (Window, Ptr{Void}), window, cbfun)
-SetWindowFocusCallback(window::Window, cbfun::Function) = SetWindowFocusCallback(window, cfunction(cbfun, Void, (Window, Cint)))
-SetWindowFocusCallback(window::Window, ::Nothing) = SetWindowFocusCallback(window, C_NULL)
-
-SetWindowIconifyCallback(window::Window, cbfun::Ptr{Void}) = ccall( (:glfwSetWindowIconifyCallback, lib), Ptr{Void}, (Window, Ptr{Void}), window, cbfun)
-SetWindowIconifyCallback(window::Window, cbfun::Function) = SetWindowIconifyCallback(window, cfunction(cbfun, Void, (Window, Cint)))
-SetWindowIconifyCallback(window::Window, ::Nothing) = SetWindowIconifyCallback(window, C_NULL)
-
-SetFramebufferSizeCallback(window::Window, cbfun::Ptr{Void}) = ccall( (:glfwSetFramebufferSizeCallback, lib), Ptr{Void}, (Window, Ptr{Void}), window, cbfun)
-SetFramebufferSizeCallback(window::Window, cbfun::Function) = SetFramebufferSizeCallback(window, cfunction(cbfun, Void, (Window, Cint, Cint)))
-SetFramebufferSizeCallback(window::Window, ::Nothing) = SetFramebufferSizeCallback(window, C_NULL)
-
+@SetCallback(WindowPos, Void, (Window, Cint, Cint))
+@SetCallback(WindowSize, Void, (Window, Cint, Cint))
+@SetCallback(WindowClose, Void, (Window,))
+@SetCallback(WindowRefresh, Void, (Window,))
+@SetCallback(WindowFocus, Void, (Window, Cint))
+@SetCallback(WindowIconify, Void, (Window, Cint))
+@SetCallback(FramebufferSize, Void, (Window, Cint, Cint))
 PollEvents() = ccall( (:glfwPollEvents, lib), Void, ())
 WaitEvents() = ccall( (:glfwWaitEvents, lib), Void, ())
 
@@ -450,31 +423,12 @@ function GetCursorPos(window::Window)
 end
 
 SetCursorPos(window::Window, xpos::FloatingPoint, ypos::FloatingPoint) = ccall( (:glfwSetCursorPos, lib), Void, (Window, Cdouble, Cdouble), window, xpos, ypos)
-
-SetKeyCallback(window::Window, cbfun::Ptr{Void}) = ccall( (:glfwSetKeyCallback, lib), Ptr{Void}, (Window, Ptr{Void}), window, cbfun)
-SetKeyCallback(window::Window, cbfun::Function) = SetKeyCallback(window, cfunction(cbfun, Void, (Window, Cint, Cint, Cint, Cint)))
-SetKeyCallback(window::Window, ::Nothing) = SetKeyCallback(window, C_NULL)
-
-SetCharCallback(window::Window, cbfun::Ptr{Void}) = ccall( (:glfwSetCharCallback, lib), Ptr{Void}, (Window, Ptr{Void}), window, cbfun)
-SetCharCallback(window::Window, cbfun::Function) = SetCharCallback(window, cfunction(cbfun, Void, (Window, Cuint)))
-SetCharCallback(window::Window, ::Nothing) = SetCharCallback(window, C_NULL)
-
-SetMouseButtonCallback(window::Window, cbfun::Ptr{Void}) = ccall( (:glfwSetMouseButtonCallback, lib), Ptr{Void}, (Window, Ptr{Void}), window, cbfun)
-SetMouseButtonCallback(window::Window, cbfun::Function) = SetMouseButtonCallback(window, cfunction(cbfun, Void, (Window, Cint, Cint, Cint)))
-SetMouseButtonCallback(window::Window, ::Nothing) = SetMouseButtonCallback(window, C_NULL)
-
-SetCursorPosCallback(window::Window, cbfun::Ptr{Void}) = ccall( (:glfwSetCursorPosCallback, lib), Ptr{Void}, (Window, Ptr{Void}), window, cbfun)
-SetCursorPosCallback(window::Window, cbfun::Function) = SetCursorPosCallback(window, cfunction(cbfun, Void, (Window, Cdouble, Cdouble)))
-SetCursorPosCallback(window::Window, ::Nothing) = SetCursorPosCallback(window, C_NULL)
-
-SetCursorEnterCallback(window::Window, cbfun::Ptr{Void}) = ccall( (:glfwSetCursorEnterCallback, lib), Ptr{Void}, (Window, Ptr{Void}), window, cbfun)
-SetCursorEnterCallback(window::Window, cbfun::Function) = SetCursorEnterCallback(window, cfunction(cbfun, Void, (Window, Cint)))
-SetCursorEnterCallback(window::Window, ::Nothing) = SetCursorEnterCallback(window, C_NULL)
-
-SetScrollCallback(window::Window, cbfun::Ptr{Void}) = ccall( (:glfwSetScrollCallback, lib), Ptr{Void}, (Window, Ptr{Void}), window, cbfun)
-SetScrollCallback(window::Window, cbfun::Function) = SetScrollCallback(window, cfunction(cbfun, Void, (Window, Cdouble, Cdouble)))
-SetScrollCallback(window::Window, ::Nothing) = SetScrollCallback(window, C_NULL)
-
+@SetCallback(Key, Void, (Window, Cint, Cint, Cint, Cint))
+@SetCallback(Char, Void, (Window, Cuint))
+@SetCallback(MouseButton, Void, (Window, Cint, Cint, Cint))
+@SetCallback(CursorPos, Void, (Window, Cdouble, Cdouble))
+@SetCallback(CursorEnter, Void, (Window, Cint))
+@SetCallback(Scroll, Void, (Window, Cdouble, Cdouble))
 JoystickPresent(joy::Integer) = bool(ccall( (:glfwJoystickPresent, lib), Cuint, (Cuint,), joy))
 
 function GetJoystickAxes(joy::Integer)
@@ -498,6 +452,3 @@ SwapBuffers(window::Window) = ccall( (:glfwSwapBuffers, lib), Void, (Window,), w
 SwapInterval(interval::Integer) = ccall( (:glfwSwapInterval, lib), Void, (Cuint,), interval)
 ExtensionSupported(extension::String) = bool(ccall( (:glfwExtensionSupported, lib), Cuint, (Ptr{Cchar},), bytestring(extension)))
 GetProcAddress(procname::String) = ccall((:glfwGetProcAddress, lib), Ptr{Void}, (Ptr{Cchar},), bytestring(procname))
-
-# https://github.com/JuliaLang/julia/pull/4497
-Base.pointer_to_array(p, d::Integer) = pointer_to_array(p, int(d))

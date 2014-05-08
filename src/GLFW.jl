@@ -1,5 +1,7 @@
 module GLFW
 
+include("util.jl")
+
 const deps_path = Pkg.dir("GLFW/deps")
 if !(deps_path in DL_LOAD_PATH)
 	push!(DL_LOAD_PATH, deps_path)

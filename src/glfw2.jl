@@ -239,12 +239,9 @@ function GetWindowParam(param::Integer)
 	value
 end
 
-SetWindowSizeCallback(cbfun::Function) = SetWindowSizeCallback(cfunction(cbfun, Void, (Cint, Cint)))
-SetWindowSizeCallback(cbfun::Ptr{Void}) = ccall( (:glfwSetWindowSizeCallback, lib), Void, (Ptr{Void},), cbfun)
-SetWindowCloseCallback(cbfun::Function) = SetWindowCloseCallback(cfunction(cbfun, Cint, ()))
-SetWindowCloseCallback(cbfun::Ptr{Void}) = ccall( (:glfwSetWindowCloseCallback, lib), Void, (Ptr{Void},), cbfun)
-SetWindowRefreshCallback(cbfun::Function) = SetWindowRefreshCallback(cfunction(cbfun, Void, ()))
-SetWindowRefreshCallback(cbfun::Ptr{Void}) = ccall( (:glfwSetWindowRefreshCallback, lib), Void, (Ptr{Void},), cbfun)
+@SetCallback(WindowSize, Void, (Cint, Cint))
+@SetCallback(WindowClose, Cint, ())
+@SetCallback(WindowRefresh, Void, ())
 
 # Video mode functions
 function GetVideoModes(maxcount::Integer=100)
@@ -275,16 +272,11 @@ end
 SetMousePos(xpos::Integer, ypos::Integer) = ccall( (:glfwSetMousePos, lib), Void, (Cuint, Cuint), xpos, ypos)
 GetMouseWheel() = ccall( (:glfwGetMouseWheel, lib), Cuint, ())
 SetMouseWheel(pos::Integer) = ccall( (:glfwSetMouseWheel, lib), Void, (Cuint,), pos)
-SetKeyCallback(cbfun::Function) = SetKeyCallback(cfunction(cbfun, Void, (Cint, Cint)))
-SetKeyCallback(cbfun::Ptr{Void}) = ccall( (:glfwSetKeyCallback, lib), Void, (Ptr{Void},), cbfun)
-SetCharCallback(cbfun::Function) = SetCharCallback(cfunction(cbfun, Void, (Cint, Cint)))
-SetCharCallback(cbfun::Ptr{Void}) = ccall( (:glfwSetCharCallback, lib), Void, (Ptr{Void},), cbfun)
-SetMouseButtonCallback(cbfun::Function) = SetMouseButtonCallback(cfunction(cbfun, Void, (Cint, Cint)))
-SetMouseButtonCallback(cbfun::Ptr{Void}) = ccall( (:glfwSetMouseButtonCallback, lib), Void, (Ptr{Void},), cbfun)
-SetMousePosCallback(cbfun::Function) = SetMousePosCallback(cfunction(cbfun, Void, (Cint, Cint)))
-SetMousePosCallback(cbfun::Ptr{Void}) = ccall( (:glfwSetMousePosCallback, lib), Void, (Ptr{Void},), cbfun)
-SetMouseWheelCallback(cbfun::Function) = SetMouseWheelCallback(cfunction(cbfun, Void, (Cint,)))
-SetMouseWheelCallback(cbfun::Ptr{Void}) = ccall( (:glfwSetMouseWheelCallback, lib), Void, (Ptr{Void},), cbfun)
+@SetCallback(Key, Void, (Cint, Cint))
+@SetCallback(Char, Void, (Cint, Cint))
+@SetCallback(MouseButton, Void, (Cint, Cint))
+@SetCallback(MousePos, Void, (Cint, Cint))
+@SetCallback(MouseWheel, Void, (Cint,))
 
 # Joystick input
 function GetJoystickParam(joy::Integer, param::Integer)
