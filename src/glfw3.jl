@@ -391,8 +391,6 @@ ShowWindow(window::Window) = ccall( (:glfwShowWindow, lib), Void, (Window,), win
 HideWindow(window::Window) = ccall( (:glfwHideWindow, lib), Void, (Window,), window)
 GetWindowMonitor(window::Window) = ccall( (:glfwGetWindowMonitor, lib), Monitor, (Window,), window)
 GetWindowAttrib(window::Window, attrib::Integer) = ccall( (:glfwGetWindowAttrib, lib), Cuint, (Window, Cuint), window, attrib)
-SetWindowUserPointer(window::Window, pointer::Ptr{Void}) = ccall( (:glfwSetWindowUserPointer, lib), Void, (Window, Ptr{Void}), window, pointer)
-GetWindowUserPointer(window::Window) = ccall( (:glfwGetWindowUserPointer, lib), Ptr{Void}, (Window,), window)
 @SetCallback(WindowPos, Void, (Window, Cint, Cint))
 @SetCallback(WindowSize, Void, (Window, Cint, Cint))
 @SetCallback(WindowClose, Void, (Window,))
