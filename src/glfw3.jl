@@ -330,10 +330,10 @@ function GetVideoModes(monitor::Monitor)
 	pointer_to_array(ptr, count[1])
 end
 
-# FIXME: VidMode and GammaRamp pointer business
-GetVideoMode(monitor::Monitor) = ccall( (:glfwGetVideoMode, lib), Ptr{VidMode}, (Monitor,), monitor)
+# FIXME: GammaRamp pointer business
+GetVideoMode(monitor::Monitor) = pointer_to_array(ccall( (:glfwGetVideoMode, lib), Ptr{VidMode}, (Monitor,), monitor), 1)[1]
 SetGamma(monitor::Monitor, gamma::FloatingPoint) = ccall( (:glfwSetGamma, lib), Void, (Monitor, Cfloat), monitor, gamma)
-GetGammaRamp(monitor::Monitor) = ccall( (:glfwGetGammaRamp, lib), Ptr{GammaRamp}, (Monitor,), monitor)
+GetGammaRamp(monitor::Monitor) = pointer_to_array(ccall( (:glfwGetGammaRamp, lib), Ptr{GammaRamp}, (Monitor,), monitor), 1)[1]
 SetGammaRamp(monitor::Monitor, ramp::GammaRamp) = ccall( (:glfwSetGammaRamp, lib), Void, (Monitor, Ptr{GammaRamp}), monitor, pointer_from_objref(ramp))
 
 # Window handling
