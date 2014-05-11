@@ -248,15 +248,12 @@ immutable Monitor
 	ref::Ptr{Void}
 end
 const NullMonitor = Monitor(C_NULL)
-Base.show(io::IO, m::Monitor) = write(io, "Monitor($(m == NullMonitor ? "Null" : GetMonitorName(m)))")
 
 # Opaque window object
 immutable Window
 	ref::Ptr{Void}
 end
 const NullWindow = Window(C_NULL)
-const windowtitles = Dict{Window, String}()
-Base.show(io::IO, w::Window) = write(io, "Window($(w == NullWindow ? "Null" : get(windowtitles, w, w.ref)))")
 
 # Video mode type
 immutable VidMode
@@ -278,6 +275,42 @@ end
 
 
 #************************************************************************
+# GLFW.jl internal types
+#************************************************************************
+
+# Extra data to keep for each window
+type WindowData
+	title::String
+	# This will eventually be expanded to facilitate anonymous callback functions
+end
+
+# Global collection for storing references to WindowData (to prevent premature garbage collection)
+typealias Windows Dict{Window, WindowData}
+const _windows = Windows()
+
+# Faster lookup via window user pointer
+Base.getindex(::Windows, w::Window) =
+	unsafe_pointer_to_objref(ccall( (:glfwGetWindowUserPointer, lib), Ptr{WindowData}, (Window,), w))
+function Base.setindex!(W::Windows, d::WindowData, w::Window)
+	ccall( (:glfwSetWindowUserPointer, lib), Void, (Window, Ptr{WindowData}), w, pointer_from_objref(d))
+	invoke(setindex!, (Dict, WindowData, Window), W, d, w) # write to Dict with default method
+end
+
+# Friendlier text representations of opaque objects
+Base.show(io::IO, m::Monitor) = write(io, "Monitor($(m == NullMonitor ? "Null" : GetMonitorName(m)))")
+function Base.show(io::IO, w::Window)
+	if w == NullWindow
+		id = "Null"
+	elseif haskey(_windows, w)
+		id = _windows[w].title
+	else
+		id = w.ref
+	end
+	write(io, "Window($id)")
+end
+
+
+#************************************************************************
 # GLFW API functions
 #************************************************************************
 
@@ -290,8 +323,9 @@ function Init()
 end
 
 function Terminate()
-	empty!(windowtitles)
 	ccall( (:glfwTerminate, lib), Void, ())
+	empty!(_windows)
+	return nothing
 end
 
 GetVersionString() = bytestring(ccall( (:glfwGetVersionString, lib), Ptr{Cchar}, ()))
@@ -343,14 +377,14 @@ WindowHint(target::Integer, hint::Integer) = ccall( (:glfwWindowHint, lib), Void
 function CreateWindow(width::Integer, height::Integer, title::String, monitor::Monitor=NullMonitor, share::Window=NullWindow)
 	window = ccall( (:glfwCreateWindow, lib), Window, (Cuint, Cuint, Ptr{Cchar}, Monitor, Window), width, height, bytestring(title), monitor, share)
 	if window != NullWindow
-		windowtitles[window] = title
+		_windows[window] = WindowData(title)
 	end
 	return window
 end
 
 function DestroyWindow(window::Window)
 	ccall( (:glfwDestroyWindow, lib), Void, (Window,), window)
-	delete!(windowtitles, window)
+	delete!(_windows, window)
 	return nothing
 end
 
@@ -359,7 +393,7 @@ SetWindowShouldClose(window::Window, value::Integer) = ccall( (:glfwSetWindowSho
 
 function SetWindowTitle(window::Window, title::String)
 	ccall( (:glfwSetWindowTitle, lib), Void, (Window, Ptr{Cchar}), window, bytestring(title))
-	windowtitles[window] = title
+	_windows[window].title = title
 	return nothing
 end
 
