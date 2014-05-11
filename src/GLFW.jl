@@ -28,7 +28,7 @@ if VERSION_MAJOR == 2
 elseif VERSION_MAJOR == 3
 	include("glfw3.jl")
 	info("loaded GLFW ", GetVersionString())
-	SetErrorCallback(error)
+	SetErrorCallback((code, desc) -> error(bytestring(desc)))
 else
 	error("GLFW ", join(GetVersion(), '.'), " is not supported")
 end

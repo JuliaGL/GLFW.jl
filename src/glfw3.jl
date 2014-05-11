@@ -281,8 +281,9 @@ end
 # Extra data to keep for each window
 type WindowData
 	title::String
-	# This will eventually be expanded to facilitate anonymous callback functions
+	callbacks::Vector{Callback}
 end
+WindowData(title::String) = WindowData(title, Array(Callback, 0))
 
 # Global collection for storing references to WindowData (to prevent premature garbage collection)
 typealias Windows Dict{Window, WindowData}
@@ -331,8 +332,7 @@ end
 GetVersionString() = bytestring(ccall( (:glfwGetVersionString, lib), Ptr{Cchar}, ()))
 
 # Error handling
-@SetCallback(Error, Void, (Cint, Ptr{Cchar}))
-Base.error(code::Cint, desc::Ptr{Cchar}) = error(bytestring(desc))
+@Set ErrorCallback(error::Cint, desc::Ptr{Cchar})
 
 # Monitor handling
 function GetMonitors()
@@ -356,7 +356,7 @@ function GetMonitorPhysicalSize(monitor::Monitor)
 end
 
 GetMonitorName(monitor::Monitor) = bytestring(ccall( (:glfwGetMonitorName, lib), Ptr{Cchar}, (Monitor,), monitor))
-@SetCallback(Monitor, Void, (Monitor, Cint))
+@Set MonitorCallback(monitor::Monitor, event::Cint)
 
 function GetVideoModes(monitor::Monitor)
 	count = Cint[0]
@@ -425,13 +425,13 @@ ShowWindow(window::Window) = ccall( (:glfwShowWindow, lib), Void, (Window,), win
 HideWindow(window::Window) = ccall( (:glfwHideWindow, lib), Void, (Window,), window)
 GetWindowMonitor(window::Window) = ccall( (:glfwGetWindowMonitor, lib), Monitor, (Window,), window)
 GetWindowAttrib(window::Window, attrib::Integer) = ccall( (:glfwGetWindowAttrib, lib), Cuint, (Window, Cuint), window, attrib)
-@SetCallback(WindowPos, Void, (Window, Cint, Cint))
-@SetCallback(WindowSize, Void, (Window, Cint, Cint))
-@SetCallback(WindowClose, Void, (Window,))
-@SetCallback(WindowRefresh, Void, (Window,))
-@SetCallback(WindowFocus, Void, (Window, Cint))
-@SetCallback(WindowIconify, Void, (Window, Cint))
-@SetCallback(FramebufferSize, Void, (Window, Cint, Cint))
+@Set WindowPosCallback(window::Window, xpos::Cint, ypos::Cint)
+@Set WindowSizeCallback(window::Window, width::Cint, height::Cint)
+@Set WindowCloseCallback(window::Window)
+@Set WindowRefreshCallback(window::Window)
+@Set WindowFocusCallback(window::Window, focused::Cint)
+@Set WindowIconifyCallback(window::Window, iconified::Cint)
+@Set FramebufferSizeCallback(window::Window, width::Cint, height::Cint)
 PollEvents() = ccall( (:glfwPollEvents, lib), Void, ())
 WaitEvents() = ccall( (:glfwWaitEvents, lib), Void, ())
 
@@ -455,12 +455,12 @@ function GetCursorPos(window::Window)
 end
 
 SetCursorPos(window::Window, xpos::FloatingPoint, ypos::FloatingPoint) = ccall( (:glfwSetCursorPos, lib), Void, (Window, Cdouble, Cdouble), window, xpos, ypos)
-@SetCallback(Key, Void, (Window, Cint, Cint, Cint, Cint))
-@SetCallback(Char, Void, (Window, Cuint))
-@SetCallback(MouseButton, Void, (Window, Cint, Cint, Cint))
-@SetCallback(CursorPos, Void, (Window, Cdouble, Cdouble))
-@SetCallback(CursorEnter, Void, (Window, Cint))
-@SetCallback(Scroll, Void, (Window, Cdouble, Cdouble))
+@Set KeyCallback(window::Window, key::Cint, scancode::Cint, action::Cint, mods::Cint)
+@Set CharCallback(window::Window, char::Cuint)
+@Set MouseButtonCallback(window::Window, button::Cint, actions::Cint, mods::Cint)
+@Set CursorPosCallback(window::Window, xpos::Cdouble, ypos::Cdouble)
+@Set CursorEnterCallback(window::Window, entered::Cint)
+@Set ScrollCallback(window::Window, xoffset::Cdouble, yoffset::Cdouble)
 JoystickPresent(joy::Integer) = bool(ccall( (:glfwJoystickPresent, lib), Cuint, (Cuint,), joy))
 
 function GetJoystickAxes(joy::Integer)

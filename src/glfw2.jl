@@ -239,9 +239,11 @@ function GetWindowParam(param::Integer)
 	value
 end
 
-@SetCallback(WindowSize, Void, (Cint, Cint))
-@SetCallback(WindowClose, Cint, ())
-@SetCallback(WindowRefresh, Void, ())
+@Set WindowSizeCallback(width::Cint, height::Cint)
+SetWindowCloseCallback(callback::Function) = SetWindowCloseCallback(cfunction(callback, Cint, ()))
+SetWindowCloseCallback(callback::Ptr{Void}) = ccall( (:glfwSetWindowCloseCallback, lib), Void, (Ptr{Void},), callback)
+SetWindowCloseCallback(::Nothing) = SetWindowCloseCallback(C_NULL)
+@Set WindowRefreshCallback()
 
 # Video mode functions
 function GetVideoModes(maxcount::Integer=100)
@@ -272,11 +274,11 @@ end
 SetMousePos(xpos::Integer, ypos::Integer) = ccall( (:glfwSetMousePos, lib), Void, (Cuint, Cuint), xpos, ypos)
 GetMouseWheel() = ccall( (:glfwGetMouseWheel, lib), Cuint, ())
 SetMouseWheel(pos::Integer) = ccall( (:glfwSetMouseWheel, lib), Void, (Cuint,), pos)
-@SetCallback(Key, Void, (Cint, Cint))
-@SetCallback(Char, Void, (Cint, Cint))
-@SetCallback(MouseButton, Void, (Cint, Cint))
-@SetCallback(MousePos, Void, (Cint, Cint))
-@SetCallback(MouseWheel, Void, (Cint,))
+@Set KeyCallback(key::Cint, action::Cint)
+@Set CharCallback(char::Cint, action::Cint)
+@Set MouseButtonCallback(button::Cint, action::Cint)
+@Set MousePosCallback(xpos::Cint, ypos::Cint)
+@Set MouseWheelCallback(pos::Cint)
 
 # Joystick input
 function GetJoystickParam(joy::Integer, param::Integer)
