@@ -16,21 +16,21 @@ end
 function GetVersion()
 	major, minor, rev = Cint[0], Cint[0], Cint[0]
 	ccall( (:glfwGetVersion, lib), Void, (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}), major, minor, rev)
-	(major[1], minor[1], rev[1])
+	VersionNumber(major[1], minor[1], rev[1])
 end
 
-const (VERSION_MAJOR, VERSION_MINOR, VERSION_REVISION) = GetVersion()
+const VERSION = GetVersion()
 
-if VERSION_MAJOR == 2
+if VERSION.major == 2
 	include("glfw2.jl")
-	info("loaded GLFW ", join(GetVersion(), '.'))
+	info("loaded GLFW $VERSION")
 	warn("GLFW 2 is outdated, consider upgrading to GLFW 3")
-elseif VERSION_MAJOR == 3
+elseif VERSION.major == 3
 	include("glfw3.jl")
 	info("loaded GLFW ", GetVersionString())
 	SetErrorCallback((code, desc) -> error(bytestring(desc)))
 else
-	error("GLFW ", join(GetVersion(), '.'), " is not supported")
+	error("GLFW $VERSION is not supported")
 end
 
 end
