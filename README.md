@@ -46,3 +46,8 @@ end
 
 GLFW.Terminate()
 ```
+
+Footnotes
+---------
+* While it is possible (and often convenient) to use closures or anonymous functions as callbacks, they are potentially less performant than using a top-level function.
+* Special thanks to [@afterwise](https://github.com/afterwise) for writing an early implementation of GLFW 3 support.
