@@ -98,5 +98,7 @@ macro Set(callback)
 	esc(ex)
 end
 
-# https://github.com/JuliaLang/julia/pull/4497
-Base.pointer_to_array(p, d::Integer) = pointer_to_array(p, int(d))
+# builds prior to May 14, 2014 (0.3.0-prerelease) don't support Integer
+if !method_exists(pointer_to_array, (Any, Integer))
+	Base.pointer_to_array(p, d::Integer) = pointer_to_array(p, int(d))
+end
