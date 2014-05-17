@@ -14,18 +14,17 @@ function GetVersion()
 end
 const VERSION = GetVersion()
 
-try
-	include(string("glfw", VERSION.major, ".jl"))
-catch
+if VERSION.major == 2
+	include("glfw2.jl")
+	GetVersionString() = string(VERSION)
+elseif VERSION.major == 3
+	include("glfw3.jl")
+	SetErrorCallback((code, desc) -> error(bytestring(desc)))
+else
 	error("GLFW $VERSION is not supported")
 end
 
-if isdefined(:SetErrorCallback)
-	SetErrorCallback((code, desc) -> error(bytestring(desc)))
-end
-
-info(string("loaded GLFW ", isdefined(:GetVersionString) ? GetVersionString() : VERSION, " from $lib"))
-
+info("loaded GLFW $(GetVersionString()) from $lib")
 if VERSION < VersionNumber(3)
 	warn("GLFW $VERSION is outdated, consider upgrading to a newer version")
 end
