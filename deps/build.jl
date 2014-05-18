@@ -8,6 +8,7 @@ map(mkpath, ("downloads", "usr"))
 @unix_only begin
 	const tarball = "downloads/$glfw.tar.gz"
 	if !isfile(tarball)
+		info("Downloading GLFW $version source tarball")
 		download("https://github.com/glfw/glfw/archive/$version.tar.gz", tarball)
 	end
 	mkpath("src")
@@ -28,14 +29,12 @@ end
 
 # download a pre-compiled binary
 @windows_only begin
-	const dll = "glfw3.dll"
-	const archive = "$glfw.bin.WIN$WORD_SIZE.zip"
-	if !(dll in readdir() && archive in readdir())
-		info("Downloading GLFW $version binary for $WORD_SIZE-bit Windows")
-		download("https://github.com/jayschwa/glfw/releases/download/$version/$archive", archive)
-		run(`7z e -y $archive glfw-*/lib-mingw/$dll`)
-		info("Installed $dll in $(pwd())")
-	else
-		info("$dll already exists in $(pwd())")
+	const build = "$glfw.bin.WIN$WORD_SIZE"
+	const archive = "downloads/$build.zip"
+	if !isfile(archive)
+		info("Downloading pre-compiled GLFW $version binary for $WORD_SIZE-bit Windows")
+		download("https://github.com/jayschwa/glfw/releases/download/$version/$build.zip", archive)
 	end
+	run(`7z x -obuilds -y $archive`)
+	run(`cp -R builds/$build/lib-mingw usr/lib`)
 end
