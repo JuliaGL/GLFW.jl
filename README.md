@@ -1,4 +1,4 @@
-GLFW.jl
+GLFW.jl  [![Build Status](https://travis-ci.org/jayschwa/GLFW.jl.svg?branch=master)](https://travis-ci.org/jayschwa/GLFW.jl)
 =======
 
 [GLFW][1] bindings for [Julia][2]. GLFW is an Open Source, multi-platform library for creating windows with OpenGL contexts and managing input and events. GLFW has native support for Windows, OS X and many Unix-like systems using the X Window System, such as Linux and FreeBSD.
@@ -17,6 +17,7 @@ Supported Versions
 GLFW.jl supports multiple versions of GLFW, including 3.0.x and older 2.7.x. When imported, the module searches for a GLFW shared library with Julia's [`find_library`][5] function and then loads bindings based on the library version detected.
 
 [5]: http://docs.julialang.org/en/latest/stdlib/base/#Base.find_library
+
 
 Simple Window Example
 ---------------------
@@ -46,6 +47,7 @@ end
 
 GLFW.Terminate()
 ```
+
 
 Footnotes
 ---------
