@@ -1,4 +1,4 @@
-GLFW.jl  [![Build Status](https://travis-ci.org/jayschwa/GLFW.jl.svg?branch=master)](https://travis-ci.org/jayschwa/GLFW.jl)
+GLFW.jl  [![Build Status][status]][travis]
 =======
 
 [Julia][1] interface to [GLFW][2], a multi-platform library for creating windows with OpenGL contexts and managing input and events. GLFW has native support for Windows, OS X and many Unix-like systems using the X Window System, such as Linux and FreeBSD.
@@ -9,6 +9,9 @@ Read the [GLFW documentation][4] for detailed instructions on how to use the lib
 [2]: http://www.glfw.org/
 [3]: https://wikipedia.org/wiki/OpenGL
 [4]: http://www.glfw.org/documentation.html
+
+[travis]: https://travis-ci.org/jayschwa/GLFW.jl
+[status]: https://travis-ci.org/jayschwa/GLFW.jl.svg
 
 
 Supported Versions
@@ -21,13 +24,14 @@ GLFW.jl supports multiple versions of GLFW, including 3.0.x and older 2.7.x. Whe
 
 Simple Window Example
 ---------------------
+
 ```julia
 import GLFW
 
 # Initialize the library
 GLFW.Init()
 
-# Create a windowed mode window and its OpenGL context
+# Create a window and its OpenGL context
 window = GLFW.CreateWindow(640, 480, "GLFW.jl")
 
 # Make the window's context current
