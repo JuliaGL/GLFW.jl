@@ -1,2 +1,2 @@
-deps/*.dll
-deps/*.zip
+deps/*
+!deps/build.jl

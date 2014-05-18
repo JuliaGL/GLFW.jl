@@ -1,6 +1,6 @@
 module GLFW
 
-const lib = find_library(["glfw3", "libglfw3", "glfw", "libglfw"], [Pkg.dir("GLFW/deps")])
+const lib = find_library(["glfw3", "libglfw3", "glfw", "libglfw"], [Pkg.dir("GLFW/deps"), Pkg.dir("GLFW/deps/usr/lib")])
 if isempty(lib)
 	error("could not find GLFW library")
 end
