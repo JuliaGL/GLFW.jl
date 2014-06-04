@@ -17,16 +17,19 @@ const VERSION = GetVersion()
 if VERSION.major == 2
 	include("glfw2.jl")
 	GetVersionString() = string(VERSION)
+	for f in (:CreateWindow, :WindowHint, :DefaultWindowHints, :GetMonitors, :GetPrimaryMonitor)
+		@eval $f(any...) = error($f, " is not supported by GLFW $VERSION, use a newer version of the library")
+	end
 elseif VERSION.major == 3
 	include("glfw3.jl")
 	SetErrorCallback((code, desc) -> error(bytestring(desc)))
+	for f in (:OpenWindow, :OpenWindowHint, :GetDesktopMode)
+		@eval $f(any...) = error($f, " is obsolete and not supported by newer versions of GLFW")
+	end
 else
 	error("GLFW $VERSION is not supported")
 end
 
 info("loaded GLFW $(GetVersionString()) from $lib")
-if VERSION < VersionNumber(3)
-	warn("GLFW $VERSION is outdated, consider upgrading to a newer version")
-end
 
 end
