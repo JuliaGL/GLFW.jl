@@ -346,13 +346,13 @@ GetPrimaryMonitor() = ccall( (:glfwGetPrimaryMonitor, lib), Monitor, ())
 function GetMonitorPos(monitor::Monitor)
 	xpos, ypos = Cint[0], Cint[0]
 	ccall( (:glfwGetMonitorPos, lib), Void, (Monitor, Ptr{Cint}, Ptr{Cint}), monitor, xpos, ypos)
-	(xpos, ypos)
+	(xpos[1], ypos[1])
 end
 
 function GetMonitorPhysicalSize(monitor::Monitor)
 	width, height = Cint[0], Cint[0]
 	ccall( (:glfwGetMonitorPhysicalSize, lib), Void, (Monitor, Ptr{Cint}, Ptr{Cint}), monitor, width, height)
-	(width, height)
+	(width[1], height[1])
 end
 
 GetMonitorName(monitor::Monitor) = bytestring(ccall( (:glfwGetMonitorName, lib), Ptr{Cchar}, (Monitor,), monitor))
