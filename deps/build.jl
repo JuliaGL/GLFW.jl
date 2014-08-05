@@ -6,6 +6,10 @@ map(mkpath, ("downloads", "usr"))
 
 # download and compile the library from source
 @unix_only begin
+	run(`sudo apt-get install cmake`)
+	run(`sudo apt-get install xorg-dev`)
+	run(`sudo apt-get install libglu1-mesa-dev`)
+	
 	const tarball = "downloads/$glfw.tar.gz"
 	if !isfile(tarball)
 		info("Downloading GLFW $version source tarball")
