@@ -10,8 +10,8 @@ Read the [GLFW documentation][4] for detailed instructions on how to use the lib
 [3]: https://wikipedia.org/wiki/OpenGL
 [4]: http://www.glfw.org/documentation.html
 
-[travis]: https://travis-ci.org/jayschwa/GLFW.jl
-[status]: https://travis-ci.org/jayschwa/GLFW.jl.svg
+[travis]: https://travis-ci.org/JuliaGL/GLFW.jl
+[status]: https://travis-ci.org/JuliaGL/GLFW.jl.svg
 
 
 Supported Versions
