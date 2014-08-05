@@ -12,7 +12,7 @@ const glfw = "glfw-$version"
 	end
 	mkpath("src")
 	run(`tar xzf $tarball -C src`)
-	map(mkpath, "builds/$glfw", "usr$WORD_SIZE")
+	map(mkpath, ("builds/$glfw", "usr$WORD_SIZE"))
 	cd("builds/$glfw") do
 		options = map(x -> "-D$(x[1])=$(x[2])", [
 			"BUILD_SHARED_LIBS"     => "ON",
