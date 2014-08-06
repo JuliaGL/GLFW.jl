@@ -4,26 +4,34 @@ const glfw = "glfw-$version"
 
 # download and compile the library from source
 @unix_only begin
-	mkpath("downloads")
-	const tarball = "downloads/$glfw.tar.gz"
-	if !isfile(tarball)
-		info("Downloading GLFW $version source tarball")
-		download("https://github.com/glfw/glfw/archive/$version.tar.gz", tarball)
-	end
-	mkpath("src")
-	run(`tar xzf $tarball -C src`)
-	map(mkpath, ("builds/$glfw", "usr$WORD_SIZE"))
-	cd("builds/$glfw") do
-		options = map(x -> "-D$(x[1])=$(x[2])", [
-			"BUILD_SHARED_LIBS"     => "ON",
-			"CMAKE_INSTALL_PREFIX"  => "../../usr$WORD_SIZE",
-			"GLFW_BUILD_DOCS"       => "OFF",
-			"GLFW_BUILD_EXAMPLES"   => "OFF",
-			"GLFW_BUILD_TESTS"      => "OFF"
-		])
-		run(`cmake $options ../../src/$glfw`)
-		run(`make install`)
-	end
+    function cmakebuild()
+ 	cd("builds/$glfw") do
+	    options = map(x -> "-D$(x[1])=$(x[2])", [
+                            "BUILD_SHARED_LIBS"     => "ON",
+                            "CMAKE_INSTALL_PREFIX"  => "../../usr$WORD_SIZE",
+                            "GLFW_BUILD_DOCS"       => "OFF",
+                            "GLFW_BUILD_EXAMPLES"   => "OFF",
+                             "GLFW_BUILD_TESTS"      => "OFF"
+               ])
+	    run(`cmake $options ../../src/$glfw`)
+	    run(`make install`)
+        end
+    end
+    mkpath("downloads")
+    const tarball = "downloads/$glfw.tar.gz"
+    if !isfile(tarball)
+	info("Downloading GLFW $version source tarball")
+	download("https://github.com/glfw/glfw/archive/$version.tar.gz", tarball)
+    end
+    mkpath("src")
+    run(`tar xzf $tarball -C src`)
+    map(mkpath, ("builds/$glfw", "usr$WORD_SIZE"))
+    try
+        cmakebuild()
+    catch
+        run(`sudo apt-get -u install xorg-dev libglu1-mesa-dev`)
+        cmakebuild()
+    end
 end
 
 # download a pre-compiled binary
