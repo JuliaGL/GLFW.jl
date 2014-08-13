@@ -30,7 +30,11 @@ const glfw = "glfw-$version"
 		end
 	catch e
 		warn(e)
-		warn("Build failed, you may need to manually install the library (see http://www.glfw.org/download.html for more information)")
+		warn("""
+On Linux, you might not have xorg-dev and libglu1-mesa-dev installed, which you can get via the commandline with for example
+sudo apt-get install  xorg-dev libglu1-mesa-dev
+If that doesn't help, try to install GLFW manually
+(see http://www.glfw.org/download.html for more information)""")
 	end
 end
 
