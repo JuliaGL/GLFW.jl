@@ -11,6 +11,7 @@ before_install:
   - sudo apt-get install libXxf86vm-dev # GLFW dependencies
   - "export DISPLAY=:99.0"
   - "sh -e /etc/init.d/xvfb start"
+  - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
 script:
   - julia -e 'Pkg.init(); Pkg.clone(pwd()); Pkg.build("GLFW")'
   - julia -e 'if isdefined(Pkg, :test) Pkg.test("GLFW") else include(Pkg.dir("GLFW/test/runtests.jl")) end'
