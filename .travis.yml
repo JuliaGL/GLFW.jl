@@ -18,4 +18,4 @@ before_install:
   - "sh -e /etc/init.d/xvfb start"
   - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
 script:
-  - julia --check-bounds=yes -e 'versioninfo(); Pkg.init(); Pkg.clone(pwd()); Pkg.test("GLFW")'
+  - julia --check-bounds=yes -e 'versioninfo(); Pkg.init(); Pkg.clone(pwd()); Pkg.build("GLFW"); Pkg.test("GLFW")'
