@@ -30,6 +30,5 @@ else
 	error("GLFW $VERSION is not supported")
 end
 
-#info("loaded GLFW $(GetVersionString()) from $lib")
 
 end
