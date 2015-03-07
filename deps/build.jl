@@ -5,7 +5,7 @@ const glfw = "glfw-$version"
 # TODO: if the latest version is already installed, don't bother with any of this
 
 # download and compile the library from source
-@unix_only begin
+@linux_only begin
 	mkpath("downloads")
 	const tarball = "downloads/$glfw.tar.gz"
 	if !isfile(tarball)
@@ -38,7 +38,33 @@ If that doesn't help, try to install GLFW manually
 	end
 end
 
-# download a pre-compiled binary
+# download a pre-complied binary (built by Homebrew)
+@osx_only begin
+	const osx_version = convert(VersionNumber, readall(`sw_vers -productVersion`))
+	if osx_version >= v"10.10"
+		codename = "yosemite"
+	elseif osx_version >= v"10.9"
+		codename = "mavericks"
+	else
+		codename = "mountain_lion"
+	end
+	const tarball = "glfw3-$version.$codename.bottle.tar.gz"
+	if (!isfile("downloads/$tarball"))
+		info("Downloading pre-compiled GLFW $version binary")
+		mkpath("downloads")
+		download("https://homebrew.bintray.com/bottles-versions/$tarball", "downloads/$tarball")
+	end
+	mkpath("builds")
+	run(`tar xzf downloads/$tarball -C builds`)
+	mkpath("usr64")
+
+	# Using `mv` since `cp` seems broken: https://github.com/JuliaLang/julia/issues/10434
+	# TODO: Re-check when min version is Julia 0.4
+	try rm("usr64/lib", recursive=true) end
+	mv("builds/glfw3/$version/lib", "usr64/lib")
+end
+
+# download a pre-compiled binary (built by GLFW)
 @windows_only begin
 	mkpath("downloads")
 	for sz in (32, 64)
