@@ -50,6 +50,10 @@ end
 		end
 		run(`7z x -obuilds -y $archive`)
 		mkpath("usr$sz")
-		run(`cp -R builds/$build/lib-mingw usr$sz/lib`)
+
+		# Using `mv` since `cp` seems broken: https://github.com/JuliaLang/julia/issues/10434
+		# TODO: Re-check when min version is Julia 0.4
+		try rm("usr$sz/lib", recursive=true) end
+		mv("builds/$build/lib-mingw", "usr$sz/lib")
 	end
 end
