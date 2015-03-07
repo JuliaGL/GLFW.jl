@@ -19,11 +19,11 @@ const glfw = "glfw-$version"
 		info("Building GLFW $version library from source")
 		cd("builds/$glfw") do
 			options = map(x -> "-D$(x[1])=$(x[2])", [
-				"BUILD_SHARED_LIBS"     => "ON",
-				"CMAKE_INSTALL_PREFIX"  => "../../usr$WORD_SIZE",
-				"GLFW_BUILD_DOCS"       => "OFF",
-				"GLFW_BUILD_EXAMPLES"   => "OFF",
-				"GLFW_BUILD_TESTS"      => "OFF"
+				("BUILD_SHARED_LIBS",    "ON"),
+				("CMAKE_INSTALL_PREFIX", "../../usr$WORD_SIZE"),
+				("GLFW_BUILD_DOCS",      "OFF"),
+				("GLFW_BUILD_EXAMPLES",  "OFF"),
+				("GLFW_BUILD_TESTS",     "OFF")
 			])
 			run(`cmake $options ../../src/$glfw`)
 			run(`make install`)
