@@ -25,7 +25,7 @@ const glfw = "glfw-$version"
 				("GLFW_BUILD_EXAMPLES",  "OFF"),
 				("GLFW_BUILD_TESTS",     "OFF")
 			])
-			run(`cmake $options ../../src/$glfw`)
+			run(`env MACOSX_DEPLOYMENT_TARGET=10.9 cmake $options ../../src/$glfw`)
 			run(`make install`)
 		end
 	catch e
