@@ -1,6 +1,6 @@
 module GLFW
 
-const lib = find_library(["glfw3", "libglfw3", "glfw", "libglfw"], [Pkg.dir("GLFW/deps/usr$WORD_SIZE/lib")])
+const lib =  Libdl.find_library(["glfw3", "libglfw3", "glfw", "libglfw"], [Pkg.dir("GLFW/deps/usr$WORD_SIZE/lib")])
 if isempty(lib)
 	error("could not find GLFW library")
 end
@@ -13,7 +13,9 @@ function GetVersion()
 	VersionNumber(major[1], minor[1], rev[1])
 end
 const VERSION = GetVersion()
-
+function error_callback(code, desc)
+	error(bytestring(desc))
+end
 if VERSION.major == 2
 	include("glfw2.jl")
 	GetVersionString() = string(VERSION)
@@ -22,7 +24,7 @@ if VERSION.major == 2
 	end
 elseif VERSION.major == 3
 	include("glfw3.jl")
-	SetErrorCallback((code, desc) -> error(bytestring(desc)))
+	SetErrorCallback(error_callback)
 	for f in (:OpenWindow, :OpenWindowHint, :GetDesktopMode)
 		@eval $f(any...) = error($f, " is obsolete and not supported by newer versions of GLFW")
 	end
