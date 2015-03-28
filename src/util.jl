@@ -1,99 +1,53 @@
-typealias Callback Union(Function, Nothing)
 
-# global callback function references
-const _callbacks = Array(Callback, 0)
-
+function generate_callback(f::Function, argtypes)
+	isgeneric(f) && return cfunction(f, Void, argtypes)
+	names 	= ntuple(i->symbol("i$i"), length(argtypes))
+	args 	= ntuple(i->:($(names[i])::$(argtypes[i])), length(argtypes))
+	funsym 	= gensym()
+	func 	= @eval begin
+		$funsym($(args...)) = (f($(names...)); nothing)
+	end
+	cfunction(func, Void, argtypes)
+end
 # generate methods for wrapping and setting a callback
 macro Set(callback)
 
 	wrapperfunc = callback.args[1]                           # FooCallback
-	setfunc  = symbol(string("Set", wrapperfunc))            # SetFooCallback
-	setcfunc = Expr(:quote, symbol(string("glfw", setfunc))) # :glfwSetFooCallback
+	setfunc  	= symbol(string("Set", wrapperfunc))            # SetFooCallback
+	setcfunc 	= Expr(:quote, symbol(string("glfw", setfunc)))	# :glfwSetFooCallback, workaround for not being able to interpolate symbol
 
-	argnames = map(a -> a.args[1], callback.args[2:end])
-	argtypes = Expr(:tuple, map(a -> a.args[2], callback.args[2:end])...)
+	argnames 			= map(a -> a.args[1], callback.args[2:end])
+	argtypes 			= map(a -> a.args[2], callback.args[2:end])
+	iswindowcallback 	= isdefined(:Window) && :Window in argtypes # is first argument of type windows?
+	argtypes 			= Expr(:tuple, argtypes...) # make tuple 
 
-	iswindowcallback = isdefined(:Window) && Window in eval(argtypes)
+	callback_args_glfw 	= [(:funcptr, Ptr{Void})]
+	callback_args_set 	= [(:callback, Function)]
+	setfun_cfun_args 	= [:cfun]
 
-	# grow callback function reference collection
 	if iswindowcallback
-		idx = length(WindowData("").callbacks) + 1
-		@eval WindowData(title::String) = WindowData(title, Array(Callback, $idx))
-		juliafunc = :(_windows[window].callbacks[$idx])
-	else
-		idx = length(_callbacks) + 1
-		push!(_callbacks, nothing)
-		juliafunc = :(_callbacks[$idx])
+		unshift!(callback_args_glfw, (:window, Window)) # insert windows argument in front
+		unshift!(callback_args_set,  (:window, Window))
+		unshift!(setfun_cfun_args,    :window)
 	end
 
-	# methods for window-specific callbacks
-	ex = iswindowcallback ? quote
+	callback_args_glfw_name 	  = map(first, callback_args_glfw)
+	callback_args_glfw_type 	  = map(last, callback_args_glfw)
+	callback_args_glfw_name_typed = [:($arname::$argtype) for (arname, argtype) in callback_args_glfw]
 
-		# ccall wrapper
-		function $setfunc(window::Window, funcptr::Ptr{Void}, objref=nothing)
-			$juliafunc = objref
-			ccall( ($setcfunc, lib), Void, (Window, Ptr{Void}), window, funcptr)
+	callback_args_set_name_typed  = [:($arname::$argtype) for (arname, argtype) in callback_args_set]
+
+	expr = quote
+		function $setfunc($(callback_args_glfw_name_typed...))
+			ccall(($setcfunc, lib), Void, ($(callback_args_glfw_type...),), $(callback_args_glfw_name...))
 		end
-
-		# set callback
-		function $setfunc(window::Window, callback::Function)
+		function $setfunc($(callback_args_set_name_typed...))
 			if isgeneric(callback) && !method_exists(callback, $argtypes)
 				throw(MethodError(callback, $argtypes))
 			end
-			try
-				$setfunc(window, cfunction(callback, Void, $argtypes))
-			catch
-				$setfunc(window, cfunction($wrapperfunc, Void, $argtypes), callback)
-			end
+			cfun = generate_callback(callback, $argtypes)
+			$setfunc($(setfun_cfun_args...))
 		end
-
-		# wraps callbacks that can't be cfunction'd
-		$callback = begin
-			try
-				$juliafunc($(argnames...))
-			catch e
-				try # without window arg
-					$juliafunc($(argnames[2:end]...))
-				catch
-					rethrow(e)
-				end
-			end
-			return nothing
-		end
-
-		# unset callback
-		$setfunc(window::Window, ::Nothing) = $setfunc(window, C_NULL)
-
-	# methods for global callbacks
-	end : quote
-
-		# ccall wrapper
-		function $setfunc(funcptr::Ptr{Void}, objref=nothing)
-			$juliafunc = objref
-			ccall( ($setcfunc, lib), Void, (Ptr{Void},), funcptr)
-		end
-
-		# set callback
-		function $setfunc(callback::Function)
-			if isgeneric(callback) && !method_exists(callback, $argtypes)
-				throw(MethodError(callback, $argtypes))
-			end
-			try
-				$setfunc(cfunction(callback, Void, $argtypes))
-			catch
-				$setfunc(cfunction($wrapperfunc, Void, $argtypes), callback)
-			end
-		end
-
-		# wraps callbacks that can't be cfunction'd
-		$callback = begin
-			$juliafunc($(argnames...))
-			return nothing
-		end
-
-		# unset callback
-		$setfunc(::Nothing) = $setfunc(C_NULL)
-
 	end
-	esc(ex)
+	return esc(expr)
 end
