@@ -1,3 +1,14 @@
+
+function generate_callback(f::Function, argtypes)
+	isgeneric(f) && return cfunction(f, Void, argtypes)
+	names 	= ntuple(i->symbol("i$i"), length(argtypes))
+	args 	= ntuple(i->:($(names[i])::$(argtypes[i])), length(argtypes))
+	funsym 	= gensym()
+	func 	= @eval begin
+		$funsym($(args...)) = (f($(names...)); nothing)
+	end
+	cfunction(func, Void, argtypes)
+end
 # generate methods for wrapping and setting a callback
 macro Set(callback)
 
@@ -34,7 +45,7 @@ macro Set(callback)
 			if isgeneric(callback) && !method_exists(callback, $argtypes)
 				throw(MethodError(callback, $argtypes))
 			end
-			cfun = cfunction(callback, Void, $argtypes)
+			cfun = generate_callback(callback, $argtypes)
 			$setfunc($(setfun_cfun_args...))
 		end
 	end
