@@ -388,7 +388,7 @@ function DestroyWindow(window::Window)
 	return nothing
 end
 
-WindowShouldClose(window::Window) = bool(ccall( (:glfwWindowShouldClose, lib), Cuint, (Window,), window))
+WindowShouldClose(window::Window) = @compat Bool(ccall( (:glfwWindowShouldClose, lib), Cuint, (Window,), window))
 SetWindowShouldClose(window::Window, value::Integer) = ccall( (:glfwSetWindowShouldClose, lib), Void, (Window, Cuint), window, value)
 
 function SetWindowTitle(window::Window, title::String)
@@ -439,14 +439,14 @@ WaitEvents() = ccall( (:glfwWaitEvents, lib), Void, ())
 function GetInputMode(window::Window, mode::Integer)
 	value = ccall( (:glfwGetInputMode, lib), Cuint, (Window, Cuint), window, mode)
 	if mode in (STICKY_KEYS, STICKY_MOUSE_BUTTONS)
-		value = bool(value)
+		value = @compat Bool(value)
 	end
 	value
 end
 
 SetInputMode(window::Window, mode::Integer, value::Integer) = ccall( (:glfwSetInputMode, lib), Void, (Window, Cuint, Cuint), window, mode, value)
-GetKey(window::Window, key::Integer) = bool(ccall( (:glfwGetKey, lib), Cuint, (Window, Cuint), window, key))
-GetMouseButton(window::Window, button::Integer) = bool(ccall( (:glfwGetMouseButton, lib), Cuint, (Window, Cuint), window, button))
+GetKey(window::Window, key::Integer) = @compat Bool(ccall( (:glfwGetKey, lib), Cuint, (Window, Cuint), window, key))
+GetMouseButton(window::Window, button::Integer) = @compat Bool(ccall( (:glfwGetMouseButton, lib), Cuint, (Window, Cuint), window, button))
 
 function GetCursorPos(window::Window)
 	xpos, ypos = Cdouble[0], Cdouble[0]
@@ -461,7 +461,7 @@ SetCursorPos(window::Window, xpos::FloatingPoint, ypos::FloatingPoint) = ccall( 
 @Set CursorPosCallback(window::Window, xpos::Cdouble, ypos::Cdouble)
 @Set CursorEnterCallback(window::Window, entered::Cint)
 @Set ScrollCallback(window::Window, xoffset::Cdouble, yoffset::Cdouble)
-JoystickPresent(joy::Integer) = bool(ccall( (:glfwJoystickPresent, lib), Cuint, (Cuint,), joy))
+JoystickPresent(joy::Integer) = @compat Bool(ccall( (:glfwJoystickPresent, lib), Cuint, (Cuint,), joy))
 
 function GetJoystickAxes(joy::Integer)
 	count = Cint[0]
@@ -482,5 +482,5 @@ MakeContextCurrent(window::Window) = ccall( (:glfwMakeContextCurrent, lib), Void
 GetCurrentContext() = ccall( (:glfwGetCurrentContext, lib), Window, ())
 SwapBuffers(window::Window) = ccall( (:glfwSwapBuffers, lib), Void, (Window,), window)
 SwapInterval(interval::Integer) = ccall( (:glfwSwapInterval, lib), Void, (Cuint,), interval)
-ExtensionSupported(extension::String) = bool(ccall( (:glfwExtensionSupported, lib), Cuint, (Ptr{Cchar},), bytestring(extension)))
+ExtensionSupported(extension::String) = @compat Bool(ccall( (:glfwExtensionSupported, lib), Cuint, (Ptr{Cchar},), bytestring(extension)))
 GetProcAddress(procname::String) = ccall((:glfwGetProcAddress, lib), Ptr{Void}, (Ptr{Cchar},), bytestring(procname))
