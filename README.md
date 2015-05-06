@@ -19,7 +19,7 @@ Supported Versions
 
 GLFW.jl supports multiple versions of GLFW, including 3.0.x and older 2.7.x. When imported, the module searches for a GLFW shared library with Julia's [`find_library`][5] function and then loads bindings based on the library version detected.
 
-[5]: http://docs.julialang.org/en/latest/stdlib/base/#Base.find_library
+[5]: http://docs.julialang.org/en/latest/stdlib/libdl/#Libdl.find_library
 
 
 Simple Window Example
