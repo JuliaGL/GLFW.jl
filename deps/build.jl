@@ -1,5 +1,5 @@
 # version of library to download
-const version = "3.1"
+const version = v"3.1.1"
 const glfw = "glfw-$version"
 
 # TODO: if the latest version is already installed, don't bother with any of this
@@ -72,7 +72,7 @@ end
 		const archive = "downloads/$build.zip"
 		if !isfile(archive)
 			info("Downloading pre-compiled GLFW $version $sz-bit binary")
-			download("https://github.com/jayschwa/glfw/releases/download/$version/$build.zip", archive)
+			download("https://github.com/glfw/glfw/releases/download/$version/$build.zip", archive)
 		end
 		run(`7z x -obuilds -y $archive`)
 		mkpath("usr$sz")
