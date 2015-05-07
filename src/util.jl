@@ -1,11 +1,11 @@
 
-function generate_callback(f::Function, argtypes)
-	isgeneric(f) && return cfunction(f, Void, argtypes)
+function generate_callback(callback::Function, argtypes)
+	isgeneric(callback) && return cfunction(callback, Void, argtypes)
 	names 	= ntuple(i->symbol("i$i"), length(argtypes))
 	args 	= ntuple(i->:($(names[i])::$(argtypes[i])), length(argtypes))
 	funsym 	= gensym()
 	func 	= @eval begin
-		$funsym($(args...)) = (f($(names...)); nothing)
+		$funsym($(args...)) = ($callback($(names...)); nothing)
 	end
 	cfunction(func, Void, argtypes)
 end
