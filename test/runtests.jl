@@ -1,6 +1,6 @@
 import GLFW
 
-travis = haskey(ENV, "TRAVIS") && ENV["TRAVIS"] == "true"
+travis = get(ENV, "TRAVIS", "") == "true"
 
 try
 	GLFW.Init()
