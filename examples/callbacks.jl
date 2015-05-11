@@ -2,6 +2,7 @@ import GLFW
 
 GLFW.Init()
 window = GLFW.CreateWindow(800, 600, "GLFW Callback Test")
+GLFW.MakeContextCurrent(window)
 
 GLFW.SetWindowCloseCallback(window, () -> println("window closed"))
 GLFW.SetWindowSizeCallback(window, (w, h) -> println("window size: $h x $w"))
@@ -20,10 +21,13 @@ GLFW.SetMouseButtonCallback(window, (button, action, mods) ->
 GLFW.SetCursorPosCallback(window, (x, y) -> println("cursor pos: $x, $y"))
 GLFW.SetScrollCallback(window, (xoff, yoff) -> println("scroll: $xoff, $yoff"))
 
-gc()
+glClear() = ccall(@eval(GLFW.GetProcAddress("glClear")), Void, (Cuint,), 0x00004000)
+
+gc() # Force garbage collection so that improper reference management is more apparent via crashes
 
 frames = 0
 seconds = @elapsed while !GLFW.WindowShouldClose(window)
+	glClear()
 	GLFW.SwapBuffers(window)
 	GLFW.PollEvents()
 	frames += 1
