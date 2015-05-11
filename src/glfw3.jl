@@ -456,11 +456,13 @@ end
 
 SetCursorPos(window::Window, xpos::FloatingPoint, ypos::FloatingPoint) = ccall( (:glfwSetCursorPos, lib), Void, (Window, Cdouble, Cdouble), window, xpos, ypos)
 @Set KeyCallback(window::Window, key::Cint, scancode::Cint, action::Cint, mods::Cint)
-@Set CharCallback(window::Window, char::Cuint)
+@Set CharCallback(window::Window, codepoint::Cuint)
+@Set CharModsCallback(window::Window, codepoint::Cuint, mods::Cint)
 @Set MouseButtonCallback(window::Window, button::Cint, actions::Cint, mods::Cint)
 @Set CursorPosCallback(window::Window, xpos::Cdouble, ypos::Cdouble)
 @Set CursorEnterCallback(window::Window, entered::Cint)
 @Set ScrollCallback(window::Window, xoffset::Cdouble, yoffset::Cdouble)
+@Set DropCallback(window::Window, count::Cint, paths::Ptr{Ptr{Cchar}})
 JoystickPresent(joy::Integer) = @compat Bool(ccall( (:glfwJoystickPresent, lib), Cuint, (Cuint,), joy))
 
 function GetJoystickAxes(joy::Integer)

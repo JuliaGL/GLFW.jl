@@ -15,11 +15,13 @@ GLFW.SetKeyCallback(window, (key, scancode, action, mods) -> begin
 	println("key ", action == 1 ? "dn" : "up", ": $key")
 end)
 
-GLFW.SetCharCallback(window, (c) -> println("char: '$(convert(Char, c))'"))
+GLFW.SetCharModsCallback(window, (c, mods) -> println("char: '$(convert(Char, c))', mods: $mods"))
 GLFW.SetMouseButtonCallback(window, (button, action, mods) ->
 	println("mouse button ", action == 1 ? "dn" : "up", ": $button"))
 GLFW.SetCursorPosCallback(window, (x, y) -> println("cursor pos: $x, $y"))
 GLFW.SetScrollCallback(window, (xoff, yoff) -> println("scroll: $xoff, $yoff"))
+
+GLFW.SetDropCallback(window, (count, paths) -> println(map(bytestring, pointer_to_array(paths, count))))
 
 glClear() = ccall(@eval(GLFW.GetProcAddress("glClear")), Void, (Cuint,), 0x00004000)
 
