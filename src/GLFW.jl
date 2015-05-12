@@ -9,6 +9,12 @@ end
 
 include("util.jl")
 
+@doc """
+Retrieves the major, minor, and revision numbers of the GLFW library. It is intended for when you are using GLFW as a
+shared library and want to ensure that you are using the minimum required version.
+
+This function always succeeds.
+""" ->
 function GetVersion()
 	major, minor, rev = Cint[0], Cint[0], Cint[0]
 	ccall( (:glfwGetVersion, lib), Void, (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}), major, minor, rev)

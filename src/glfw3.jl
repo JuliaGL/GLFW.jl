@@ -279,6 +279,17 @@ end
 #************************************************************************
 
 # Initialization and version information
+
+@doc """
+Initializes the GLFW library. Before most GLFW functions can be used, GLFW must be initialized, and before an
+application terminates GLFW should be terminated in order to free any resources allocated during or after
+initialization.
+
+If this function fails, it calls `GLFW.Terminate` before returning. If it succeeds, you should call `GLFW.Terminate`
+before the application exits.
+
+This function may only be called from the main thread.
+""" ->
 function Init()
 	status = ccall( (:glfwInit, lib), Cuint, ())
 	if status != 1
@@ -286,25 +297,76 @@ function Init()
 	end
 end
 
-function Terminate()
-	ccall( (:glfwTerminate, lib), Void, ())
-	return nothing
-end
+@doc """
+This function destroys all remaining windows and cursors, restores any modified gamma ramps and frees any other
+allocated resources. Once this function is called, you must again call `GLFW.Init` successfully before you will be able
+to use most GLFW functions.
 
+If GLFW has been successfully initialized, this function should be called before the application exits. If
+initialization fails, there is no need to call this function, as it is called by `GLFW.Init` before it returns failure.
+
+This function may only be called from the main thread.
+""" ->
+Terminate() = ccall( (:glfwTerminate, lib), Void, ())
+
+@doc """
+Returns the compile-time generated version string of the GLFW library binary. It describes the version, platform,
+compiler and any platform-specific compile-time options.
+
+Do not use the version string to parse the GLFW library version. The `GLFW.GetVersion` function already provides the
+version of the running library binary.
+
+Remarks:
+
+* This function always succeeds.
+* This function may only be called from the main thread.
+""" ->
 GetVersionString() = bytestring(ccall( (:glfwGetVersionString, lib), Ptr{Cchar}, ()))
 
 # Error handling
+
+@doc """
+Sets the error callback, which is called with an error code and a human-readable description each time a GLFW error
+occurs.
+
+The error callback is called on the thread where the error occurred. If you are using GLFW from multiple threads, your
+error callback needs to be written accordingly.
+
+Because the description string may have been generated specifically for that error, it is not guaranteed to be valid
+after the callback has returned. If you wish to use it after the callback returns, you need to make a copy.
+
+Once set, the error callback remains set even after the library has been terminated.
+
+GLFW.jl uses `Base.error` as the default error callback.
+""" ->
 @callback Error(code::Cint, description::Ptr{Cchar}) -> (code, bytestring(description))
 
 # Monitor handling
+
+@doc """
+Returns an array of `GLFW.Monitor` for all currently connected monitors.
+
+This function may only be called from the main thread.
+""" ->
 function GetMonitors()
 	count = Cint[0]
 	ptr = ccall( (:glfwGetMonitors, lib), Ptr{Monitor}, (Ptr{Cint},), count)
 	pointer_to_array(ptr, count[1])
 end
 
+@doc """
+Returns the primary monitor. This is usually the monitor where elements like the Windows task bar or the OS X menu bar
+are located.
+
+This function may only be called from the main thread.
+""" ->
 GetPrimaryMonitor() = ccall( (:glfwGetPrimaryMonitor, lib), Monitor, ())
 
+@doc """
+Returns the position, in screen coordinates, of the upper-left corner of the specified monitor.
+
+This function may only be called from the main thread.
+""" ->
 function GetMonitorPos(monitor::Monitor)
 	xpos, ypos = Cint[0], Cint[0]
 	ccall( (:glfwGetMonitorPos, lib), Void, (Monitor, Ptr{Cint}, Ptr{Cint}), monitor, xpos, ypos)
