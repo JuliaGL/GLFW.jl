@@ -248,6 +248,7 @@ immutable Monitor
 	ref::Ptr{Void}
 end
 const NullMonitor = Monitor(C_NULL)
+Base.show(io::IO, m::Monitor) = write(io, "Monitor($(m == NullMonitor ? m.ref : GetMonitorName(m)))")
 
 # Opaque window object
 immutable Window
@@ -273,44 +274,6 @@ immutable GammaRamp
 	size::Cuint         # The number of elements in each array.
 end
 
-
-#************************************************************************
-# GLFW.jl internal types
-#************************************************************************
-
-# Extra data to keep for each window
-type WindowData
-	title::String
-	callbacks::Vector{Callback}
-end
-WindowData(title::String) = WindowData(title, Array(Callback, 0))
-
-# Global collection for storing references to WindowData (to prevent premature garbage collection)
-typealias Windows Dict{Window, WindowData}
-const _windows = Windows()
-
-# Faster lookup via window user pointer
-Base.getindex(::Windows, w::Window) =
-	unsafe_pointer_to_objref(ccall( (:glfwGetWindowUserPointer, lib), Ptr{WindowData}, (Window,), w))
-function Base.setindex!(W::Windows, d::WindowData, w::Window)
-	ccall( (:glfwSetWindowUserPointer, lib), Void, (Window, Ptr{WindowData}), w, pointer_from_objref(d))
-	invoke(setindex!, (Dict, WindowData, Window), W, d, w) # write to Dict with default method
-end
-
-# Friendlier text representations of opaque objects
-Base.show(io::IO, m::Monitor) = write(io, "Monitor($(m == NullMonitor ? "Null" : GetMonitorName(m)))")
-function Base.show(io::IO, w::Window)
-	if w == NullWindow
-		id = "Null"
-	elseif haskey(_windows, w)
-		id = _windows[w].title
-	else
-		id = w.ref
-	end
-	write(io, "Window($id)")
-end
-
-
 #************************************************************************
 # GLFW API functions
 #************************************************************************
@@ -325,14 +288,13 @@ end
 
 function Terminate()
 	ccall( (:glfwTerminate, lib), Void, ())
-	empty!(_windows)
 	return nothing
 end
 
 GetVersionString() = bytestring(ccall( (:glfwGetVersionString, lib), Ptr{Cchar}, ()))
 
 # Error handling
-@Set ErrorCallback(error::Cint, desc::Ptr{Cchar})
+@callback Error(code::Cint, description::Ptr{Cchar}) -> (code, bytestring(description))
 
 # Monitor handling
 function GetMonitors()
@@ -356,7 +318,7 @@ function GetMonitorPhysicalSize(monitor::Monitor)
 end
 
 GetMonitorName(monitor::Monitor) = bytestring(ccall( (:glfwGetMonitorName, lib), Ptr{Cchar}, (Monitor,), monitor))
-@Set MonitorCallback(monitor::Monitor, event::Cint)
+@callback Monitor(monitor::Monitor, event::Cint)
 
 function GetVideoModes(monitor::Monitor)
 	count = Cint[0]
@@ -374,17 +336,11 @@ SetGammaRamp(monitor::Monitor, ramp::GammaRamp) = ccall( (:glfwSetGammaRamp, lib
 DefaultWindowHints() = ccall( (:glfwDefaultWindowHints, lib), Void, ())
 WindowHint(target::Integer, hint::Integer) = ccall( (:glfwWindowHint, lib), Void, (Cuint, Cuint), target, hint)
 
-function CreateWindow(width::Integer, height::Integer, title::String, monitor::Monitor=NullMonitor, share::Window=NullWindow)
-	window = ccall( (:glfwCreateWindow, lib), Window, (Cuint, Cuint, Ptr{Cchar}, Monitor, Window), width, height, bytestring(title), monitor, share)
-	if window != NullWindow
-		_windows[window] = WindowData(title)
-	end
-	return window
-end
+CreateWindow(width::Integer, height::Integer, title::String, monitor::Monitor=NullMonitor, share::Window=NullWindow) =
+	ccall( (:glfwCreateWindow, lib), Window, (Cuint, Cuint, Ptr{Cchar}, Monitor, Window), width, height, bytestring(title), monitor, share)
 
 function DestroyWindow(window::Window)
 	ccall( (:glfwDestroyWindow, lib), Void, (Window,), window)
-	delete!(_windows, window)
 	return nothing
 end
 
@@ -393,7 +349,6 @@ SetWindowShouldClose(window::Window, value::Integer) = ccall( (:glfwSetWindowSho
 
 function SetWindowTitle(window::Window, title::String)
 	ccall( (:glfwSetWindowTitle, lib), Void, (Window, Ptr{Cchar}), window, bytestring(title))
-	_windows[window].title = title
 	return nothing
 end
 
@@ -425,13 +380,13 @@ ShowWindow(window::Window) = ccall( (:glfwShowWindow, lib), Void, (Window,), win
 HideWindow(window::Window) = ccall( (:glfwHideWindow, lib), Void, (Window,), window)
 GetWindowMonitor(window::Window) = ccall( (:glfwGetWindowMonitor, lib), Monitor, (Window,), window)
 GetWindowAttrib(window::Window, attrib::Integer) = ccall( (:glfwGetWindowAttrib, lib), Cuint, (Window, Cuint), window, attrib)
-@Set WindowPosCallback(window::Window, xpos::Cint, ypos::Cint)
-@Set WindowSizeCallback(window::Window, width::Cint, height::Cint)
-@Set WindowCloseCallback(window::Window)
-@Set WindowRefreshCallback(window::Window)
-@Set WindowFocusCallback(window::Window, focused::Cint)
-@Set WindowIconifyCallback(window::Window, iconified::Cint)
-@Set FramebufferSizeCallback(window::Window, width::Cint, height::Cint)
+@callback WindowPos(window::Window, xpos::Cint, ypos::Cint)
+@callback WindowSize(window::Window, width::Cint, height::Cint)
+@callback WindowClose(window::Window)
+@callback WindowRefresh(window::Window)
+@callback WindowFocus(window::Window, focused::Cint) -> (window, @compat Bool(focused))
+@callback WindowIconify(window::Window, iconified::Cint) -> (window, @compat Bool(iconified))
+@callback FramebufferSize(window::Window, width::Cint, height::Cint)
 PollEvents() = ccall( (:glfwPollEvents, lib), Void, ())
 WaitEvents() = ccall( (:glfwWaitEvents, lib), Void, ())
 
@@ -455,14 +410,14 @@ function GetCursorPos(window::Window)
 end
 
 SetCursorPos(window::Window, xpos::FloatingPoint, ypos::FloatingPoint) = ccall( (:glfwSetCursorPos, lib), Void, (Window, Cdouble, Cdouble), window, xpos, ypos)
-@Set KeyCallback(window::Window, key::Cint, scancode::Cint, action::Cint, mods::Cint)
-@Set CharCallback(window::Window, codepoint::Cuint)
-@Set CharModsCallback(window::Window, codepoint::Cuint, mods::Cint)
-@Set MouseButtonCallback(window::Window, button::Cint, actions::Cint, mods::Cint)
-@Set CursorPosCallback(window::Window, xpos::Cdouble, ypos::Cdouble)
-@Set CursorEnterCallback(window::Window, entered::Cint)
-@Set ScrollCallback(window::Window, xoffset::Cdouble, yoffset::Cdouble)
-@Set DropCallback(window::Window, count::Cint, paths::Ptr{Ptr{Cchar}})
+@callback Key(window::Window, key::Cint, scancode::Cint, action::Cint, mods::Cint)
+@callback Char(window::Window, codepoint::Cuint) -> (window, convert(Char, codepoint))
+@callback CharMods(window::Window, codepoint::Cuint, mods::Cint) -> (window, convert(Char, codepoint), mods)
+@callback MouseButton(window::Window, button::Cint, actions::Cint, mods::Cint)
+@callback CursorPos(window::Window, xpos::Cdouble, ypos::Cdouble)
+@callback CursorEnter(window::Window, entered::Cint) -> (window, @compat Bool(entered))
+@callback Scroll(window::Window, xoffset::Cdouble, yoffset::Cdouble)
+@callback Drop(window::Window, count::Cint, paths::Ptr{Ptr{Cchar}}) -> (window, map(bytestring, pointer_to_array(paths, count)))
 JoystickPresent(joy::Integer) = @compat Bool(ccall( (:glfwJoystickPresent, lib), Cuint, (Cuint,), joy))
 
 function GetJoystickAxes(joy::Integer)

@@ -24,13 +24,12 @@ if VERSION.major == 2
 	end
 elseif VERSION.major == 3
 	include("glfw3.jl")
-	SetErrorCallback((code, desc) -> error(bytestring(desc)))
+	SetErrorCallback((code, description) -> error(description))
 	for f in (:OpenWindow, :OpenWindowHint, :GetDesktopMode)
 		@eval $f(any...) = error($f, " is obsolete and not supported by newer versions of GLFW")
 	end
 else
 	error("GLFW $VERSION is not supported")
 end
-
 
 end
