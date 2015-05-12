@@ -1,4 +1,20 @@
-
+if Base.VERSION < v"0.4-"
+	if Pkg.installed("Docile") != nothing
+		import Docile.@doc
+	else
+		macro doc(ex...)
+			if length(ex) == 1
+				ex = ex[1]
+				if ex.head == :->
+					ex = ex.args[2]
+				end
+			elseif length(ex) == 2
+				ex = ex[2]
+			end
+			return esc(ex)
+		end
+	end
+end
 
 # generate methods for wrapping and setting a callback
 macro callback(ex)
