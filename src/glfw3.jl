@@ -413,7 +413,7 @@ SetCursorPos(window::Window, xpos::FloatingPoint, ypos::FloatingPoint) = ccall( 
 @callback Key(window::Window, key::Cint, scancode::Cint, action::Cint, mods::Cint)
 @callback Char(window::Window, codepoint::Cuint) -> (window, convert(Char, codepoint))
 @callback CharMods(window::Window, codepoint::Cuint, mods::Cint) -> (window, convert(Char, codepoint), mods)
-@callback MouseButton(window::Window, button::Cint, actions::Cint, mods::Cint)
+@callback MouseButton(window::Window, button::Cint, action::Cint, mods::Cint)
 @callback CursorPos(window::Window, xpos::Cdouble, ypos::Cdouble)
 @callback CursorEnter(window::Window, entered::Cint) -> (window, @compat Bool(entered))
 @callback Scroll(window::Window, xoffset::Cdouble, yoffset::Cdouble)
