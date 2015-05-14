@@ -412,6 +412,7 @@ GetWindowAttrib(window::Window, attrib::Integer) = ccall( (:glfwGetWindowAttrib,
 @callback FramebufferSize(window::Window, width::Cint, height::Cint)
 PollEvents() = ccall( (:glfwPollEvents, lib), Void, ())
 WaitEvents() = ccall( (:glfwWaitEvents, lib), Void, ())
+PostEmptyEvent() = ccall( (:glfwPostEmptyEvent, lib), Void, ())
 
 # Input handling
 function GetInputMode(window::Window, mode::Integer)
