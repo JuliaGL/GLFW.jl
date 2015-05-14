@@ -7,11 +7,14 @@ julia:
   - nightly
 notifications:
   email: false
-before_install:
-  - sudo add-apt-repository ppa:smspillaz/cmake-2.8.12 -y # Newer CMake
-  - sudo apt-get update -qq
-install:
-  - sudo apt-get install -y cmake libXxf86vm-dev  # GLFW dependencies
+sudo: false
+addons:
+  apt:
+    sources:
+    - debian-sid
+    packages:
+    - cmake
+    - libXxf86vm-dev
 before_script:
   - "export DISPLAY=:99.0"
   - "sh -e /etc/init.d/xvfb start" # X virtual framebuffer
