@@ -9,11 +9,10 @@ notifications:
   email: false
 addons:
   apt:
-    sources:
-    - debian-sid
     packages:
-    - cmake
+    - libxxf86vm-dev
 before_script:
+  - "echo $PATH"
   - "which cmake"
   - "cmake --version"
   - "export DISPLAY=:99.0"
