@@ -391,6 +391,12 @@ function GetFramebufferSize(window::Window)
 	(width[1], height[1])
 end
 
+function GetWindowFrameSize(window::Window)
+	left, top, right, bottom = Cint[0], Cint[0], Cint[0], Cint[0]
+	ccall( (:glfwGetWindowFrameSize, lib), Void, (Window, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}), window, left, top, right, bottom)
+	(left[1], top[1], right[1], bottom[1])
+end
+
 IconifyWindow(window::Window) = ccall( (:glfwIconifyWindow, lib), Void, (Window,), window)
 RestoreWindow(window::Window) = ccall( (:glfwRestoreWindow, lib), Void, (Window,), window)
 ShowWindow(window::Window) = ccall( (:glfwShowWindow, lib), Void, (Window,), window)
