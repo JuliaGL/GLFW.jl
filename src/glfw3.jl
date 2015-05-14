@@ -273,6 +273,12 @@ immutable Window
 end
 const NullWindow = Window(C_NULL)
 
+# Opaque cursor object
+immutable Cursor
+	ref::Ptr{Void}
+end
+const NullCursor = Cursor(C_NULL)
+
 # Video mode type
 immutable VidMode
 	width::Cint         # The width, in screen coordinates, of the video mode.
@@ -434,6 +440,9 @@ function GetCursorPos(window::Window)
 end
 
 SetCursorPos(window::Window, xpos::FloatingPoint, ypos::FloatingPoint) = ccall( (:glfwSetCursorPos, lib), Void, (Window, Cdouble, Cdouble), window, xpos, ypos)
+CreateStandardCursor(shape::Integer) = ccall( (:glfwCreateStandardCursor, lib), Cursor, (Cint,), shape)
+DestroyCursor(cursor::Cursor) = ccall( (:glfwDestroyCursor, lib), Void, (Cursor,), cursor)
+SetCursor(window::Window, cursor::Cursor) = ccall( (:glfwSetCursor, lib), Void, (Window, Cursor), window, cursor)
 @callback Key(window::Window, key::Cint, scancode::Cint, action::Cint, mods::Cint)
 @callback Char(window::Window, codepoint::Cuint) -> (window, convert(Char, codepoint))
 @callback CharMods(window::Window, codepoint::Cuint, mods::Cint) -> (window, convert(Char, codepoint), mods)
