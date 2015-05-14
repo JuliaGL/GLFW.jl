@@ -12,8 +12,8 @@ addons:
     packages:
     - libxxf86vm-dev
 before_script:
-  - "curl http://www.cmake.org/files/v3.2/cmake-3.2.2-Linux-x86_64.sh | sh -s - --prefix=${HOME}/cmake"
-  - "export PATH=${HOME}/cmake:${PATH}"
+  - "curl http://www.cmake.org/files/v3.2/cmake-3.2.2-Linux-x86_64.tar.gz | tar -xz"
+  - "export PATH=${PWD}/cmake-3.2.2-Linux-x86_64/bin:${PATH}"
   - "echo $PATH"
   - "which cmake"
   - "cmake --version"
