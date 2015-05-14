@@ -16,5 +16,7 @@ addons:
     - cmake
     - libxxf86vm-dev
 before_script:
+  - "which cmake"
+  - "cmake --version"
   - "export DISPLAY=:99.0"
   - "sh -e /etc/init.d/xvfb start" # X virtual framebuffer
