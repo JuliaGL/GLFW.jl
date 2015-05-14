@@ -8,7 +8,7 @@ julia:
 notifications:
   email: false
 before_install:
-  - sudo add-apt-repository ppa:kalakris/cmake -y # Newer CMake
+  - sudo add-apt-repository ppa:smspillaz/cmake-2.8.12 -y # Newer CMake
   - sudo apt-get update -qq
 install:
   - sudo apt-get install -y cmake libXxf86vm-dev  # GLFW dependencies
