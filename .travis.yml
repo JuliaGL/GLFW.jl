@@ -13,7 +13,6 @@ addons:
     - debian-sid
     packages:
     - cmake
-    - libxxf86vm-dev
 before_script:
   - "which cmake"
   - "cmake --version"
