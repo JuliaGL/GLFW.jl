@@ -135,7 +135,7 @@ const KEY_RIGHT_SUPER        = 347
 const KEY_MENU               = 348
 const KEY_LAST               = KEY_MENU
 
-# Modifier key flags
+# Modifier key bit flags
 const MOD_SHIFT              = 0x0001
 const MOD_CONTROL            = 0x0002
 const MOD_ALT                = 0x0004
@@ -190,6 +190,8 @@ const ICONIFIED              = 0x00020002
 const RESIZABLE              = 0x00020003
 const VISIBLE                = 0x00020004
 const DECORATED              = 0x00020005
+const AUTO_ICONIFY           = 0x00020006
+const FLOATING               = 0x00020007
 
 const RED_BITS               = 0x00021001
 const GREEN_BITS             = 0x00021002
@@ -206,6 +208,7 @@ const STEREO                 = 0x0002100C
 const SAMPLES                = 0x0002100D
 const SRGB_CAPABLE           = 0x0002100E
 const REFRESH_RATE           = 0x0002100F
+const DOUBLEBUFFER           = 0x00021010
 
 const CLIENT_API             = 0x00022001
 const CONTEXT_VERSION_MAJOR  = 0x00022002
@@ -215,6 +218,7 @@ const CONTEXT_ROBUSTNESS     = 0x00022005
 const OPENGL_FORWARD_COMPAT  = 0x00022006
 const OPENGL_DEBUG_CONTEXT   = 0x00022007
 const OPENGL_PROFILE         = 0x00022008
+const CONTEXT_RELEASE_BEHAVIOR = 0x00022009
 
 const OPENGL_API             = 0x00030001
 const OPENGL_ES_API          = 0x00030002
@@ -235,9 +239,22 @@ const CURSOR_NORMAL          = 0x00034001
 const CURSOR_HIDDEN          = 0x00034002
 const CURSOR_DISABLED        = 0x00034003
 
+const ANY_RELEASE_BEHAVIOR   =          0
+const RELEASE_BEHAVIOR_FLUSH = 0x00035001
+const RELEASE_BEHAVIOR_NONE  = 0x00035002
+
+# Standard cursor shapes
+const ARROW_CURSOR           = 0x00036001
+const IBEAM_CURSOR           = 0x00036002
+const CROSSHAIR_CURSOR       = 0x00036003
+const HAND_CURSOR            = 0x00036004
+const HRESIZE_CURSOR         = 0x00036005
+const VRESIZE_CURSOR         = 0x00036006
+
 const CONNECTED              = 0x00040001
 const DISCONNECTED           = 0x00040002
 
+const DONT_CARE              = -1
 
 #************************************************************************
 # GLFW API types
