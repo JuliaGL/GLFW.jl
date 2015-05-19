@@ -357,7 +357,7 @@ WindowHint(target::Integer, hint::Integer) = ccall( (:glfwWindowHint, lib), Void
 
 CreateWindow(width::Integer, height::Integer, title::String, monitor::Monitor=NullMonitor, share::Window=NullWindow) =
 	ccall( (:glfwCreateWindow, lib), Window, (Cuint, Cuint, Ptr{Cchar}, Monitor, Window), width, height, bytestring(title), monitor, share)
-DestroyWindow(window::Window) = ccall( (:glfwDestroyWindow, lib), Void, (Window,), window)w
+DestroyWindow(window::Window) = ccall( (:glfwDestroyWindow, lib), Void, (Window,), window)
 WindowShouldClose(window::Window) = @compat Bool(ccall( (:glfwWindowShouldClose, lib), Cuint, (Window,), window))
 SetWindowShouldClose(window::Window, value::Integer) = ccall( (:glfwSetWindowShouldClose, lib), Void, (Window, Cuint), window, value)
 SetWindowTitle(window::Window, title::String) = ccall( (:glfwSetWindowTitle, lib), Void, (Window, Ptr{Cchar}), window, bytestring(title))
