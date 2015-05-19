@@ -309,11 +309,7 @@ function Init()
 	end
 end
 
-function Terminate()
-	ccall( (:glfwTerminate, lib), Void, ())
-	return nothing
-end
-
+Terminate() = ccall( (:glfwTerminate, lib), Void, ())
 GetVersionString() = bytestring(ccall( (:glfwGetVersionString, lib), Ptr{Cchar}, ()))
 
 # Error handling
@@ -361,19 +357,10 @@ WindowHint(target::Integer, hint::Integer) = ccall( (:glfwWindowHint, lib), Void
 
 CreateWindow(width::Integer, height::Integer, title::String, monitor::Monitor=NullMonitor, share::Window=NullWindow) =
 	ccall( (:glfwCreateWindow, lib), Window, (Cuint, Cuint, Ptr{Cchar}, Monitor, Window), width, height, bytestring(title), monitor, share)
-
-function DestroyWindow(window::Window)
-	ccall( (:glfwDestroyWindow, lib), Void, (Window,), window)
-	return nothing
-end
-
+DestroyWindow(window::Window) = ccall( (:glfwDestroyWindow, lib), Void, (Window,), window)w
 WindowShouldClose(window::Window) = @compat Bool(ccall( (:glfwWindowShouldClose, lib), Cuint, (Window,), window))
 SetWindowShouldClose(window::Window, value::Integer) = ccall( (:glfwSetWindowShouldClose, lib), Void, (Window, Cuint), window, value)
-
-function SetWindowTitle(window::Window, title::String)
-	ccall( (:glfwSetWindowTitle, lib), Void, (Window, Ptr{Cchar}), window, bytestring(title))
-	return nothing
-end
+SetWindowTitle(window::Window, title::String) = ccall( (:glfwSetWindowTitle, lib), Void, (Window, Ptr{Cchar}), window, bytestring(title))
 
 function GetWindowPos(window::Window)
 	xpos, ypos = Cint[0], Cint[0]
