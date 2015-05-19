@@ -351,7 +351,7 @@ end
 
 # FIXME: GammaRamp pointer business
 GetVideoMode(monitor::Monitor) = pointer_to_array(ccall( (:glfwGetVideoMode, lib), Ptr{VidMode}, (Monitor,), monitor), 1)[1]
-SetGamma(monitor::Monitor, gamma::FloatingPoint) = ccall( (:glfwSetGamma, lib), Void, (Monitor, Cfloat), monitor, gamma)
+SetGamma(monitor::Monitor, gamma::Real) = ccall( (:glfwSetGamma, lib), Void, (Monitor, Cfloat), monitor, gamma)
 GetGammaRamp(monitor::Monitor) = pointer_to_array(ccall( (:glfwGetGammaRamp, lib), Ptr{GammaRamp}, (Monitor,), monitor), 1)[1]
 SetGammaRamp(monitor::Monitor, ramp::GammaRamp) = ccall( (:glfwSetGammaRamp, lib), Void, (Monitor, Ptr{GammaRamp}), monitor, pointer_from_objref(ramp))
 
@@ -439,7 +439,7 @@ function GetCursorPos(window::Window)
 	(xpos[1], ypos[1])
 end
 
-SetCursorPos(window::Window, xpos::FloatingPoint, ypos::FloatingPoint) = ccall( (:glfwSetCursorPos, lib), Void, (Window, Cdouble, Cdouble), window, xpos, ypos)
+SetCursorPos(window::Window, xpos::Real, ypos::Real) = ccall( (:glfwSetCursorPos, lib), Void, (Window, Cdouble, Cdouble), window, xpos, ypos)
 CreateStandardCursor(shape::Integer) = ccall( (:glfwCreateStandardCursor, lib), Cursor, (Cint,), shape)
 DestroyCursor(cursor::Cursor) = ccall( (:glfwDestroyCursor, lib), Void, (Cursor,), cursor)
 SetCursor(window::Window, cursor::Cursor) = ccall( (:glfwSetCursor, lib), Void, (Window, Cursor), window, cursor)
