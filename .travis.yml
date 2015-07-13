@@ -10,11 +10,10 @@ notifications:
 addons:
   apt:
     packages:
+    - cmake
     - libxxf86vm-dev
-install:
-  - "mkdir ~/cmake"
-  - "curl http://www.cmake.org/files/v3.2/cmake-3.2.2-Linux-x86_64.tar.gz | tar -xz --strip-components=1 -C ~/cmake"
-  - "export PATH=${HOME}/cmake/bin:${PATH}"
+    sources:
+    - kalakris-cmake
 before_script:
   - "export DISPLAY=:99.0"
   - "sh -e /etc/init.d/xvfb start" # X virtual framebuffer
