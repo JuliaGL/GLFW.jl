@@ -1,4 +1,6 @@
 # version of library to download
+using Compat
+
 const version = v"3.1.1"
 const glfw = "glfw-$version"
 
@@ -63,7 +65,6 @@ end
 	try rm("usr64/lib", recursive=true) end
 	mv("builds/glfw3/$version/lib", "usr64/lib")
 end
-
 # download a pre-compiled binary (built by GLFW)
 @windows_only begin
 	mkpath("downloads")
