@@ -35,8 +35,11 @@ end
 
 function __init__()
 	GetVersion() != GLFW_VERSION && error("
-		GLFW version from build ($(GLFW_VERSION)) does not match up with the GLFW version loaded at runtime. Please run `Pkg.build(\"GLFW\")
+	GLFW version from build ($(GLFW_VERSION)) does not match up with the GLFW version loaded at runtime. Please run `Pkg.build(\"GLFW\")
 	")
+	dl_ptr = Libdl.dlopen_e(lib)
+	dl_ptr == C_NULL && error("GLFW library could not be loaded correctly. Please check library path ($lib), or run Pkg.build(\"GLFW\")")
+	Libdl.dlclose(dl_ptr)
 end
 
 end
