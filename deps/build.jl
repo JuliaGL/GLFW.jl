@@ -1,4 +1,6 @@
 # version of library to download
+using Compat
+
 const version = v"3.1.1"
 const glfw = "glfw-$version"
 
@@ -63,7 +65,6 @@ end
 	try rm("usr64/lib", recursive=true) end
 	mv("builds/glfw3/$version/lib", "usr64/lib")
 end
-
 # download a pre-compiled binary (built by GLFW)
 @windows_only begin
 	mkpath("downloads")
@@ -83,3 +84,23 @@ end
 		mv("builds/$build/lib-mingw", "usr$sz/lib")
 	end
 end
+
+const lib = Libdl.find_library(["glfw3", "libglfw3", "glfw", "libglfw"], [Pkg.dir("GLFW", "deps", "usr$WORD_SIZE", "lib")])
+if isempty(lib)
+	error("could not find GLFW library")
+end
+
+function GetVersion()
+	major, minor, rev = Cint[0], Cint[0], Cint[0]
+	ccall( (:glfwGetVersion, lib), Void, (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}), major, minor, rev)
+	VersionNumber(major[1], minor[1], rev[1])
+end
+
+
+# Save lib and version into seperate file to statically include the library with precompile
+f = open("deps.jl", "w")
+write(f, """
+const lib = \"$(escape_string(lib))\"
+const GLFW_VERSION = v\"$(GetVersion())\"
+""")
+close(f)
