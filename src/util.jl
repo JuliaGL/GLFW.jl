@@ -1,5 +1,3 @@
-
-
 # generate methods for wrapping and setting a callback
 macro callback(ex)
 	signature = ex.head == :call ? ex : ex.args[1]
