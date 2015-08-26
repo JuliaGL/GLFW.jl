@@ -6,6 +6,7 @@ const lib = Libdl.find_library(["glfw3", "libglfw3", "glfw", "libglfw"], [Pkg.di
 if isempty(lib)
 	error("could not find GLFW library")
 end
+@compat include_dependency(string(lib, ".", Libdl.dlext)) # Trigger recompilation if the library changes
 
 include("util.jl")
 
