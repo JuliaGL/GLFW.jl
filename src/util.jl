@@ -29,7 +29,7 @@ macro callback(ex)
 			ccall( ($libfunc, lib), Void, ($(win_type...), Ptr{Void}), $(win_name...), cfunptr)
 		end
 
-		$setfunc($(win_arg...), ::Nothing) = $setfunc($(win_name...), C_NULL)
+		$setfunc($(win_arg...), ::Void) = $setfunc($(win_name...), C_NULL)
 
 		$wrapfunc($(ccall_args...)) = ($jcbfunc($(jcbfunc_arg_values...)); return nothing)
 	end

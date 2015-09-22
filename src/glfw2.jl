@@ -216,7 +216,7 @@ end
 
 OpenWindowHint(target::Integer, hint::Integer) = ccall( (:glfwOpenWindowHint, lib), Void, (Cuint, Cuint), target, hint)
 CloseWindow() = ccall( (:glfwCloseWindow, lib), Void, ())
-SetWindowTitle(title::String) = ccall( (:glfwSetWindowTitle, lib), Void, (Ptr{Cchar},), bytestring(title))
+SetWindowTitle(title::AbstractString) = ccall( (:glfwSetWindowTitle, lib), Void, (Ptr{Cchar},), bytestring(title))
 
 function GetWindowSize()
 	width, height = Cint[0], Cint[0]
@@ -242,7 +242,7 @@ end
 @callback WindowSize(width::Cint, height::Cint)
 SetWindowCloseCallback(callback::Function) = SetWindowCloseCallback(cfunction(callback, Cint, ()))
 SetWindowCloseCallback(callback::Ptr{Void}) = ccall( (:glfwSetWindowCloseCallbackCallback, lib), Void, (Ptr{Void},), callback)
-SetWindowCloseCallback(::Nothing) = SetWindowCloseCallback(C_NULL)
+SetWindowCloseCallback(::Void) = SetWindowCloseCallback(C_NULL)
 @callback WindowRefresh()
 
 # Video mode functions
@@ -302,7 +302,7 @@ function GetJoystickButtons(joy::Integer, numbuttons::Integer=GetJoystickParam(j
 end
 
 # Extension support
-ExtensionSupported(extension::String) = @compat Bool(ccall( (:glfwExtensionSupported, lib), Cuint, (Ptr{Cchar},), bytestring(extension)))
+ExtensionSupported(extension::AbstractString) = @compat Bool(ccall( (:glfwExtensionSupported, lib), Cuint, (Ptr{Cchar},), bytestring(extension)))
 
 # Enable/disable functions
 Enable(token::Integer) = ccall( (:glfwEnable, lib), Void, (Cuint,), token)
