@@ -437,7 +437,7 @@ SetCursor(window::Window, cursor::Cursor) = ccall( (:glfwSetCursor, lib), Void, 
 @callback CursorPos(window::Window, xpos::Cdouble, ypos::Cdouble)
 @callback CursorEnter(window::Window, entered::Cint) -> (window, @compat Bool(entered))
 @callback Scroll(window::Window, xoffset::Cdouble, yoffset::Cdouble)
-@callback Drop(window::Window, count::Cint, paths::Ptr{Ptr{Cchar}}) -> (window, map(bytestring, pointer_to_array(paths, count)))
+@callback Drop(window::Window, count::Cint, paths::Ptr{Ptr{Cchar}}) -> (window, map(x->utf8(Ptr{UInt8}(x)), pointer_to_array(paths, count)))
 JoystickPresent(joy::Integer) = @compat Bool(ccall( (:glfwJoystickPresent, lib), Cuint, (Cuint,), joy))
 
 function GetJoystickAxes(joy::Integer)
