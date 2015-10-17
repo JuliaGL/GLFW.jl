@@ -6,11 +6,10 @@ macro callback(ex)
 	ccall_arg_names = map(a -> a.args[1], ccall_args)
 	ccall_arg_types = Expr(:tuple, map(a -> a.args[2], ccall_args)...)
 
-	# TODO: string() calls can be removed for Julia 0.4
-	setfunc = symbol(string("Set", name, "Callback"))
-	libfunc = Expr(:quote, symbol(string("glfw", setfunc)))
-	wrapfunc = symbol(string(name, "CallbackWrapper")) # wrapper function that meets cfunction requirements
-	jcbfunc = gensym(string(name, "Callback"))         # Julia callback function called by wrapper function
+	setfunc = symbol("Set", name, "Callback")
+	libfunc = Expr(:quote, symbol("glfw", setfunc))
+	wrapfunc = symbol(name, "CallbackWrapper") # wrapper function that meets cfunction requirements
+	jcbfunc = gensym(string(name, "Callback")) # Julia callback function called by wrapper function
 	jcbfunc_arg_values = ex.head == :-> ? ex.args[2].args[2].args : ccall_arg_names
 
 	window_callback = length(ccall_arg_types.args) >= 1 && ccall_arg_types.args[1] == :Window
