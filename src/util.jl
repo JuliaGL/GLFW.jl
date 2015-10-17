@@ -6,7 +6,7 @@ macro callback(ex)
 	callback = gensym(name)
 	setter = symbol("Set", name)
 	libsetter = Expr(:quote, symbol("glfw", setter))
-	wrapper = symbol(name, "Wrapper")
+	wrapper = gensym(string(name, "Wrapper"))
 
 	ccall_args = signature.args[2:end]
 	ccall_arg_names = map(a -> a.args[1], ccall_args)
