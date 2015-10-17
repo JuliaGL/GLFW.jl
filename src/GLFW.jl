@@ -6,7 +6,7 @@ if isempty(lib)
 end
 include_dependency(string(lib, ".", Libdl.dlext)) # Trigger recompilation if the library changes
 
-include("util.jl")
+include("callback.jl")
 
 function GetVersion()
 	major, minor, rev = Cint[0], Cint[0], Cint[0]
