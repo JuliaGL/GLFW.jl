@@ -9,9 +9,9 @@ include_dependency(string(lib, ".", Libdl.dlext)) # Trigger recompilation if the
 include("callback.jl")
 
 function GetVersion()
-	major, minor, rev = Cint[0], Cint[0], Cint[0]
-	ccall( (:glfwGetVersion, lib), Void, (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}), major, minor, rev)
-	VersionNumber(major[1], minor[1], rev[1])
+	major, minor, rev = Ref{Cint}(), Ref{Cint}(), Ref{Cint}()
+	ccall( (:glfwGetVersion, lib), Void, (Ref{Cint}, Ref{Cint}, Ref{Cint}), major, minor, rev)
+	VersionNumber(major[], minor[], rev[])
 end
 const VERSION = GetVersion()
 

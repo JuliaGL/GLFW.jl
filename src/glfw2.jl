@@ -219,9 +219,9 @@ CloseWindow() = ccall( (:glfwCloseWindow, lib), Void, ())
 SetWindowTitle(title::AbstractString) = ccall( (:glfwSetWindowTitle, lib), Void, (Cstring,), title)
 
 function GetWindowSize()
-	width, height = Cint[0], Cint[0]
-	ccall( (:glfwGetWindowSize, lib), Void, (Ptr{Cint}, Ptr{Cint}), width, height)
-	(width[1], height[1])
+	width, height = Ref{Cint}(), Ref{Cint}()
+	ccall( (:glfwGetWindowSize, lib), Void, (Ref{Cint}, Ref{Cint}), width, height)
+	(width[], height[])
 end
 
 SetWindowSize(width::Integer, height::Integer) = ccall( (:glfwSetWindowSize, lib), Void, (Cuint, Cuint), width, height)
@@ -265,10 +265,9 @@ GetKey(key::Integer) = ccall( (:glfwGetKey, lib), Cuint, (Cuint,), key) == PRESS
 GetMouseButton(button::Integer) = ccall( (:glfwGetMouseButton, lib), Cuint, (Cuint,), button) == PRESS
 
 function GetMousePos()
-	xpos = Cint[0]
-	ypos = Cint[0]
-	ccall( (:glfwGetMousePos, lib), Void, (Ptr{Cint}, Ptr{Cint}), xpos, ypos)
-	(xpos[1], ypos[1])
+	xpos, ypos = Ref{Cint}(), Ref{Cint}()
+	ccall( (:glfwGetMousePos, lib), Void, (Ref{Cint}, Ref{Cint}), xpos, ypos)
+	(xpos[], ypos[])
 end
 
 SetMousePos(xpos::Integer, ypos::Integer) = ccall( (:glfwSetMousePos, lib), Void, (Cuint, Cuint), xpos, ypos)

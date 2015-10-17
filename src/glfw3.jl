@@ -317,32 +317,32 @@ GetVersionString() = bytestring(ccall( (:glfwGetVersionString, lib), Cstring, ()
 
 # Monitor handling
 function GetMonitors()
-	count = Cint[0]
-	ptr = ccall( (:glfwGetMonitors, lib), Ptr{Monitor}, (Ptr{Cint},), count)
-	pointer_to_array(ptr, count[1])
+	count = Ref{Cint}()
+	ptr = ccall( (:glfwGetMonitors, lib), Ptr{Monitor}, (Ref{Cint},), count)
+	pointer_to_array(ptr, count[])
 end
 
 GetPrimaryMonitor() = ccall( (:glfwGetPrimaryMonitor, lib), Monitor, ())
 
 function GetMonitorPos(monitor::Monitor)
-	xpos, ypos = Cint[0], Cint[0]
-	ccall( (:glfwGetMonitorPos, lib), Void, (Monitor, Ptr{Cint}, Ptr{Cint}), monitor, xpos, ypos)
-	(xpos[1], ypos[1])
+	xpos, ypos = Ref{Cint}(), Ref{Cint}()
+	ccall( (:glfwGetMonitorPos, lib), Void, (Monitor, Ref{Cint}, Ref{Cint}), monitor, xpos, ypos)
+	(xpos[], ypos[])
 end
 
 function GetMonitorPhysicalSize(monitor::Monitor)
-	width, height = Cint[0], Cint[0]
-	ccall( (:glfwGetMonitorPhysicalSize, lib), Void, (Monitor, Ptr{Cint}, Ptr{Cint}), monitor, width, height)
-	(width[1], height[1])
+	width, height = Ref{Cint}(), Ref{Cint}()
+	ccall( (:glfwGetMonitorPhysicalSize, lib), Void, (Monitor, Ref{Cint}, Ref{Cint}), monitor, width, height)
+	(width[], height[])
 end
 
 GetMonitorName(monitor::Monitor) = bytestring(ccall( (:glfwGetMonitorName, lib), Cstring, (Monitor,), monitor))
 @callback Monitor(monitor::Monitor, event::Cint)
 
 function GetVideoModes(monitor::Monitor)
-	count = Cint[0]
-	ptr = ccall( (:glfwGetVideoModes, lib), Ptr{VidMode}, (Monitor, Ptr{Cint}), monitor, count)
-	pointer_to_array(ptr, count[1])
+	count = Ref{Cint}()
+	ptr = ccall( (:glfwGetVideoModes, lib), Ptr{VidMode}, (Monitor, Ref{Cint}), monitor, count)
+	pointer_to_array(ptr, count[])
 end
 
 # FIXME: GammaRamp pointer business
@@ -363,31 +363,31 @@ SetWindowShouldClose(window::Window, value::Integer) = ccall( (:glfwSetWindowSho
 SetWindowTitle(window::Window, title::AbstractString) = ccall( (:glfwSetWindowTitle, lib), Void, (Window, Cstring), window, title)
 
 function GetWindowPos(window::Window)
-	xpos, ypos = Cint[0], Cint[0]
-	ccall( (:glfwGetWindowPos, lib), Void, (Window, Ptr{Cint}, Ptr{Cint}), window, xpos, ypos)
-	(xpos[1], ypos[1])
+	xpos, ypos = Ref{Cint}(), Ref{Cint}()
+	ccall( (:glfwGetWindowPos, lib), Void, (Window, Ref{Cint}, Ref{Cint}), window, xpos, ypos)
+	(xpos[], ypos[])
 end
 
 SetWindowPos(window::Window, xpos::Integer, ypos::Integer) = ccall( (:glfwSetWindowPos, lib), Void, (Window, Cuint, Cuint), window, xpos, ypos)
 
 function GetWindowSize(window::Window)
-	width, height = Cint[0], Cint[0]
-	ccall( (:glfwGetWindowSize, lib), Void, (Window, Ptr{Cint}, Ptr{Cint}), window, width, height)
-	(width[1], height[1])
+	width, height = Ref{Cint}(), Ref{Cint}()
+	ccall( (:glfwGetWindowSize, lib), Void, (Window, Ref{Cint}, Ref{Cint}), window, width, height)
+	(width[], height[])
 end
 
 SetWindowSize(window::Window, width::Integer, height::Integer) = ccall( (:glfwSetWindowSize, lib), Void, (Window, Cuint, Cuint), window, width, height)
 
 function GetFramebufferSize(window::Window)
-	width, height = Cint[0], Cint[0]
-	ccall( (:glfwGetFramebufferSize, lib), Void, (Window, Ptr{Cint}, Ptr{Cint}), window, width, height)
-	(width[1], height[1])
+	width, height = Ref{Cint}(), Ref{Cint}()
+	ccall( (:glfwGetFramebufferSize, lib), Void, (Window, Ref{Cint}, Ref{Cint}), window, width, height)
+	(width[], height[])
 end
 
 function GetWindowFrameSize(window::Window)
-	left, top, right, bottom = Cint[0], Cint[0], Cint[0], Cint[0]
-	ccall( (:glfwGetWindowFrameSize, lib), Void, (Window, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}), window, left, top, right, bottom)
-	(left[1], top[1], right[1], bottom[1])
+	left, top, right, bottom = Ref{Cint}(), Ref{Cint}(), Ref{Cint}(), Ref{Cint}()
+	ccall( (:glfwGetWindowFrameSize, lib), Void, (Window, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}), window, left, top, right, bottom)
+	(left[], top[], right[], bottom[])
 end
 
 IconifyWindow(window::Window) = ccall( (:glfwIconifyWindow, lib), Void, (Window,), window)
@@ -421,9 +421,9 @@ GetKey(window::Window, key::Integer) = Bool(ccall( (:glfwGetKey, lib), Cuint, (W
 GetMouseButton(window::Window, button::Integer) = Bool(ccall( (:glfwGetMouseButton, lib), Cuint, (Window, Cuint), window, button))
 
 function GetCursorPos(window::Window)
-	xpos, ypos = Cdouble[0], Cdouble[0]
-	ccall( (:glfwGetCursorPos, lib), Void, (Window, Ptr{Cdouble}, Ptr{Cdouble}), window, xpos, ypos)
-	(xpos[1], ypos[1])
+	xpos, ypos = Ref{Cdouble}(), Ref{Cdouble}()
+	ccall( (:glfwGetCursorPos, lib), Void, (Window, Ref{Cdouble}, Ref{Cdouble}), window, xpos, ypos)
+	(xpos[], ypos[])
 end
 
 SetCursorPos(window::Window, xpos::Real, ypos::Real) = ccall( (:glfwSetCursorPos, lib), Void, (Window, Cdouble, Cdouble), window, xpos, ypos)
@@ -441,15 +441,15 @@ SetCursor(window::Window, cursor::Cursor) = ccall( (:glfwSetCursor, lib), Void, 
 JoystickPresent(joy::Integer) = Bool(ccall( (:glfwJoystickPresent, lib), Cuint, (Cuint,), joy))
 
 function GetJoystickAxes(joy::Integer)
-	count = Cint[0]
-	ptr = ccall( (:glfwGetJoystickAxes, lib), Ptr{Cfloat}, (Cuint, Ptr{Cint}), joy, count)
-	pointer_to_array(ptr, count[1])
+	count = Ref{Cint}()
+	ptr = ccall( (:glfwGetJoystickAxes, lib), Ptr{Cfloat}, (Cuint, Ref{Cint}), joy, count)
+	pointer_to_array(ptr, count[])
 end
 
 function GetJoystickButtons(joy::Integer)
-	count = Cint[0]
-	ptr = ccall( (:glfwGetJoystickButtons, lib), Ptr{Cuchar}, (Cuint, Ptr{Cint}), joy, count)
-	pointer_to_array(ptr, count[1])
+	count = Ref{Cint}()
+	ptr = ccall( (:glfwGetJoystickButtons, lib), Ptr{Cuchar}, (Cuint, Ref{Cint}), joy, count)
+	pointer_to_array(ptr, count[])
 end
 
 GetJoystickName(joy::Integer) = bytestring(ccall( (:glfwGetJoystickName, lib), Cstring, (Cuint,), joy))
