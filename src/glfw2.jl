@@ -234,7 +234,7 @@ SwapInterval(interval::Integer) = ccall( (:glfwSwapInterval, lib), Void, (Cuint,
 function GetWindowParam(param::Integer)
 	value = ccall( (:glfwGetWindowParam, lib), Cuint, (Cuint,), param)
 	if param in (OPENED, ACTIVE, ICONIFIED, ACCELERATED, STEREO, WINDOW_NO_RESIZE, OPENGL_FORWARD_COMPAT, OPENGL_DEBUG_CONTEXT)
-		value = @compat Bool(value)
+		value = Bool(value)
 	end
 	value
 end
@@ -284,7 +284,7 @@ SetMouseWheel(pos::Integer) = ccall( (:glfwSetMouseWheel, lib), Void, (Cuint,), 
 function GetJoystickParam(joy::Integer, param::Integer)
 	value = ccall( (:glfwGetJoystickParam, lib), Cuint, (Cuint, Cuint), joy, param)
 	if param == PRESENT
-		value = @compat Bool(value)
+		value = Bool(value)
 	end
 	value
 end
@@ -302,7 +302,7 @@ function GetJoystickButtons(joy::Integer, numbuttons::Integer=GetJoystickParam(j
 end
 
 # Extension support
-ExtensionSupported(extension::AbstractString) = @compat Bool(ccall( (:glfwExtensionSupported, lib), Cuint, (Ptr{Cchar},), bytestring(extension)))
+ExtensionSupported(extension::AbstractString) = Bool(ccall( (:glfwExtensionSupported, lib), Cuint, (Ptr{Cchar},), bytestring(extension)))
 
 # Enable/disable functions
 Enable(token::Integer) = ccall( (:glfwEnable, lib), Void, (Cuint,), token)

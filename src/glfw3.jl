@@ -358,7 +358,7 @@ WindowHint(target::Integer, hint::Integer) = ccall( (:glfwWindowHint, lib), Void
 CreateWindow(width::Integer, height::Integer, title::AbstractString, monitor::Monitor=NullMonitor, share::Window=NullWindow) =
 	ccall( (:glfwCreateWindow, lib), Window, (Cuint, Cuint, Ptr{Cchar}, Monitor, Window), width, height, bytestring(title), monitor, share)
 DestroyWindow(window::Window) = ccall( (:glfwDestroyWindow, lib), Void, (Window,), window)
-WindowShouldClose(window::Window) = @compat Bool(ccall( (:glfwWindowShouldClose, lib), Cuint, (Window,), window))
+WindowShouldClose(window::Window) = Bool(ccall( (:glfwWindowShouldClose, lib), Cuint, (Window,), window))
 SetWindowShouldClose(window::Window, value::Integer) = ccall( (:glfwSetWindowShouldClose, lib), Void, (Window, Cuint), window, value)
 SetWindowTitle(window::Window, title::AbstractString) = ccall( (:glfwSetWindowTitle, lib), Void, (Window, Ptr{Cchar}), window, bytestring(title))
 
@@ -400,8 +400,8 @@ GetWindowAttrib(window::Window, attrib::Integer) = ccall( (:glfwGetWindowAttrib,
 @callback WindowSize(window::Window, width::Cint, height::Cint)
 @callback WindowClose(window::Window)
 @callback WindowRefresh(window::Window)
-@callback WindowFocus(window::Window, focused::Cint) -> (window, @compat Bool(focused))
-@callback WindowIconify(window::Window, iconified::Cint) -> (window, @compat Bool(iconified))
+@callback WindowFocus(window::Window, focused::Cint) -> (window, Bool(focused))
+@callback WindowIconify(window::Window, iconified::Cint) -> (window, Bool(iconified))
 @callback FramebufferSize(window::Window, width::Cint, height::Cint)
 PollEvents() = ccall( (:glfwPollEvents, lib), Void, ())
 WaitEvents() = ccall( (:glfwWaitEvents, lib), Void, ())
@@ -411,14 +411,14 @@ PostEmptyEvent() = ccall( (:glfwPostEmptyEvent, lib), Void, ())
 function GetInputMode(window::Window, mode::Integer)
 	value = ccall( (:glfwGetInputMode, lib), Cuint, (Window, Cuint), window, mode)
 	if mode in (STICKY_KEYS, STICKY_MOUSE_BUTTONS)
-		value = @compat Bool(value)
+		value = Bool(value)
 	end
 	value
 end
 
 SetInputMode(window::Window, mode::Integer, value::Integer) = ccall( (:glfwSetInputMode, lib), Void, (Window, Cuint, Cuint), window, mode, value)
-GetKey(window::Window, key::Integer) = @compat Bool(ccall( (:glfwGetKey, lib), Cuint, (Window, Cuint), window, key))
-GetMouseButton(window::Window, button::Integer) = @compat Bool(ccall( (:glfwGetMouseButton, lib), Cuint, (Window, Cuint), window, button))
+GetKey(window::Window, key::Integer) = Bool(ccall( (:glfwGetKey, lib), Cuint, (Window, Cuint), window, key))
+GetMouseButton(window::Window, button::Integer) = Bool(ccall( (:glfwGetMouseButton, lib), Cuint, (Window, Cuint), window, button))
 
 function GetCursorPos(window::Window)
 	xpos, ypos = Cdouble[0], Cdouble[0]
@@ -435,10 +435,10 @@ SetCursor(window::Window, cursor::Cursor) = ccall( (:glfwSetCursor, lib), Void, 
 @callback CharMods(window::Window, codepoint::Cuint, mods::Cint) -> (window, convert(Char, codepoint), mods)
 @callback MouseButton(window::Window, button::Cint, action::Cint, mods::Cint)
 @callback CursorPos(window::Window, xpos::Cdouble, ypos::Cdouble)
-@callback CursorEnter(window::Window, entered::Cint) -> (window, @compat Bool(entered))
+@callback CursorEnter(window::Window, entered::Cint) -> (window, Bool(entered))
 @callback Scroll(window::Window, xoffset::Cdouble, yoffset::Cdouble)
 @callback Drop(window::Window, count::Cint, paths::Ptr{Ptr{Cchar}}) -> (window, map(bytestring, pointer_to_array(paths, count)))
-JoystickPresent(joy::Integer) = @compat Bool(ccall( (:glfwJoystickPresent, lib), Cuint, (Cuint,), joy))
+JoystickPresent(joy::Integer) = Bool(ccall( (:glfwJoystickPresent, lib), Cuint, (Cuint,), joy))
 
 function GetJoystickAxes(joy::Integer)
 	count = Cint[0]
@@ -459,5 +459,5 @@ MakeContextCurrent(window::Window) = ccall( (:glfwMakeContextCurrent, lib), Void
 GetCurrentContext() = ccall( (:glfwGetCurrentContext, lib), Window, ())
 SwapBuffers(window::Window) = ccall( (:glfwSwapBuffers, lib), Void, (Window,), window)
 SwapInterval(interval::Integer) = ccall( (:glfwSwapInterval, lib), Void, (Cuint,), interval)
-ExtensionSupported(extension::AbstractString) = @compat Bool(ccall( (:glfwExtensionSupported, lib), Cuint, (Ptr{Cchar},), bytestring(extension)))
+ExtensionSupported(extension::AbstractString) = Bool(ccall( (:glfwExtensionSupported, lib), Cuint, (Ptr{Cchar},), bytestring(extension)))
 GetProcAddress(procname::AbstractString) = ccall((:glfwGetProcAddress, lib), Ptr{Void}, (Ptr{Cchar},), bytestring(procname))

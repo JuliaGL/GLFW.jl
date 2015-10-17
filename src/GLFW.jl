@@ -1,7 +1,5 @@
 module GLFW
 
-using Compat # Backport some Julia 0.4 stuff to 0.3. Remove when Julia 0.3 is no longer supported.
-
 const lib = Libdl.find_library(["glfw3", "libglfw3", "glfw", "libglfw"], [Pkg.dir("GLFW/deps/usr$WORD_SIZE/lib")])
 if isempty(lib)
 	error("could not find GLFW library")
