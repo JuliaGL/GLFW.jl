@@ -310,10 +310,10 @@ function Init()
 end
 
 Terminate() = ccall( (:glfwTerminate, lib), Void, ())
-GetVersionString() = bytestring(ccall( (:glfwGetVersionString, lib), Ptr{Cchar}, ()))
+GetVersionString() = bytestring(ccall( (:glfwGetVersionString, lib), Cstring, ()))
 
 # Error handling
-@callback Error(code::Cint, description::Ptr{Cchar}) -> (code, bytestring(description))
+@callback Error(code::Cint, description::Cstring) -> (code, bytestring(description))
 
 # Monitor handling
 function GetMonitors()
@@ -336,7 +336,7 @@ function GetMonitorPhysicalSize(monitor::Monitor)
 	(width[1], height[1])
 end
 
-GetMonitorName(monitor::Monitor) = bytestring(ccall( (:glfwGetMonitorName, lib), Ptr{Cchar}, (Monitor,), monitor))
+GetMonitorName(monitor::Monitor) = bytestring(ccall( (:glfwGetMonitorName, lib), Cstring, (Monitor,), monitor))
 @callback Monitor(monitor::Monitor, event::Cint)
 
 function GetVideoModes(monitor::Monitor)
@@ -356,11 +356,11 @@ DefaultWindowHints() = ccall( (:glfwDefaultWindowHints, lib), Void, ())
 WindowHint(target::Integer, hint::Integer) = ccall( (:glfwWindowHint, lib), Void, (Cuint, Cuint), target, hint)
 
 CreateWindow(width::Integer, height::Integer, title::AbstractString, monitor::Monitor=NullMonitor, share::Window=NullWindow) =
-	ccall( (:glfwCreateWindow, lib), Window, (Cuint, Cuint, Ptr{Cchar}, Monitor, Window), width, height, bytestring(title), monitor, share)
+	ccall( (:glfwCreateWindow, lib), Window, (Cuint, Cuint, Cstring, Monitor, Window), width, height, title, monitor, share)
 DestroyWindow(window::Window) = ccall( (:glfwDestroyWindow, lib), Void, (Window,), window)
 WindowShouldClose(window::Window) = Bool(ccall( (:glfwWindowShouldClose, lib), Cuint, (Window,), window))
 SetWindowShouldClose(window::Window, value::Integer) = ccall( (:glfwSetWindowShouldClose, lib), Void, (Window, Cuint), window, value)
-SetWindowTitle(window::Window, title::AbstractString) = ccall( (:glfwSetWindowTitle, lib), Void, (Window, Ptr{Cchar}), window, bytestring(title))
+SetWindowTitle(window::Window, title::AbstractString) = ccall( (:glfwSetWindowTitle, lib), Void, (Window, Cstring), window, title)
 
 function GetWindowPos(window::Window)
 	xpos, ypos = Cint[0], Cint[0]
@@ -452,12 +452,12 @@ function GetJoystickButtons(joy::Integer)
 	pointer_to_array(ptr, count[1])
 end
 
-GetJoystickName(joy::Integer) = bytestring(ccall( (:glfwGetJoystickName, lib), Ptr{Cchar}, (Cuint,), joy))
+GetJoystickName(joy::Integer) = bytestring(ccall( (:glfwGetJoystickName, lib), Cstring, (Cuint,), joy))
 
 # Context handling
 MakeContextCurrent(window::Window) = ccall( (:glfwMakeContextCurrent, lib), Void, (Window,), window)
 GetCurrentContext() = ccall( (:glfwGetCurrentContext, lib), Window, ())
 SwapBuffers(window::Window) = ccall( (:glfwSwapBuffers, lib), Void, (Window,), window)
 SwapInterval(interval::Integer) = ccall( (:glfwSwapInterval, lib), Void, (Cuint,), interval)
-ExtensionSupported(extension::AbstractString) = Bool(ccall( (:glfwExtensionSupported, lib), Cuint, (Ptr{Cchar},), bytestring(extension)))
-GetProcAddress(procname::AbstractString) = ccall((:glfwGetProcAddress, lib), Ptr{Void}, (Ptr{Cchar},), bytestring(procname))
+ExtensionSupported(extension::AbstractString) = Bool(ccall( (:glfwExtensionSupported, lib), Cuint, (Cstring,), extension))
+GetProcAddress(procname::AbstractString) = ccall((:glfwGetProcAddress, lib), Ptr{Void}, (Cstring,), procname)

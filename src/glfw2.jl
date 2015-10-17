@@ -216,7 +216,7 @@ end
 
 OpenWindowHint(target::Integer, hint::Integer) = ccall( (:glfwOpenWindowHint, lib), Void, (Cuint, Cuint), target, hint)
 CloseWindow() = ccall( (:glfwCloseWindow, lib), Void, ())
-SetWindowTitle(title::AbstractString) = ccall( (:glfwSetWindowTitle, lib), Void, (Ptr{Cchar},), bytestring(title))
+SetWindowTitle(title::AbstractString) = ccall( (:glfwSetWindowTitle, lib), Void, (Cstring,), title)
 
 function GetWindowSize()
 	width, height = Cint[0], Cint[0]
@@ -302,7 +302,7 @@ function GetJoystickButtons(joy::Integer, numbuttons::Integer=GetJoystickParam(j
 end
 
 # Extension support
-ExtensionSupported(extension::AbstractString) = Bool(ccall( (:glfwExtensionSupported, lib), Cuint, (Ptr{Cchar},), bytestring(extension)))
+ExtensionSupported(extension::AbstractString) = Bool(ccall( (:glfwExtensionSupported, lib), Cuint, (Cstring,), extension))
 
 # Enable/disable functions
 Enable(token::Integer) = ccall( (:glfwEnable, lib), Void, (Cuint,), token)
