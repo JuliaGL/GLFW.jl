@@ -216,12 +216,12 @@ end
 
 OpenWindowHint(target::Integer, hint::Integer) = ccall( (:glfwOpenWindowHint, lib), Void, (Cuint, Cuint), target, hint)
 CloseWindow() = ccall( (:glfwCloseWindow, lib), Void, ())
-SetWindowTitle(title::AbstractString) = ccall( (:glfwSetWindowTitle, lib), Void, (Ptr{Cchar},), bytestring(title))
+SetWindowTitle(title::AbstractString) = ccall( (:glfwSetWindowTitle, lib), Void, (Cstring,), title)
 
 function GetWindowSize()
-	width, height = Cint[0], Cint[0]
-	ccall( (:glfwGetWindowSize, lib), Void, (Ptr{Cint}, Ptr{Cint}), width, height)
-	(width[1], height[1])
+	width, height = Ref{Cint}(), Ref{Cint}()
+	ccall( (:glfwGetWindowSize, lib), Void, (Ref{Cint}, Ref{Cint}), width, height)
+	(width[], height[])
 end
 
 SetWindowSize(width::Integer, height::Integer) = ccall( (:glfwSetWindowSize, lib), Void, (Cuint, Cuint), width, height)
@@ -234,7 +234,7 @@ SwapInterval(interval::Integer) = ccall( (:glfwSwapInterval, lib), Void, (Cuint,
 function GetWindowParam(param::Integer)
 	value = ccall( (:glfwGetWindowParam, lib), Cuint, (Cuint,), param)
 	if param in (OPENED, ACTIVE, ICONIFIED, ACCELERATED, STEREO, WINDOW_NO_RESIZE, OPENGL_FORWARD_COMPAT, OPENGL_DEBUG_CONTEXT)
-		value = @compat Bool(value)
+		value = Bool(value)
 	end
 	value
 end
@@ -265,10 +265,9 @@ GetKey(key::Integer) = ccall( (:glfwGetKey, lib), Cuint, (Cuint,), key) == PRESS
 GetMouseButton(button::Integer) = ccall( (:glfwGetMouseButton, lib), Cuint, (Cuint,), button) == PRESS
 
 function GetMousePos()
-	xpos = Cint[0]
-	ypos = Cint[0]
-	ccall( (:glfwGetMousePos, lib), Void, (Ptr{Cint}, Ptr{Cint}), xpos, ypos)
-	(xpos[1], ypos[1])
+	xpos, ypos = Ref{Cint}(), Ref{Cint}()
+	ccall( (:glfwGetMousePos, lib), Void, (Ref{Cint}, Ref{Cint}), xpos, ypos)
+	(xpos[], ypos[])
 end
 
 SetMousePos(xpos::Integer, ypos::Integer) = ccall( (:glfwSetMousePos, lib), Void, (Cuint, Cuint), xpos, ypos)
@@ -284,7 +283,7 @@ SetMouseWheel(pos::Integer) = ccall( (:glfwSetMouseWheel, lib), Void, (Cuint,), 
 function GetJoystickParam(joy::Integer, param::Integer)
 	value = ccall( (:glfwGetJoystickParam, lib), Cuint, (Cuint, Cuint), joy, param)
 	if param == PRESENT
-		value = @compat Bool(value)
+		value = Bool(value)
 	end
 	value
 end
@@ -302,7 +301,7 @@ function GetJoystickButtons(joy::Integer, numbuttons::Integer=GetJoystickParam(j
 end
 
 # Extension support
-ExtensionSupported(extension::AbstractString) = @compat Bool(ccall( (:glfwExtensionSupported, lib), Cuint, (Ptr{Cchar},), bytestring(extension)))
+ExtensionSupported(extension::AbstractString) = Bool(ccall( (:glfwExtensionSupported, lib), Cuint, (Cstring,), extension))
 
 # Enable/disable functions
 Enable(token::Integer) = ccall( (:glfwEnable, lib), Void, (Cuint,), token)
