@@ -1,6 +1,5 @@
 import GLFW
 
-GLFW.Init()
 window = GLFW.CreateWindow(800, 600, "GLFW Callback Test")
 GLFW.MakeContextCurrent(window)
 

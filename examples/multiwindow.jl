@@ -1,7 +1,5 @@
 import GLFW
 
-GLFW.Init()
-
 windows = []
 for i in 1:3
 	name = "Window $i"
