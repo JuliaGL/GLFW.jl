@@ -1,5 +1,5 @@
 # version of library to download
-const version = v"3.1.1"
+const version = v"3.1.2"
 const glfw = "glfw-$version"
 
 # TODO: if the latest version is already installed, don't bother with any of this
@@ -38,15 +38,15 @@ If that doesn't help, try to install GLFW manually
 	end
 end
 
-# download a pre-complied binary (built by Homebrew)
+# download a pre-compiled binary (built by Bintray for Homebrew)
 @osx_only begin
 	const osx_version = convert(VersionNumber, readall(`sw_vers -productVersion`))
-	if osx_version >= v"10.10"
+	if osx_version >= v"10.11"
+		codename = "el_capitan"
+	elseif osx_version >= v"10.10"
 		codename = "yosemite"
-	elseif osx_version >= v"10.9"
-		codename = "mavericks"
 	else
-		codename = "mountain_lion"
+		codename = "mavericks"
 	end
 	const tarball = "glfw3-$version.$codename.bottle.tar.gz"
 	if (!isfile("downloads/$tarball"))
