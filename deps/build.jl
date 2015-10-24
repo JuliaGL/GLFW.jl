@@ -1,5 +1,5 @@
 # version of library to download
-const version = v"3.1.1"
+const version = v"3.1.2"
 const glfw = "glfw-$version"
 
 # TODO: if the latest version is already installed, don't bother with any of this
@@ -38,15 +38,15 @@ If that doesn't help, try to install GLFW manually
 	end
 end
 
-# download a pre-complied binary (built by Homebrew)
+# download a pre-compiled binary (built by Bintray for Homebrew)
 @osx_only begin
 	const osx_version = convert(VersionNumber, readall(`sw_vers -productVersion`))
-	if osx_version >= v"10.10"
+	if osx_version >= v"10.11"
+		codename = "el_capitan"
+	elseif osx_version >= v"10.10"
 		codename = "yosemite"
-	elseif osx_version >= v"10.9"
-		codename = "mavericks"
 	else
-		codename = "mountain_lion"
+		codename = "mavericks"
 	end
 	const tarball = "glfw3-$version.$codename.bottle.tar.gz"
 	if (!isfile("downloads/$tarball"))
@@ -57,11 +57,7 @@ end
 	mkpath("builds")
 	run(`tar xzf downloads/$tarball -C builds`)
 	mkpath("usr64")
-
-	# Using `mv` since `cp` seems broken: https://github.com/JuliaLang/julia/issues/10434
-	# TODO: Re-check when min version is Julia 0.4
-	try rm("usr64/lib", recursive=true) end
-	mv("builds/glfw3/$version/lib", "usr64/lib")
+	cp("builds/glfw3/$version/lib", "usr64/lib", remove_destination=true)
 end
 
 # download a pre-compiled binary (built by GLFW)
@@ -76,10 +72,6 @@ end
 		end
 		run(`7z x -obuilds -y $archive`)
 		mkpath("usr$sz")
-
-		# Using `mv` since `cp` seems broken: https://github.com/JuliaLang/julia/issues/10434
-		# TODO: Re-check when min version is Julia 0.4
-		try rm("usr$sz/lib", recursive=true) end
-		mv("builds/$build/lib-mingw", "usr$sz/lib")
+		cp("builds/$build/lib-mingw", "usr$sz/lib", remove_destination=true)
 	end
 end
