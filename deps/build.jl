@@ -57,11 +57,7 @@ end
 	mkpath("builds")
 	run(`tar xzf downloads/$tarball -C builds`)
 	mkpath("usr64")
-
-	# Using `mv` since `cp` seems broken: https://github.com/JuliaLang/julia/issues/10434
-	# TODO: Re-check when min version is Julia 0.4
-	try rm("usr64/lib", recursive=true) end
-	mv("builds/glfw3/$version/lib", "usr64/lib")
+	cp("builds/glfw3/$version/lib", "usr64/lib", remove_destination=true)
 end
 
 # download a pre-compiled binary (built by GLFW)
@@ -76,10 +72,6 @@ end
 		end
 		run(`7z x -obuilds -y $archive`)
 		mkpath("usr$sz")
-
-		# Using `mv` since `cp` seems broken: https://github.com/JuliaLang/julia/issues/10434
-		# TODO: Re-check when min version is Julia 0.4
-		try rm("usr$sz/lib", recursive=true) end
-		mv("builds/$build/lib-mingw", "usr$sz/lib")
+		cp("builds/$build/lib-mingw", "usr$sz/lib", remove_destination=true)
 	end
 end
