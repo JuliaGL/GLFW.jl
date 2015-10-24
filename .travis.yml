@@ -16,7 +16,7 @@ addons:
     - cmake
     - libxxf86vm-dev
     sources:
-    - kalakris-cmake
+    - kubuntu-backports
 before_script:
   - "export DISPLAY=:99.0"
   - "sh -e /etc/init.d/xvfb start" # X virtual framebuffer
