@@ -1,29 +1,18 @@
 GLFW.jl  [![Build Status][status]][travis]
 =======
 
-[Julia][1] interface to [GLFW][2], a multi-platform library for creating windows with OpenGL contexts and managing input and events. GLFW has native support for Windows, OS X and many Unix-like systems using the X Window System, such as Linux and FreeBSD.
+[Julia][julia] interface to [GLFW 3][glfw], a multi-platform library for creating windows with [OpenGL][opengl] or OpenGL ES contexts and receiving many kinds of input. GLFW has native support for Windows, OS X and many Unix-like systems using the X Window System, such as Linux and FreeBSD.
 
-Read the [GLFW documentation][4] for detailed instructions on how to use the library.
-
-[1]: http://julialang.org/
-[2]: http://www.glfw.org/
-[3]: https://wikipedia.org/wiki/OpenGL
-[4]: http://www.glfw.org/documentation.html
+[julia]:  http://julialang.org/
+[glfw]:   http://www.glfw.org/
+[opengl]: https://wikipedia.org/wiki/OpenGL
 
 [travis]: https://travis-ci.org/JuliaGL/GLFW.jl
 [status]: https://travis-ci.org/JuliaGL/GLFW.jl.svg?branch=master
 
 
-Supported Versions
-------------------
-
-GLFW.jl supports multiple versions of GLFW, including 3.0.x and older 2.7.x. When imported, the module searches for a GLFW shared library with Julia's [`find_library`][5] function and then loads bindings based on the library version detected.
-
-[5]: http://docs.julialang.org/en/latest/stdlib/libdl/#Libdl.find_library
-
-
-Simple Window Example
----------------------
+Example
+-------
 
 ```julia
 import GLFW
@@ -46,6 +35,17 @@ while !GLFW.WindowShouldClose(window)
 	GLFW.PollEvents()
 end
 ```
+
+
+Interface
+---------
+
+Read the [GLFW documentation][docs] for detailed instructions on how to use the library. The Julia interface is almost identical to the underlying C interface, with a few notable differences:
+
+* Clipboard (`glfwGetClipboard`, `glfwSetClipboard`) and time (`glfwGetTime`, `glfwSetTime`) functions have been omitted because Julia's standard library already supports similar functionality.
+* `glfwInit` and `glfwTerminate` are called automatically using the `__init__` and `atexit` functions. While it is okay to still call them explicitly, it is redundant and not required.
+
+[docs]: http://www.glfw.org/documentation.html
 
 
 Footnotes
