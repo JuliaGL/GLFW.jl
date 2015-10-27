@@ -28,9 +28,6 @@ Simple Window Example
 ```julia
 import GLFW
 
-# Initialize the library
-GLFW.Init()
-
 # Create a window and its OpenGL context
 window = GLFW.CreateWindow(640, 480, "GLFW.jl")
 

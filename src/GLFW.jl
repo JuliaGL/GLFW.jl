@@ -32,4 +32,8 @@ else
 	error("GLFW $VERSION is not supported")
 end
 
+function __init__()
+    GLFW.Init()
+end
+
 end
