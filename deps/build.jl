@@ -63,7 +63,7 @@ end
 # download a pre-compiled binary (built by GLFW)
 @windows_only begin
 	mkpath("downloads")
-	for sz in (32, 64)
+	for (sz, suffix) in ((32, ""), (64, "-w64"))
 		const build = "$glfw.bin.WIN$sz"
 		const archive = "downloads/$build.zip"
 		if !isfile(archive)
@@ -71,7 +71,8 @@ end
 			download("https://github.com/glfw/glfw/releases/download/$version/$build.zip", archive)
 		end
 		run(`7z x -obuilds -y $archive`)
+		dllpath = "builds/$build/lib-mingw$suffix"
 		mkpath("usr$sz")
-		cp("builds/$build/lib-mingw", "usr$sz/lib", remove_destination=true)
+		cp(dllpath, "usr$sz/lib", remove_destination=true)
 	end
 end
