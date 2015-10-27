@@ -17,5 +17,3 @@ while !GLFW.WindowShouldClose(window)
 	# Poll for and process events
 	GLFW.PollEvents()
 end
-
-GLFW.Terminate()

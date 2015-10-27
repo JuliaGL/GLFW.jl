@@ -25,6 +25,7 @@ end
 
 function __init__()
     GLFW.Init()
+    atexit(GLFW.Terminate)
 end
 
 end

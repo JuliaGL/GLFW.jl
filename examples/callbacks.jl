@@ -43,4 +43,3 @@ while !GLFW.WindowShouldClose(window)
 end
 
 GLFW.DestroyWindow(window)
-GLFW.Terminate()
