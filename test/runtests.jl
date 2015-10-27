@@ -11,4 +11,3 @@ catch e
 		rethrow()
 	end
 end
-GLFW.Terminate()

@@ -33,5 +33,3 @@ end
 for window in windows
 	GLFW.DestroyWindow(window)
 end
-
-GLFW.Terminate()
