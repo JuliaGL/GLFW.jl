@@ -45,7 +45,7 @@ Read the [GLFW documentation][docs] for detailed instructions on how to use the 
 * Clipboard (`glfwGetClipboard`, `glfwSetClipboard`) and time (`glfwGetTime`, `glfwSetTime`) functions have been omitted because Julia's standard library already supports similar functionality.
 * `glfwInit` and `glfwTerminate` are called automatically using the `__init__` and `atexit` functions. While it is okay to still call them explicitly, it is redundant and not required.
 
-[docs]: http://www.glfw.org/documentation.html
+[docs]: http://www.glfw.org/docs/latest/
 
 
 Footnotes
