@@ -24,8 +24,8 @@ else
 end
 
 function __init__()
-    GLFW.Init()
-    atexit(GLFW.Terminate)
+	GLFW.Init()
+	atexit(GLFW.Terminate)
 end
 
 end
