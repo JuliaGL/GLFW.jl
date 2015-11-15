@@ -348,7 +348,7 @@ CreateWindow(width::Integer, height::Integer, title::AbstractString, monitor::Mo
 	ccall( (:glfwCreateWindow, lib), Window, (Cuint, Cuint, Cstring, Monitor, Window), width, height, title, monitor, share)
 DestroyWindow(window::Window) = ccall( (:glfwDestroyWindow, lib), Void, (Window,), window)
 WindowShouldClose(window::Window) = Bool(ccall( (:glfwWindowShouldClose, lib), Cuint, (Window,), window))
-SetWindowShouldClose(window::Window, value::Integer) = ccall( (:glfwSetWindowShouldClose, lib), Void, (Window, Cuint), window, value)
+SetWindowShouldClose(window::Window, value::Bool) = ccall( (:glfwSetWindowShouldClose, lib), Void, (Window, Cuint), window, value)
 SetWindowTitle(window::Window, title::AbstractString) = ccall( (:glfwSetWindowTitle, lib), Void, (Window, Cstring), window, title)
 
 function GetWindowPos(window::Window)
