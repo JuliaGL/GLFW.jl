@@ -1,12 +1,10 @@
-# generate methods for wrapping and setting a callback
+# Generate methods for setting a callback
 macro callback(ex)
 	signature = ex.head == :call ? ex : ex.args[1]
 
 	name = string(signature.args[1], "Callback")
-	callback = gensym(name)
 	setter = symbol("Set", name)
 	libsetter = Expr(:quote, symbol("glfw", setter))
-	wrapper = gensym(string(name, "Wrapper"))
 
 	ccall_args = signature.args[2:end]
 	ccall_arg_names = map(a -> a.args[1], ccall_args)
@@ -21,21 +19,27 @@ macro callback(ex)
 	ex = quote
 		# Set the callback to a Julia function
 		function $setter($(win_arg...), callback::Function)
-			cfun = (isgeneric(callback) && method_exists(callback, $ccall_arg_types)) ? callback : $wrapper
-			$setter($(win_name...), cfunction(cfun, Void, $ccall_arg_types), callback)
+			if !isgeneric(callback) || !method_exists(callback, $ccall_arg_types)
+				callback = wrap_callback(callback, $name, $ccall_args, $callback_arg_values)
+			end
+			$setter($(win_name...), cfunction(callback, Void, $ccall_arg_types))
 		end
 
 		# Set the callback to a C function pointer
-		function $setter($(win_arg...), cfunptr::Ptr{Void}, jlfunref=nothing)
-			global $callback = jlfunref # prevent callback from being garbage-collected
+		function $setter($(win_arg...), cfunptr::Ptr{Void})
 			ccall( ($libsetter, lib), Void, ($(win_type...), Ptr{Void}), $(win_name...), cfunptr)
 		end
 
 		# Remove the current callback
 		$setter($(win_arg...), ::Void) = $setter($(win_name...), C_NULL)
-
-		# Julia callback wrapper that can be passed to `cfunction`
-		$wrapper($(ccall_args...)) = ($callback($(callback_arg_values...)); return nothing)
 	end
 	esc(ex)
+end
+
+# Wraps a callback function in a new top-level function that can be passed to C
+function wrap_callback(callback::Function, name::AbstractString, ccall_args, callback_arg_values)
+	wrapper = gensym("$(name)Wrapper")
+	@eval begin
+		$wrapper($(ccall_args...)) = ($callback($(callback_arg_values...)); return nothing)
+	end
 end
