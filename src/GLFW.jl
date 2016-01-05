@@ -18,12 +18,12 @@ const VERSION = GetVersion()
 if VERSION.major == 3
 	include("callback.jl")
 	include("glfw3.jl")
-	SetErrorCallback((code, description) -> error(description))
 else
 	error("GLFW $VERSION is not supported")
 end
 
 function __init__()
+	SetErrorCallback((code, description) -> error(description))
 	GLFW.Init()
 	atexit(GLFW.Terminate)
 end
