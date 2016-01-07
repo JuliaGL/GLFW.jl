@@ -1,41 +1,64 @@
-# generate methods for wrapping and setting a callback
+# Generate functions for wrapping and setting a callback
 macro callback(ex)
-	signature = ex.head == :call ? ex : ex.args[1]
+	transform = ex.head == :->
+	def = transform ? ex.args[1] : ex                  # Foo(x::T1, y::T2, etc)
+	name = string(def.args[1], "Callback")             # FooCallback
+	args = def.args[2:end]                             # (x::T1, y::T2, etc)
+	values = transform ? ex.args[2].args[2].args : map(argname, args)  # (x, y, etc) or whatever came after the ->
 
-	name = string(signature.args[1], "Callback")
-	callback = gensym(name)
-	setter = symbol("Set", name)
-	libsetter = Expr(:quote, symbol("glfw", setter))
-	wrapper = gensym(string(name, "Wrapper"))
+	setter = symbol("Set", name)                       # SetFooCallback
+	libsetter = Expr(:quote, symbol("glfw", setter))   # glfwSetFooCallback
+	wrapper = gensym(string(name, "Wrapper"))          # FooCallbackWrapper
 
-	ccall_args = signature.args[2:end]
-	ccall_arg_names = map(a -> a.args[1], ccall_args)
-	ccall_arg_types = Expr(:tuple, map(a -> a.args[2], ccall_args)...)
-	callback_arg_values = ex.head == :-> ? ex.args[2].args[2].args : ccall_arg_names
+	window_arg = filter(iswindow, args)                # :(window::Window)
+	window_value = map(argname, window_arg)            # :window
+	handle_type = map(_ -> :WindowHandle, window_arg)  # :WindowHandle
 
-	is_window_callback = length(ccall_arg_types.args) >= 1 && ccall_arg_types.args[1] == :Window
-	win_arg = is_window_callback ? (ccall_args[1],) : ()
-	win_name = is_window_callback ? (ccall_arg_names[1],) : ()
-	win_type = is_window_callback ? (ccall_arg_types.args[1],) : ()
+	wrapper_args = map(win2handle, args)
+	wrapper_types = Expr(:tuple, map(argtype, wrapper_args)...)
+	window_lookup = map(x -> :($x = Base.cconvert(Window, $(win2handle(x)));), window_value)
+
+	if isempty(window_arg)
+		callback_ref = gensym(name)
+		declare_callback_ref = :($callback_ref = Ref{Function}())
+		callback_ref = :($callback_ref[])
+	else
+		global _window_callbacks_len += 1
+		idx = _window_callbacks_len
+		callback_ref = :($(window_value[1]).callbacks[$idx])
+		declare_callback_ref = nothing
+	end
 
 	ex = quote
-		# Set the callback to a Julia function
-		function $setter($(win_arg...), callback::Function)
-			cfun = (isgeneric(callback) && method_exists(callback, $ccall_arg_types)) ? callback : $wrapper
-			$setter($(win_name...), cfunction(cfun, Void, $ccall_arg_types), callback)
+		$declare_callback_ref
+
+		# Set the callback function
+		function $setter($(window_arg...), callback::Function)
+			$callback_ref = callback # Prevent Julia function from being garbage-collected
+			cfunptr = cfunction($wrapper, Void, $wrapper_types)
+			ccall( ($libsetter, lib), Void, ($(handle_type...), Ptr{Void}), $(window_value...), cfunptr)
 		end
 
-		# Set the callback to a C function pointer
-		function $setter($(win_arg...), cfunptr::Ptr{Void}, jlfunref=nothing)
-			global $callback = jlfunref # prevent callback from being garbage-collected
-			ccall( ($libsetter, lib), Void, ($(win_type...), Ptr{Void}), $(win_name...), cfunptr)
+		# Unset the callback function
+		function $setter($(window_arg...), ::Void)
+			ccall( ($libsetter, lib), Void, ($(handle_type...), Ptr{Void}), $(window_value...), C_NULL)
+			$callback_ref = undef # Allow former callback function to be garbage-collected
+			return nothing
 		end
-
-		# Remove the current callback
-		$setter($(win_arg...), ::Void) = $setter($(win_name...), C_NULL)
 
 		# Julia callback wrapper that can be passed to `cfunction`
-		$wrapper($(ccall_args...)) = ($callback($(callback_arg_values...)); return nothing)
+		$wrapper($(wrapper_args...)) = ($(window_lookup...); $callback_ref($(values...)); return nothing)
 	end
 	esc(ex)
 end
+
+# Helper functions for the callback macro
+argname(ex) = ex.args[1]
+argtype(ex) = ex.args[2]
+iswindow(ex) = argtype(ex) == :Window
+win2handle(name::Symbol) = symbol(name, "_handle")
+win2handle(ex) = iswindow(ex) ? :($(win2handle(argname(ex)))::WindowHandle) : ex
+undef(any...) = throw(UndefRefError())
+
+# Size of vector to create during Window construction
+_window_callbacks_len = 0
