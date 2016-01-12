@@ -263,8 +263,7 @@ const DONT_CARE              = -1
 immutable Monitor
 	handle::Ptr{Void}
 end
-const NullMonitor = Monitor(C_NULL)
-Base.show(io::IO, m::Monitor) = write(io, "Monitor($(m == NullMonitor ? m.handle : GetMonitorName(m)))")
+Base.show(io::IO, m::Monitor) = write(io, "Monitor($(m.handle == C_NULL ? m.handle : GetMonitorName(m)))")
 
 typealias WindowHandle Ptr{Void}
 type Window
@@ -272,14 +271,12 @@ type Window
 	callbacks::Vector{Function}
 end
 Window(handle::WindowHandle) = Window(handle, Vector{Function}(_window_callbacks_len))
-const NullWindow = Window(C_NULL)
 Base.cconvert(::Type{WindowHandle}, window::Window) = window.handle
-Base.cconvert(::Type{Window}, handle::WindowHandle) = handle == C_NULL ? NullWindow : ccall( (:glfwGetWindowUserPointer, lib), Ref{Window}, (WindowHandle,), handle)
+Base.cconvert(::Type{Window}, handle::WindowHandle) = ccall( (:glfwGetWindowUserPointer, lib), Ref{Window}, (WindowHandle,), handle)
 
 immutable Cursor
 	handle::Ptr{Void}
 end
-const NullCursor = Cursor(C_NULL)
 
 immutable VidMode
 	width::Cint         # The width, in screen coordinates, of the video mode.
@@ -339,7 +336,7 @@ SetGamma(monitor::Monitor, gamma::Real) = ccall( (:glfwSetGamma, lib), Void, (Mo
 DefaultWindowHints() = ccall( (:glfwDefaultWindowHints, lib), Void, ())
 WindowHint(target::Integer, hint::Integer) = ccall( (:glfwWindowHint, lib), Void, (Cint, Cint), target, hint)
 
-function CreateWindow(width::Integer, height::Integer, title::AbstractString, monitor::Monitor=NullMonitor, share::Window=NullWindow)
+function CreateWindow(width::Integer, height::Integer, title::AbstractString, monitor::Monitor=Monitor(C_NULL), share::Window=Window(C_NULL))
 	handle = ccall( (:glfwCreateWindow, lib), WindowHandle, (Cint, Cint, Cstring, Monitor, WindowHandle), width, height, title, monitor, share)
 	window = Window(handle)
 	ccall( (:glfwSetWindowUserPointer, lib), Void, (WindowHandle, Ref{Window}), window, window)
@@ -419,6 +416,7 @@ SetCursorPos(window::Window, xpos::Real, ypos::Real) = ccall( (:glfwSetCursorPos
 CreateStandardCursor(shape::Integer) = ccall( (:glfwCreateStandardCursor, lib), Cursor, (Cint,), shape)
 DestroyCursor(cursor::Cursor) = ccall( (:glfwDestroyCursor, lib), Void, (Cursor,), cursor)
 SetCursor(window::Window, cursor::Cursor) = ccall( (:glfwSetCursor, lib), Void, (WindowHandle, Cursor), window, cursor)
+SetCursor(window::Window, ::Void) = SetCursor(window, Cursor(C_NULL))
 @callback Key(window::Window, key::Cint, scancode::Cint, action::Cint, mods::Cint)
 @callback Char(window::Window, codepoint::Cuint) -> (window, convert(Char, codepoint))
 @callback CharMods(window::Window, codepoint::Cuint, mods::Cint) -> (window, convert(Char, codepoint), mods)
