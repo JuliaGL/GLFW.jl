@@ -345,8 +345,8 @@ function CreateWindow(width::Integer, height::Integer, title::AbstractString, mo
 	window
 end
 
-DestroyWindow(window::Window) = ccall( (:glfwDestroyWindow, lib), Void, (WindowHandle,), window)
-WindowShouldClose(window::Window) = Bool(ccall( (:glfwWindowShouldClose, lib), Cint, (WindowHandle,), window))
+DestroyWindow(window::Window) = (yield(); ccall( (:glfwDestroyWindow, lib), Void, (WindowHandle,), window))
+WindowShouldClose(window::Window) = ccall( (:glfwWindowShouldClose, lib), Cint, (WindowHandle,), window) != 0
 SetWindowShouldClose(window::Window, value::Bool) = ccall( (:glfwSetWindowShouldClose, lib), Void, (WindowHandle, Cint), window, value)
 SetWindowTitle(window::Window, title::AbstractString) = ccall( (:glfwSetWindowTitle, lib), Void, (WindowHandle, Cstring), window, title)
 
