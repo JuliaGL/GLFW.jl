@@ -18,9 +18,11 @@ addons:
 before_script:
   - "xpra --xvfb=\"Xorg +extension GLX +extension RANDR +extension RENDER -config `pwd`/test/dummy.xorg.conf -logfile ${HOME}/.xpra/xorg.log\"  start :9"
   - "export DISPLAY=:9 glvisualize test"
+  - "export LIBGL_ALWAYS_SOFTWARE=1"
+  - sleep 3
 script:
     - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
-    - LIBGL_ALWAYS_SOFTWARE=1 julia -e 'Pkg.clone(pwd()); Pkg.test("GLVisualize")'
+    - julia -e 'Pkg.clone(pwd()); Pkg.test("GLVisualize")'
 
 after_script:
   - "xpra stop :9"
