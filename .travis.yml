@@ -1,22 +1,23 @@
 language: julia
 os:
   - linux
-  - osx
-matrix:
-  allow_failures:
-    - os: osx
 julia:
-  - release
-  - nightly
+  - 0.4
 notifications:
   email: false
 addons:
   apt:
     packages:
+    - libgl1-mesa-dev
+    - xserver-xorg-video-dummy
+    - xpra
     - cmake
     - libxxf86vm-dev
     sources:
     - kubuntu-backports
 before_script:
-  - "export DISPLAY=:99.0"
-  - "sh -e /etc/init.d/xvfb start" # X virtual framebuffer
+  - "xpra --xvfb=\"Xorg +extension GLX -config `pwd`/test/dummy.xorg.conf -logfile ${HOME}/.xpra/xorg.log\"  start :9"
+  - "export DISPLAY=:9 glvisualize test"
+after_script:
+  - "xpra stop :9"
+  - "cat ~/.xpra/*"
