@@ -230,6 +230,8 @@ const LOSE_CONTEXT_ON_RESET  = 0x00031002
 const OPENGL_ANY_PROFILE     =          0
 const OPENGL_CORE_PROFILE    = 0x00032001
 const OPENGL_COMPAT_PROFILE  = 0x00032002
+const NO_API                 = Cint(0)
+
 
 const CURSOR                 = 0x00033001
 const STICKY_KEYS            = 0x00033002
@@ -255,6 +257,8 @@ const CONNECTED              = 0x00040001
 const DISCONNECTED           = 0x00040002
 
 const DONT_CARE              = -1
+
+
 
 #************************************************************************
 # GLFW API types
@@ -450,3 +454,24 @@ SwapBuffers(window::Window) = ccall( (:glfwSwapBuffers, lib), Void, (WindowHandl
 SwapInterval(interval::Integer) = ccall( (:glfwSwapInterval, lib), Void, (Cint,), interval)
 ExtensionSupported(extension::AbstractString) = Bool(ccall( (:glfwExtensionSupported, lib), Cint, (Cstring,), extension))
 GetProcAddress(procname::AbstractString) = ccall((:glfwGetProcAddress, lib), Ptr{Void}, (Cstring,), procname)
+
+
+# Vulkan functionality
+# To make things easy, we don't import type aliases from Vulkan.jl, but define
+
+typealias VkInstance Ptr{Void}
+typealias VkResult Cint
+typealias VkAllocationCallbacks Ptr{Void} # it's a struct, but passed by pointer, so we can avoid defining the whole struct
+typealias VkSurfaceKHR Ptr{Void}
+
+VulkanSupported() = ccall((:glfwVulkanSupported, lib), Cint, ()) != 0
+function CreateWindowSurface(instance, window::GLFW.Window, allocation_callbacks=C_NULL)
+    surface_ref = Ref{VkSurfaceKHR}()
+    res = ccall(
+        (:glfwCreateWindowSurface, lib),
+        VkResult,
+        (VkInstance, GLFW.WindowHandle, VkAllocationCallbacks, Ptr{VkSurfaceKHR}),
+        instance, window, allocation_callbacks, surface_ref
+    )
+    res, surface_ref[]
+end

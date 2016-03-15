@@ -1,20 +1,19 @@
 # version of library to download
-const version = v"3.1.2"
+const version = v"3.2"
 const glfw = "glfw-$version"
 
 # TODO: if the latest version is already installed, don't bother with any of this
 
 # download and compile the library from source
 @linux_only begin
-	mkpath("downloads")
-	const tarball = "downloads/$glfw.tar.gz"
-	if !isfile(tarball)
-		info("Downloading GLFW $version source tarball")
-		download("https://github.com/glfw/glfw/archive/$version.tar.gz", tarball)
-	end
-	mkpath("src")
-	run(`tar xzf $tarball -C src`)
-	map(mkpath, ("builds/$glfw", "usr$WORD_SIZE"))
+    deps_dir = dirname(@__FILE__)
+    cd(deps_dir)
+    srcdir = joinpath(deps_dir, glfw)
+    if isdir(srcdir)
+        rm(srcdir, recursive=true)
+    end
+	run(`git clone https://github.com/glfw/glfw.git $glfw`) # clone it for now, since 3.2 is master!
+	map(x->!isdir(x) && mkdir(x), ("builds/$glfw", "usr$WORD_SIZE"))
 	try
 		info("Building GLFW $version library from source")
 		cd("builds/$glfw") do
@@ -25,7 +24,8 @@ const glfw = "glfw-$version"
 				("GLFW_BUILD_EXAMPLES",  "OFF"),
 				("GLFW_BUILD_TESTS",     "OFF")
 			])
-			run(`cmake $options ../../src/$glfw`)
+            println(isdir("../../$glfw"))
+			run(`cmake $options ../../$glfw`)
 			run(`make install`)
 		end
 	catch e
