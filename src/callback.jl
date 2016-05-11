@@ -6,8 +6,8 @@ macro callback(ex)
 	args = def.args[2:end]                             # (x::T1, y::T2, etc)
 	values = transform ? ex.args[2].args[2].args : map(argname, args)  # (x, y, etc) or whatever came after the ->
 
-	setter = symbol("Set", name)                       # SetFooCallback
-	libsetter = Expr(:quote, symbol("glfw", setter))   # glfwSetFooCallback
+	setter = Symbol("Set", name)                       # SetFooCallback
+	libsetter = Expr(:quote, Symbol("glfw", setter))   # glfwSetFooCallback
 	wrapper = gensym(string(name, "Wrapper"))          # FooCallbackWrapper
 
 	window_arg = filter(iswindow, args)                # :(window::Window)
@@ -56,7 +56,7 @@ end
 argname(ex) = ex.args[1]
 argtype(ex) = ex.args[2]
 iswindow(ex) = argtype(ex) == :Window
-win2handle(name::Symbol) = symbol(name, "_handle")
+win2handle(name::Symbol) = Symbol(name, "_handle")
 win2handle(ex) = iswindow(ex) ? :($(win2handle(argname(ex)))::WindowHandle) : ex
 undef(any...) = throw(UndefRefError())
 
