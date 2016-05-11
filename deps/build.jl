@@ -4,6 +4,8 @@ const glfw = "glfw-$version"
 
 # TODO: if the latest version is already installed, don't bother with any of this
 
+using Compat
+
 # download and compile the library from source
 @linux_only begin
 	mkpath("downloads")
@@ -40,7 +42,6 @@ end
 
 # download a pre-compiled binary (built by Bintray for Homebrew)
 @osx_only begin
-	isdefined(:readstring) || (readstring = readall)
 	const osx_version = convert(VersionNumber, readstring(`sw_vers -productVersion`))
 	if osx_version >= v"10.11"
 		codename = "el_capitan"
