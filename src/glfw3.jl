@@ -296,10 +296,10 @@ end
 # Initialization and version information
 Init() = Bool(ccall( (:glfwInit, lib), Cint, ())) || error("initialization failed")
 Terminate() = ccall( (:glfwTerminate, lib), Void, ())
-GetVersionString() = bytestring(ccall( (:glfwGetVersionString, lib), Cstring, ()))
+GetVersionString() = String(ccall( (:glfwGetVersionString, lib), Cstring, ()))
 
 # Error handling
-@callback Error(code::Cint, description::Cstring) -> (code, bytestring(description))
+@callback Error(code::Cint, description::Cstring) -> (code, String(description))
 
 # Monitor handling
 function GetMonitors()
@@ -322,7 +322,7 @@ function GetMonitorPhysicalSize(monitor::Monitor)
 	(width[], height[])
 end
 
-GetMonitorName(monitor::Monitor) = bytestring(ccall( (:glfwGetMonitorName, lib), Cstring, (Monitor,), monitor))
+GetMonitorName(monitor::Monitor) = String(ccall( (:glfwGetMonitorName, lib), Cstring, (Monitor,), monitor))
 @callback Monitor(monitor::Monitor, event::Cint)
 
 function GetVideoModes(monitor::Monitor)
@@ -426,7 +426,7 @@ SetCursor(window::Window, ::Void) = SetCursor(window, Cursor(C_NULL))
 @callback CursorPos(window::Window, xpos::Cdouble, ypos::Cdouble)
 @callback CursorEnter(window::Window, entered::Cint) -> (window, Bool(entered))
 @callback Scroll(window::Window, xoffset::Cdouble, yoffset::Cdouble)
-@callback Drop(window::Window, count::Cint, paths::Ptr{Ptr{Cchar}}) -> (window, map(bytestring, pointer_to_array(paths, count)))
+@callback Drop(window::Window, count::Cint, paths::Ptr{Ptr{Cchar}}) -> (window, map(String, pointer_to_array(paths, count)))
 JoystickPresent(joy::Integer) = Bool(ccall( (:glfwJoystickPresent, lib), Cint, (Cint,), joy))
 
 function GetJoystickAxes(joy::Integer)
@@ -441,7 +441,7 @@ function GetJoystickButtons(joy::Integer)
 	pointer_to_array(ptr, count[])
 end
 
-GetJoystickName(joy::Integer) = bytestring(ccall( (:glfwGetJoystickName, lib), Cstring, (Cint,), joy))
+GetJoystickName(joy::Integer) = String(ccall( (:glfwGetJoystickName, lib), Cstring, (Cint,), joy))
 
 # Context handling
 MakeContextCurrent(window::Window) = ccall( (:glfwMakeContextCurrent, lib), Void, (WindowHandle,), window)
