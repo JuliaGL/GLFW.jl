@@ -16,13 +16,13 @@ using Compat
 	end
 	mkpath("src")
 	run(`tar xzf $tarball -C src`)
-	map(mkpath, ("builds/$glfw", "usr$WORD_SIZE"))
+	map(mkpath, ("builds/$glfw", "usr$(Sys.WORD_SIZE)"))
 	try
 		info("Building GLFW $version library from source")
 		cd("builds/$glfw") do
 			options = map(x -> "-D$(x[1])=$(x[2])", [
 				("BUILD_SHARED_LIBS",    "ON"),
-				("CMAKE_INSTALL_PREFIX", "../../usr$WORD_SIZE"),
+				("CMAKE_INSTALL_PREFIX", "../../usr$(Sys.WORD_SIZE)"),
 				("GLFW_BUILD_DOCS",      "OFF"),
 				("GLFW_BUILD_EXAMPLES",  "OFF"),
 				("GLFW_BUILD_TESTS",     "OFF")
