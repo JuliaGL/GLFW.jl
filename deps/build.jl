@@ -7,7 +7,7 @@ const glfw = "glfw-$version"
 using Compat
 
 # download and compile the library from source
-@linux_only begin
+@static if is_linux()
 	mkpath("downloads")
 	const tarball = "downloads/$glfw.tar.gz"
 	if !isfile(tarball)
@@ -41,7 +41,7 @@ If that doesn't help, try to install GLFW manually
 end
 
 # download a pre-compiled binary (built by Bintray for Homebrew)
-@osx_only begin
+@static if is_apple()
 	const osx_version = convert(VersionNumber, readstring(`sw_vers -productVersion`))
 	if osx_version >= v"10.11"
 		codename = "el_capitan"
@@ -63,7 +63,7 @@ end
 end
 
 # download a pre-compiled binary (built by GLFW)
-@windows_only begin
+@static if is_windows()
 	mkpath("downloads")
 	for (sz, suffix) in ((32, ""), (64, "-w64"))
 		const build = "$glfw.bin.WIN$sz"
