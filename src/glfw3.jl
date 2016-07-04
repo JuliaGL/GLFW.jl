@@ -296,16 +296,16 @@ end
 # Initialization and version information
 Init() = Bool(ccall( (:glfwInit, lib), Cint, ())) || error("initialization failed")
 Terminate() = ccall( (:glfwTerminate, lib), Void, ())
-GetVersionString() = String(ccall( (:glfwGetVersionString, lib), Cstring, ()))
+GetVersionString() = unsafe_string(ccall( (:glfwGetVersionString, lib), Cstring, ()))
 
 # Error handling
-@callback Error(code::Cint, description::Cstring) -> (code, String(description))
+@callback Error(code::Cint, description::Cstring) -> (code, unsafe_string(description))
 
 # Monitor handling
 function GetMonitors()
 	count = Ref{Cint}()
 	ptr = ccall( (:glfwGetMonitors, lib), Ptr{Monitor}, (Ref{Cint},), count)
-	pointer_to_array(ptr, count[])
+	unsafe_wrap(Array, ptr, count[])
 end
 
 GetPrimaryMonitor() = ccall( (:glfwGetPrimaryMonitor, lib), Monitor, ())
@@ -322,16 +322,16 @@ function GetMonitorPhysicalSize(monitor::Monitor)
 	(width[], height[])
 end
 
-GetMonitorName(monitor::Monitor) = String(ccall( (:glfwGetMonitorName, lib), Cstring, (Monitor,), monitor))
+GetMonitorName(monitor::Monitor) = unsafe_string(ccall( (:glfwGetMonitorName, lib), Cstring, (Monitor,), monitor))
 @callback Monitor(monitor::Monitor, event::Cint)
 
 function GetVideoModes(monitor::Monitor)
 	count = Ref{Cint}()
 	ptr = ccall( (:glfwGetVideoModes, lib), Ptr{VidMode}, (Monitor, Ref{Cint}), monitor, count)
-	pointer_to_array(ptr, count[])
+	unsafe_wrap(Array, ptr, count[])
 end
 
-GetVideoMode(monitor::Monitor) = pointer_to_array(ccall( (:glfwGetVideoMode, lib), Ptr{VidMode}, (Monitor,), monitor), 1)[1]
+GetVideoMode(monitor::Monitor) = unsafe_load(ccall( (:glfwGetVideoMode, lib), Ptr{VidMode}, (Monitor,), monitor))
 SetGamma(monitor::Monitor, gamma::Real) = ccall( (:glfwSetGamma, lib), Void, (Monitor, Cfloat), monitor, gamma)
 
 # Window handling
@@ -426,22 +426,22 @@ SetCursor(window::Window, ::Void) = SetCursor(window, Cursor(C_NULL))
 @callback CursorPos(window::Window, xpos::Cdouble, ypos::Cdouble)
 @callback CursorEnter(window::Window, entered::Cint) -> (window, Bool(entered))
 @callback Scroll(window::Window, xoffset::Cdouble, yoffset::Cdouble)
-@callback Drop(window::Window, count::Cint, paths::Ptr{Ptr{Cchar}}) -> (window, map(String, pointer_to_array(paths, count)))
+@callback Drop(window::Window, count::Cint, paths::Ptr{Cstring}) -> (window, map(unsafe_string, unsafe_wrap(Array, paths, count)))
 JoystickPresent(joy::Integer) = Bool(ccall( (:glfwJoystickPresent, lib), Cint, (Cint,), joy))
 
 function GetJoystickAxes(joy::Integer)
 	count = Ref{Cint}()
 	ptr = ccall( (:glfwGetJoystickAxes, lib), Ptr{Cfloat}, (Cint, Ref{Cint}), joy, count)
-	pointer_to_array(ptr, count[])
+	unsafe_wrap(Array, ptr, count[])
 end
 
 function GetJoystickButtons(joy::Integer)
 	count = Ref{Cint}()
 	ptr = ccall( (:glfwGetJoystickButtons, lib), Ptr{Cuchar}, (Cint, Ref{Cint}), joy, count)
-	pointer_to_array(ptr, count[])
+	unsafe_wrap(Array, ptr, count[])
 end
 
-GetJoystickName(joy::Integer) = String(ccall( (:glfwGetJoystickName, lib), Cstring, (Cint,), joy))
+GetJoystickName(joy::Integer) = unsafe_string(ccall( (:glfwGetJoystickName, lib), Cstring, (Cint,), joy))
 
 # Context handling
 MakeContextCurrent(window::Window) = ccall( (:glfwMakeContextCurrent, lib), Void, (WindowHandle,), window)
