@@ -1,31 +1,33 @@
 # version of library to download
-const version = v"3.2"
+const version = "3.2"
 const glfw = "glfw-$version"
 
 # TODO: if the latest version is already installed, don't bother with any of this
 
+using Compat
+
 # download and compile the library from source
-@linux_only begin
-    deps_dir = dirname(@__FILE__)
-    cd(deps_dir)
-    srcdir = joinpath(deps_dir, glfw)
-    if isdir(srcdir)
-        rm(srcdir, recursive=true)
-    end
-	run(`git clone https://github.com/glfw/glfw.git $glfw`) # clone it for now, since 3.2 is master!
-	map(x->!isdir(x) && mkdir(x), ("builds/$glfw", "usr$WORD_SIZE"))
+@static if is_linux()
+	mkpath("downloads")
+	const tarball = "downloads/$glfw.tar.gz"
+	if !isfile(tarball)
+		info("Downloading GLFW $version source tarball")
+		download("https://github.com/glfw/glfw/archive/$version.tar.gz", tarball)
+	end
+	mkpath("src")
+	run(`tar xzf $tarball -C src`)
+	map(mkpath, ("builds/$glfw", "usr$(Sys.WORD_SIZE)"))
 	try
 		info("Building GLFW $version library from source")
 		cd("builds/$glfw") do
 			options = map(x -> "-D$(x[1])=$(x[2])", [
 				("BUILD_SHARED_LIBS",    "ON"),
-				("CMAKE_INSTALL_PREFIX", "../../usr$WORD_SIZE"),
+				("CMAKE_INSTALL_PREFIX", "../../usr$(Sys.WORD_SIZE)"),
 				("GLFW_BUILD_DOCS",      "OFF"),
 				("GLFW_BUILD_EXAMPLES",  "OFF"),
 				("GLFW_BUILD_TESTS",     "OFF")
 			])
-            println(isdir("../../$glfw"))
-			run(`cmake $options ../../$glfw`)
+			run(`cmake $options ../../src/$glfw`)
 			run(`make install`)
 		end
 	catch e
@@ -39,8 +41,8 @@ If that doesn't help, try to install GLFW manually
 end
 
 # download a pre-compiled binary (built by Bintray for Homebrew)
-@osx_only begin
-	const osx_version = convert(VersionNumber, readall(`sw_vers -productVersion`))
+@static if is_apple()
+	const osx_version = convert(VersionNumber, readstring(`sw_vers -productVersion`))
 	if osx_version >= v"10.11"
 		codename = "el_capitan"
 	elseif osx_version >= v"10.10"
@@ -61,7 +63,7 @@ end
 end
 
 # download a pre-compiled binary (built by GLFW)
-@windows_only begin
+@static if is_windows()
 	mkpath("downloads")
 	for (sz, suffix) in ((32, ""), (64, "-w64"))
 		const build = "$glfw.bin.WIN$sz"
