@@ -337,6 +337,18 @@ end
 
 GetVideoMode(monitor::Monitor) = pointer_to_array(ccall( (:glfwGetVideoMode, lib), Ptr{VidMode}, (Monitor,), monitor), 1)[1]
 SetGamma(monitor::Monitor, gamma::Real) = ccall( (:glfwSetGamma, lib), Void, (Monitor, Cfloat), monitor, gamma)
+function SetWindowMonitor(window, monitor, x, y, w, h, refresh_rate)
+    if monitor == C_NULL
+        monitor = Monitor(C_NULL)
+    end
+    ccall(
+        (:glfwSetWindowMonitor, lib),
+        Void,
+        (WindowHandle, Monitor, Cint, Cint, Cint, Cint, Cint),
+        window, monitor, x, y, w, h, refresh_rate
+    )
+end
+
 
 # Window handling
 DefaultWindowHints() = ccall( (:glfwDefaultWindowHints, lib), Void, ())
