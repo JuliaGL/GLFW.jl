@@ -4,8 +4,6 @@ const glfw = "glfw-$version"
 
 # TODO: if the latest version is already installed, don't bother with any of this
 
-using Compat
-
 # download and compile the library from source
 if is_linux()
 	mkpath("downloads")

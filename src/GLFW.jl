@@ -2,9 +2,6 @@ __precompile__()
 
 module GLFW
 
-using Compat
-import Compat.String
-
 const lib = Libdl.find_library(["glfw3", "libglfw3", "glfw", "libglfw"], [Pkg.dir("GLFW/deps/usr$(Sys.WORD_SIZE)/lib")])
 if isempty(lib)
 	error("could not find GLFW library")
