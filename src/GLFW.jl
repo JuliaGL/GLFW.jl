@@ -2,11 +2,7 @@ __precompile__()
 
 module GLFW
 
-const lib = Libdl.find_library(["glfw3", "libglfw3", "glfw", "libglfw"], [Pkg.dir("GLFW/deps/usr$(Sys.WORD_SIZE)/lib")])
-if isempty(lib)
-	error("could not find GLFW library")
-end
-include_dependency(string(lib, ".", Libdl.dlext)) # Trigger recompilation if the library changes
+include("../deps/deps.jl")
 
 function GetVersion()
 	major, minor, rev = Ref{Cint}(), Ref{Cint}(), Ref{Cint}()
