@@ -1,9 +1,17 @@
+# version of library to download
 const version = v"3.2.1"
 
 using BinDeps
 @BinDeps.setup
 
-glfw = library_dependency("libglfw", aliases=["glfw", "glfw3", "libglfw3"])
+function compatible_version(lib, handle)
+	major, minor, rev = Ref{Cint}(), Ref{Cint}(), Ref{Cint}()
+	ccall(Libdl.dlsym(handle, :glfwGetVersion), Void, (Ref{Cint}, Ref{Cint}, Ref{Cint}), major, minor, rev)
+	libversion = VersionNumber(major[], minor[], rev[])
+	return libversion >= version
+end
+
+glfw = library_dependency("libglfw", aliases=["glfw", "glfw3", "libglfw3"], validate=compatible_version)
 
 # library source code
 provides(Sources, URI("https://github.com/glfw/glfw/archive/$version.tar.gz"), glfw, unpacked_dir="glfw-$version")
