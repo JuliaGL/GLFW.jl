@@ -43,7 +43,10 @@ end
 
 # download a pre-compiled binary (built by GLFW)
 if is_windows()
-	# TODO: Binaries from GitHub
+	archive = "glfw-$version.bin.WIN$(Sys.WORD_SIZE)"
+	libpath = joinpath(archive, "lib-mingw-w64")
+	uri = URI("https://github.com/glfw/glfw/releases/download/$version/$archive.zip")
+	provides(Binaries, uri, glfw, unpacked_dir=archive, installed_libpath=libpath, os=:Windows)
 end
 
 @BinDeps.install Dict("libglfw"=>"lib")
