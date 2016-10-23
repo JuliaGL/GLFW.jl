@@ -9,13 +9,13 @@ function GetVersion()
 	ccall( (:glfwGetVersion, lib), Void, (Ref{Cint}, Ref{Cint}, Ref{Cint}), major, minor, rev)
 	VersionNumber(major[], minor[], rev[])
 end
-const VERSION = GetVersion()
+const libversion = GetVersion()
 
-if VERSION.major == 3
+if libversion.major == 3
 	include("callback.jl")
 	include("glfw3.jl")
 else
-	error("GLFW $VERSION is not supported")
+	error("GLFW $libversion is not supported")
 end
 
 function __init__()
