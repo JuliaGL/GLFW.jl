@@ -38,7 +38,7 @@ provides(SimpleBuild, cmake_build_steps, glfw)
 # get library through Homebrew, if available
 if Pkg.installed("Homebrew") != nothing
 	using Homebrew
-	provides(Homebrew.HB, "homebrew/versions/glfw3", glfw, os=:Darwin)
+	provides(Homebrew.HB, "glfw", glfw, os=:Darwin)
 end
 
 # download a pre-compiled binary (built by GLFW)
