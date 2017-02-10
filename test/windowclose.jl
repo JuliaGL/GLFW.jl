@@ -11,6 +11,7 @@ window = GLFW.CreateWindow(800, 600, "InexactError")
 ccall( (:glfwSetWindowShouldClose, GLFW.lib), Void, (GLFW.WindowHandle, Cint), window, 189)
 @test GLFW.WindowShouldClose(window)
 
+GLFW.DestroyWindow(window)
 
 # Test for a segfault triggered by a scheduled task
 using ModernGL, GeometryTypes
