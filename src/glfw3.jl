@@ -177,13 +177,14 @@ const JOYSTICK_LAST          = JOYSTICK_16
 # Error codes
 const NOT_INITIALIZED        = 0x00010001  # GLFW has not been initialized.
 const NO_CURRENT_CONTEXT     = 0x00010002  # No context is current for this thread.
-const INVALID_ENUM           = 0x00010003  # One of the enum parameters for the function was given an invalid enum.
-const INVALID_VALUE          = 0x00010004  # One of the parameters for the function was given an invalid value.
+const INVALID_ENUM           = 0x00010003  # One of the arguments to the function was an invalid enum value.
+const INVALID_VALUE          = 0x00010004  # One of the arguments to the function was an invalid value.
 const OUT_OF_MEMORY          = 0x00010005  # A memory allocation failed.
-const API_UNAVAILABLE        = 0x00010006  # GLFW could not find support for the requested client API on the system.
-const VERSION_UNAVAILABLE    = 0x00010007  # The requested client API version is not available.
+const API_UNAVAILABLE        = 0x00010006  # GLFW could not find support for the requested API on the system.
+const VERSION_UNAVAILABLE    = 0x00010007  # The requested OpenGL or OpenGL ES version is not available.
 const PLATFORM_ERROR         = 0x00010008  # A platform-specific error occurred that does not match any of the more specific categories.
-const FORMAT_UNAVAILABLE     = 0x00010009  # The clipboard did not contain data in the requested format.
+const FORMAT_UNAVAILABLE     = 0x00010009  # The requested format is not supported or available.
+const NO_WINDOW_CONTEXT      = 0x0001000A  # The specified window does not have an OpenGL or OpenGL ES context.
 
 const FOCUSED                = 0x00020001
 const ICONIFIED              = 0x00020002
