@@ -301,7 +301,20 @@ Base.showerror(io::IO, e::GLFWError) = print(io, "GLFWError: ", e.description)
 #************************************************************************
 
 # Initialization and version information
-Init() = Bool(ccall( (:glfwInit, lib), Cint, ())) || error("initialization failed")
+function Init()
+	try
+		return Bool(ccall( (:glfwInit, lib), Cint, ())) || error("initialization failed")
+	catch ex
+		if isa(ex, GLFWError) && ex.code == PLATFORM_ERROR && contains(ex.description, "Failed to get display service port iterator")
+			# Workaround: downgrade Mac display name error to warning
+			# https://github.com/glfw/glfw/issues/958
+			warn(ex)
+		else
+			rethrow()
+		end
+	end
+end
+
 Terminate() = ccall( (:glfwTerminate, lib), Void, ())
 GetVersionString() = unsafe_string(ccall( (:glfwGetVersionString, lib), Cstring, ()))
 
