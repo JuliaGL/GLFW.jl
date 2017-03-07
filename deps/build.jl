@@ -5,10 +5,10 @@ using BinDeps
 @BinDeps.setup
 
 function compatible_version(lib, handle)
-    major, minor, rev = Ref{Cint}(), Ref{Cint}(), Ref{Cint}()
-    ccall(Libdl.dlsym(handle, :glfwGetVersion), Void, (Ref{Cint}, Ref{Cint}, Ref{Cint}), major, minor, rev)
-    libversion = VersionNumber(major[], minor[], rev[])
-    return libversion >= version
+	major, minor, rev = Ref{Cint}(), Ref{Cint}(), Ref{Cint}()
+	ccall(Libdl.dlsym(handle, :glfwGetVersion), Void, (Ref{Cint}, Ref{Cint}, Ref{Cint}), major, minor, rev)
+	libversion = VersionNumber(major[], minor[], rev[])
+	return libversion >= version
 end
 
 glfw = library_dependency("libglfw", aliases=["glfw", "glfw3", "libglfw3"], validate=compatible_version)
@@ -19,34 +19,34 @@ srcdir = joinpath(BinDeps.srcdir(glfw), "glfw-$version")
 
 # how to build library from source
 cmake_options = map(x -> "-D$(x[1])=$(x[2])", [
-    ("BUILD_SHARED_LIBS",    "ON"),
-    ("CMAKE_INSTALL_PREFIX", BinDeps.usrdir(glfw)),
-    ("GLFW_BUILD_DOCS",      "OFF"),
-    ("GLFW_BUILD_EXAMPLES",  "OFF"),
-    ("GLFW_BUILD_TESTS",     "OFF")
+	("BUILD_SHARED_LIBS",    "ON"),
+	("CMAKE_INSTALL_PREFIX", BinDeps.usrdir(glfw)),
+	("GLFW_BUILD_DOCS",      "OFF"),
+	("GLFW_BUILD_EXAMPLES",  "OFF"),
+	("GLFW_BUILD_TESTS",     "OFF")
 ])
 cmake_build_steps = @build_steps begin
-    GetSources(glfw)
-    @build_steps begin
-    ChangeDirectory(srcdir)
-    `cmake $cmake_options .`
-    MakeTargets(["install"])
-    end
+	GetSources(glfw)
+	@build_steps begin
+	ChangeDirectory(srcdir)
+	`cmake $cmake_options .`
+	MakeTargets(["install"])
+	end
 end
 provides(SimpleBuild, cmake_build_steps, glfw)
 
 # get library through Homebrew, if available
 @static if is_apple()
-    using Homebrew
-    provides(Homebrew.HB, "glfw", glfw, os=:Darwin)
+	using Homebrew
+	provides(Homebrew.HB, "glfw", glfw, os=:Darwin)
 end
 
 # download a pre-compiled binary (built by GLFW)
 @static if is_windows()
-    archive = "glfw-$version.bin.WIN$(Sys.WORD_SIZE)"
-    libpath = joinpath(archive, "lib-mingw-w64")
-    uri = URI("https://github.com/glfw/glfw/releases/download/$version/$archive.zip")
-    provides(Binaries, uri, glfw, unpacked_dir=archive, installed_libpath=libpath, os=:Windows)
+	archive = "glfw-$version.bin.WIN$(Sys.WORD_SIZE)"
+	libpath = joinpath(archive, "lib-mingw-w64")
+	uri = URI("https://github.com/glfw/glfw/releases/download/$version/$archive.zip")
+	provides(Binaries, uri, glfw, unpacked_dir=archive, installed_libpath=libpath, os=:Windows)
 end
 
 @BinDeps.install Dict("libglfw"=>"lib")
