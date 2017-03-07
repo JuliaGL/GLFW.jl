@@ -1,6 +1,6 @@
 import GLFW
 
-# Create a windowed mode window and its OpenGL context
+# Create a window and its OpenGL context
 window = GLFW.CreateWindow(640, 480, "GLFW.jl")
 
 # Make the window's context current
@@ -17,3 +17,5 @@ while !GLFW.WindowShouldClose(window)
 	# Poll for and process events
 	GLFW.PollEvents()
 end
+
+GLFW.DestroyWindow(window)
