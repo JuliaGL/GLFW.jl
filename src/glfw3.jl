@@ -175,16 +175,18 @@ const JOYSTICK_16            = 15
 const JOYSTICK_LAST          = JOYSTICK_16
 
 # Error codes
-const NOT_INITIALIZED        = 0x00010001  # GLFW has not been initialized.
-const NO_CURRENT_CONTEXT     = 0x00010002  # No context is current for this thread.
-const INVALID_ENUM           = 0x00010003  # One of the arguments to the function was an invalid enum value.
-const INVALID_VALUE          = 0x00010004  # One of the arguments to the function was an invalid value.
-const OUT_OF_MEMORY          = 0x00010005  # A memory allocation failed.
-const API_UNAVAILABLE        = 0x00010006  # GLFW could not find support for the requested API on the system.
-const VERSION_UNAVAILABLE    = 0x00010007  # The requested OpenGL or OpenGL ES version is not available.
-const PLATFORM_ERROR         = 0x00010008  # A platform-specific error occurred that does not match any of the more specific categories.
-const FORMAT_UNAVAILABLE     = 0x00010009  # The requested format is not supported or available.
-const NO_WINDOW_CONTEXT      = 0x0001000A  # The specified window does not have an OpenGL or OpenGL ES context.
+@enum(ErrorCode,
+	NOT_INITIALIZED        = 0x00010001,  # GLFW has not been initialized.
+	NO_CURRENT_CONTEXT     = 0x00010002,  # No context is current for this thread.
+	INVALID_ENUM           = 0x00010003,  # One of the arguments to the function was an invalid enum value.
+	INVALID_VALUE          = 0x00010004,  # One of the arguments to the function was an invalid value.
+	OUT_OF_MEMORY          = 0x00010005,  # A memory allocation failed.
+	API_UNAVAILABLE        = 0x00010006,  # GLFW could not find support for the requested API on the system.
+	VERSION_UNAVAILABLE    = 0x00010007,  # The requested OpenGL or OpenGL ES version is not available.
+	PLATFORM_ERROR         = 0x00010008,  # A platform-specific error occurred that does not match any of the more specific categories.
+	FORMAT_UNAVAILABLE     = 0x00010009,  # The requested format is not supported or available.
+	NO_WINDOW_CONTEXT      = 0x0001000A  # The specified window does not have an OpenGL or OpenGL ES context.
+)
 
 const FOCUSED                = 0x00020001
 const ICONIFIED              = 0x00020002
@@ -291,10 +293,10 @@ immutable VidMode
 end
 
 immutable GLFWError <: Exception
-	code::Cint
+	code::ErrorCode
 	description::String
 end
-Base.showerror(io::IO, e::GLFWError) = print(io, "GLFWError: ", e.description)
+Base.showerror(io::IO, e::GLFWError) = print(io, "GLFWError ($(e.code)): ", e.description)
 
 #************************************************************************
 # GLFW API functions
@@ -305,7 +307,12 @@ function Init()
 	try
 		return Bool(ccall( (:glfwInit, lib), Cint, ())) || error("initialization failed")
 	catch ex
-		if isa(ex, GLFWError) && ex.code == PLATFORM_ERROR && contains(ex.description, "Failed to get display service port iterator")
+		if isa(ex, GLFWError) && ex.code == PLATFORM_ERROR && (
+				contains(ex.description, "Failed to get display service port iterator") ||
+				contains(ex.description, "Failed to retrieve display name") ||
+				contains(ex.description, "RandR gamma ramp support seems broken") ||
+				contains(ex.description, "Failed to watch for joystick connections in")
+			)
 			# Workaround: downgrade Mac display name error to warning
 			# https://github.com/glfw/glfw/issues/958
 			warn(ex)
