@@ -18,8 +18,23 @@ else
 	error("GLFW $libversion is not supported")
 end
 
+immutable GLFWError <: Exception
+    code::ErrorCode
+    description::UTF8String
+end
+function Base.showerror(io::IO, e::GLFWError)
+    print(io,
+        "GLWF reported an error with the code: ",
+        e.code, ".\n",
+        "And the Description: ",
+        e.description
+    )
+end
+function error_callback(code, description)
+    throw(GLFWError(ErrorCode(code), bytestring(description)))
+end
 function __init__()
-	SetErrorCallback((code, description) -> error(description))
+	SetErrorCallback(error_callback)
 	GLFW.Init()
 	atexit(GLFW.Terminate)
 end
