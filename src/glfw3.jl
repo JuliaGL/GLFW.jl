@@ -290,6 +290,12 @@ immutable VidMode
 	refreshrate::Cint   # The refresh rate, in Hz, of the video mode.
 end
 
+immutable GLFWError <: Exception
+	code::Cint
+	description::String
+end
+Base.showerror(io::IO, e::GLFWError) = print(io, "GLFWError: ", e.description)
+
 #************************************************************************
 # GLFW API functions
 #************************************************************************
