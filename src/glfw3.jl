@@ -309,8 +309,8 @@ function Init()
 	catch ex
 		if isa(ex, GLFWError) && ex.code == PLATFORM_ERROR && (
 				contains(ex.description, "Failed to get display service port iterator") ||
-				contains(ex.description, "Failed to retrieve display name") ||
-				contains(ex.description, "RandR gamma ramp support seems broken") ||
+				contains(ex.description, "Failed to retrieve display name") ||
+				contains(ex.description, "RandR gamma ramp support seems broken") ||
 				contains(ex.description, "Failed to watch for joystick connections in")
 			)
 			# Workaround: downgrade Mac display name error to warning
