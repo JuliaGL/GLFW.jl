@@ -303,10 +303,7 @@ Base.showerror(io::IO, e::GLFWError) = print(io, "GLFWError ($(e.code)): ", e.de
 #************************************************************************
 
 # Initialization and version information
-function Init()
-	return Bool(ccall( (:glfwInit, lib), Cint, ())) || error("initialization failed")
-end
-
+Init() = Bool(ccall( (:glfwInit, lib), Cint, ())) || error("initialization failed")
 Terminate() = ccall( (:glfwTerminate, lib), Void, ())
 GetVersionString() = unsafe_string(ccall( (:glfwGetVersionString, lib), Cstring, ()))
 
