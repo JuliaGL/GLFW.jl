@@ -185,7 +185,7 @@ const JOYSTICK_LAST          = JOYSTICK_16
 	VERSION_UNAVAILABLE    = 0x00010007,  # The requested OpenGL or OpenGL ES version is not available.
 	PLATFORM_ERROR         = 0x00010008,  # A platform-specific error occurred that does not match any of the more specific categories.
 	FORMAT_UNAVAILABLE     = 0x00010009,  # The requested format is not supported or available.
-	NO_WINDOW_CONTEXT      = 0x0001000A  # The specified window does not have an OpenGL or OpenGL ES context.
+	NO_WINDOW_CONTEXT      = 0x0001000A   # The specified window does not have an OpenGL or OpenGL ES context.
 )
 
 const FOCUSED                = 0x00020001
