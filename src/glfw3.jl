@@ -304,22 +304,7 @@ Base.showerror(io::IO, e::GLFWError) = print(io, "GLFWError ($(e.code)): ", e.de
 
 # Initialization and version information
 function Init()
-	try
-		return Bool(ccall( (:glfwInit, lib), Cint, ())) || error("initialization failed")
-	catch ex
-		if isa(ex, GLFWError) && ex.code == PLATFORM_ERROR && (
-				contains(ex.description, "Failed to get display service port iterator") ||
-				contains(ex.description, "Failed to retrieve display name") ||
-				contains(ex.description, "RandR gamma ramp support seems broken") ||
-				contains(ex.description, "Failed to watch for joystick connections in")
-			)
-			# Workaround: downgrade Mac display name error to warning
-			# https://github.com/glfw/glfw/issues/958
-			warn(ex)
-		else
-			rethrow()
-		end
-	end
+	return Bool(ccall( (:glfwInit, lib), Cint, ())) || error("initialization failed")
 end
 
 Terminate() = ccall( (:glfwTerminate, lib), Void, ())
