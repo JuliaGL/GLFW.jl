@@ -20,8 +20,8 @@ end
 function handle_error(code, description)
 	if code == PLATFORM_ERROR && (
 			contains(description, "Failed to get display service port iterator") ||
-			contains(description, "Failed to retrieve display name") ||
-			contains(description, "RandR gamma ramp support seems broken") ||
+			contains(description, "Failed to retrieve display name") ||
+			contains(description, "RandR gamma ramp support seems broken") ||
 			contains(description, "Failed to watch for joystick connections in")
 		)
 		# Workaround: downgrade Mac display name error to warning
