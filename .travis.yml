@@ -4,6 +4,13 @@ dist: trusty
 matrix:
   include:
     - os: linux
+      addons:
+        apt:
+          packages:
+          - cmake
+          - libxxf86vm-dev
+          sources:
+            - kubuntu-backports
       before_script:
         - "export DISPLAY=:99.0"
         - "sh -e /etc/init.d/xvfb start"
@@ -15,10 +22,3 @@ matrix:
       julia: nightly
 notifications:
   email: false
-addons:
-  apt:
-    packages:
-    - cmake
-    - libxxf86vm-dev
-    sources:
-      - kubuntu-backports
