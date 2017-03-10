@@ -14,7 +14,7 @@ ccall( (:glfwSetWindowShouldClose, GLFW.lib), Void, (GLFW.WindowHandle, Cint), w
 GLFW.DestroyWindow(window)
 
 # Test for a segfault triggered by a scheduled task
-using ModernGL, GeometryTypes
+using ModernGL
 window = GLFW.CreateWindow(1024, 768, "Segfault")
 GLFW.MakeContextCurrent(window)
 
@@ -25,7 +25,8 @@ glBindVertexArray(vao[])
 vbo = Ref(GLuint(0))
 glGenBuffers(1, vbo)
 glBindBuffer(GL_ARRAY_BUFFER, vbo[])
-vertices = Point3f0[(-1,-1,0), (1,-1,0), (0, 1, 1)]
+vertices = NTuple{3, Float32}[(-1,-1,0), (1,-1,0), (0, 1, 1)]
+
 glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW)
 
 glEnableVertexAttribArray(0)
