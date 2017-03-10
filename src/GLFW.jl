@@ -17,20 +17,20 @@ if libversion.major == 3
 else
 	error("GLFW $libversion is not supported")
 end
-function handle_error(code, description)
-	ex = GLFWError(code, description)
-	if ex.code == PLATFORM_ERROR && (
-			contains(ex.description, "Failed to get display service port iterator") ||
-			contains(ex.description, "Failed to retrieve display name") ||
-			contains(ex.description, "RandR gamma ramp support seems broken") ||
-			contains(ex.description, "RandR monitor support seems broken") ||
-			contains(ex.description, "Failed to watch for joystick connections in")
+function handle_error(int_code, description)
+	code = ErrorCode(int_code)
+	if code == PLATFORM_ERROR && (
+			contains(description, "Failed to get display service port iterator") ||
+			contains(description, "Failed to retrieve display name") ||
+			contains(description, "RandR gamma ramp support seems broken") ||
+			contains(description, "RandR monitor support seems broken") ||
+			contains(description, "Failed to watch for joystick connections in")
 		)
 		# Workaround: downgrade Mac display name error to warning
 		# https://github.com/glfw/glfw/issues/958
-		warn(ex)
+		warn("GLFW reports the following error: $description.\nThis can be ignored on a headless system.")
 	else
-		throw(ex)
+		throw(GLFWError(code, description))
 	end
 end
 
