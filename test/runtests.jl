@@ -13,9 +13,9 @@ warning = String(readavailable(io_rd))
 close(io_rd)
 err_stream = redirect_stderr(ORIGINAL_IO)
 
-@test warning == """WARNING: GLFW reports the following error: X11: RandR gamma ramp support seems broken.
-This can be ignored on a headless system.
-"""
+# Contains, to be resilient against spliced in color commands
+@test contains(warning, """WARNING: GLFW reports the following error: X11: RandR gamma ramp support seems broken.
+This can be ignored on a headless system.""")
 @test_throws GLFW.GLFWError GLFW.handle_error(Cint(GLFW.PLATFORM_ERROR), "test")
 
 if !travis
