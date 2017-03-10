@@ -1,24 +1,19 @@
 language: julia
-sudo: required
-dist: trusty
-matrix:
-  include:
-    - os: linux
-      addons:
-        apt:
-          packages:
-          - cmake
-          - libxxf86vm-dev
-          sources:
-            - kubuntu-backports
-      before_script:
-        - "export DISPLAY=:99.0"
-        - "sh -e /etc/init.d/xvfb start"
-        - sleep 3 # give xvfb some time to start
-        - "export GALLIUM_DRIVER=\"softpipe\""
-      julia: release
-    - os: osx
-      compiler: "clang"
-      julia: nightly
+os:
+  - linux
+julia:
+  - 0.5
 notifications:
   email: false
+addons:
+  apt:
+    packages:
+    - cmake
+    - libxxf86vm-dev
+    sources:
+    - kubuntu-backports
+before_script:
+  - "export DISPLAY=:99.0"
+  - "sh -e /etc/init.d/xvfb start"
+  - sleep 3 # give xvfb some time to start
+  - "export GALLIUM_DRIVER=\"softpipe\""
