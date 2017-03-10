@@ -18,11 +18,12 @@ else
 	error("GLFW $libversion is not supported")
 end
 function handle_error(code, description)
-    ex = GLFWError(code, description)
+	ex = GLFWError(code, description)
 	if ex.code == PLATFORM_ERROR && (
 			contains(ex.description, "Failed to get display service port iterator") ||
 			contains(ex.description, "Failed to retrieve display name") ||
 			contains(ex.description, "RandR gamma ramp support seems broken") ||
+			contains(ex.description, "RandR monitor support seems broken") ||
 			contains(ex.description, "Failed to watch for joystick connections in")
 		)
 		# Workaround: downgrade Mac display name error to warning
