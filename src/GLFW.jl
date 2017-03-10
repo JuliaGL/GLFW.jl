@@ -17,6 +17,7 @@ if libversion.major == 3
 else
 	error("GLFW $libversion is not supported")
 end
+
 function handle_error(int_code, description)
 	code = ErrorCode(int_code)
 	if code == PLATFORM_ERROR && (
