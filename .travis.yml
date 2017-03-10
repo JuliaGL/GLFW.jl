@@ -14,8 +14,10 @@ addons:
     - libxxf86vm-dev
     sources:
     - kubuntu-backports
+before_install:
+  - sudo apt-get install xpra xserver-xorg-video-dummy freeglut3-dev;
 before_script:
-  - if [ "${TRAVIS_OS_NAME}" = "linux" ]; then export DISPLAY=:99.0; sh -e /etc/init.d/xvfb start; fi
+  - if [ "${TRAVIS_OS_NAME}" = "linux" ]; "xpra --xvfb=\"Xorg +extension GLX -config `pwd`/test/dummy.xorg.conf -logfile ${HOME}/.xpra/xorg.log\"  start :9"; fi
 script:
   - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
-  - LIBGL_ALWAYS_SOFTWARE=1 julia --check-bounds=yes --depwarn=no -e 'Pkg.clone(pwd()); Pkg.build("GLFW"); Pkg.test("GLFW"; coverage=true)'
+  - LIBGL_ALWAYS_SOFTWARE=1 DISPLAY=:9 julia --check-bounds=yes --depwarn=no -e 'Pkg.clone(pwd()); Pkg.build("GLFW"); Pkg.test("GLFW"; coverage=true)'
