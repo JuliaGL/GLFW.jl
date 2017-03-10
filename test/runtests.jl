@@ -1,8 +1,5 @@
-using Base.Test
-
-travis = get(ENV, "TRAVIS", "") == "true"
-
 import GLFW
+using Base.Test
 
 # test errors
 ORIGINAL_IO = STDERR
@@ -18,6 +15,5 @@ This can be ignored on a headless system.
 """
 @test_throws GLFW.GLFWError GLFW.handle_error(Cint(GLFW.PLATFORM_ERROR), "test")
 
-if !travis
-	include("windowclose.jl")
-end
+
+include("windowclose.jl")
