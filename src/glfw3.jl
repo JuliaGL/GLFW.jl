@@ -268,7 +268,7 @@ immutable Monitor
 end
 Base.show(io::IO, m::Monitor) = write(io, "Monitor($(m.handle == C_NULL ? m.handle : GetMonitorName(m)))")
 
-typealias WindowHandle Ptr{Void}
+const WindowHandle = Ptr{Void}
 type Window
 	handle::WindowHandle
 	callbacks::Vector{Function}
