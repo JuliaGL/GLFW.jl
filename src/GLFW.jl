@@ -25,7 +25,8 @@ function handle_error(int_code, description)
 			contains(description, "Failed to retrieve display name") ||
 			contains(description, "RandR gamma ramp support seems broken") ||
 			contains(description, "RandR monitor support seems broken") ||
-			contains(description, "Failed to watch for joystick connections in")
+			contains(description, "Failed to watch for joystick connections in") ||
+			contains(description, "Failed to open joystick device directory")
 		)
 		# Workaround: downgrade Mac display name error to warning
 		# https://github.com/glfw/glfw/issues/958
