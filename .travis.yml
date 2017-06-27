@@ -1,6 +1,7 @@
 language: julia
 julia:
   - 0.5
+  - release
   - nightly
 notifications:
   email: false
