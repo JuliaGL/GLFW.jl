@@ -459,3 +459,7 @@ SwapBuffers(window::Window) = ccall( (:glfwSwapBuffers, lib), Void, (WindowHandl
 SwapInterval(interval::Integer) = ccall( (:glfwSwapInterval, lib), Void, (Cint,), interval)
 ExtensionSupported(extension::AbstractString) = Bool(ccall( (:glfwExtensionSupported, lib), Cint, (Cstring,), extension))
 GetProcAddress(procname::AbstractString) = ccall((:glfwGetProcAddress, lib), Ptr{Void}, (Cstring,), procname)
+
+function SetWindowMonitor(window::Window, monitor::Monitor, xpos, ypos, width, height, refreshRate)
+    ccall((:glfwSetWindowMonitor, lib), Void, (WindowHandle, Monitor, Cint, Cint, Cint, Cint, Cint), window, monitor, xpos, ypos, width, height, refreshRate)
+end
