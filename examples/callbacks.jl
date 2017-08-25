@@ -37,10 +37,12 @@ glClear() = ccall(@eval(GLFW.GetProcAddress("glClear")), Void, (Cuint,), 0x00004
 
 gc() # Force garbage collection so that improper reference management is more apparent via crashes
 
-while !GLFW.WindowShouldClose(window)
-	glClear()
-	GLFW.SwapBuffers(window)
-	GLFW.WaitEvents()
+try
+	while !GLFW.WindowShouldClose(window)
+		glClear()
+		GLFW.SwapBuffers(window)
+		GLFW.WaitEvents()
+	end
+finally
+	GLFW.DestroyWindow(window)
 end
-
-GLFW.DestroyWindow(window)
