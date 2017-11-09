@@ -17,11 +17,12 @@ actiontext = Dict(
 	GLFW.REPEAT  => "repeats"
 )
 GLFW.SetKeyCallback(window, (_, key, scancode, action, mods) -> begin
-	if '!' <= key && key <= '~'
-		key = convert(Char, key)
-		key = string("'", key, "'")
+	char = convert(Char, key)
+	if '!' <= char && char <= '~'
+		println("key '$char' ", actiontext[action])
+	else
+		println("key $key ", actiontext[action])
 	end
-	println("key $key ", actiontext[action])
 end)
 
 GLFW.SetCharModsCallback(window, (_, c, mods) -> println("char: $c, mods: $mods"))
@@ -36,10 +37,12 @@ glClear() = ccall(@eval(GLFW.GetProcAddress("glClear")), Void, (Cuint,), 0x00004
 
 gc() # Force garbage collection so that improper reference management is more apparent via crashes
 
-while !GLFW.WindowShouldClose(window)
-	glClear()
-	GLFW.SwapBuffers(window)
-	GLFW.WaitEvents()
+try
+	while !GLFW.WindowShouldClose(window)
+		glClear()
+		GLFW.SwapBuffers(window)
+		GLFW.WaitEvents()
+	end
+finally
+	GLFW.DestroyWindow(window)
 end
-
-GLFW.DestroyWindow(window)

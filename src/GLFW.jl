@@ -18,6 +18,7 @@ else
 	error("GLFW $libversion is not supported")
 end
 
+<<<<<<< HEAD
 function handle_error(int_code, description)
 	code = ErrorCode(int_code)
 	if code == PLATFORM_ERROR && (
@@ -35,11 +36,34 @@ function handle_error(int_code, description)
 		throw(GLFWError(code, description))
 	end
 end
+=======
+pusherror!(collection) = (code, description) -> push!(collection, GLFWError(code, description))
+throwerror(code, description) = throw(GLFWError(code, description))
+>>>>>>> master
 
 function __init__()
-	SetErrorCallback(handle_error)
-	GLFW.Init()
-	atexit(GLFW.Terminate)
+	initialized = false
+
+	# Save errors that occur during initialization
+	errors = Vector{Exception}()
+	SetErrorCallback(pusherror!(errors))
+
+	try
+		initialized = GLFW.Init()
+	catch err
+		push!(errors, err)
+	finally
+		SetErrorCallback(throwerror)
+	end
+
+	if initialized
+		atexit(GLFW.Terminate)
+		for err in errors
+			warn(err)  # Warn about any non-fatal errors that may have occurred during initialization
+		end
+	else
+		throw(errors)  # Throw fatal errors
+	end
 end
 
 end
