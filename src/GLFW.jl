@@ -30,7 +30,7 @@ function handle_error(int_code, description)
 		)
 		# Workaround: downgrade Mac display name error to warning
 		# https://github.com/glfw/glfw/issues/958
-		warn("GLFW reports the following error: $description.\nThis can be ignored on a headless system.")
+		#warn("GLFW reports the following error: $description.\nThis can be ignored on a headless system.")
 	else
 		throw(GLFWError(code, description))
 	end

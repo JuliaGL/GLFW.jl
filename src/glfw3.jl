@@ -273,7 +273,7 @@ type Window
 	handle::WindowHandle
 	callbacks::Vector{Function}
 end
-Window(handle::WindowHandle) = Window(handle, Vector{Function}(_window_callbacks_len))
+Window(handle::WindowHandle) = Window(handle, Vector{Function}(_window_callbacks_len[]))
 import Base.==; ==(x::Window, y::Window) = (x.handle == y.handle)
 Base.cconvert(::Type{WindowHandle}, window::Window) = window.handle
 Base.cconvert(::Type{Window}, handle::WindowHandle) = ccall( (:glfwGetWindowUserPointer, lib), Ref{Window}, (WindowHandle,), handle)
