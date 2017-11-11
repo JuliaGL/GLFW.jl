@@ -1,4 +1,8 @@
 # Generate functions for wrapping and setting a callback
+# Size of vector to create during Window construction
+const _window_callbacks_len = Ref(0)
+
+
 macro callback(ex)
 	transform = ex.head == :->
 	def = transform ? ex.args[1] : ex                  # Foo(x::T1, y::T2, etc)
@@ -8,11 +12,11 @@ macro callback(ex)
 
 	setter = Symbol("Set", name)                       # SetFooCallback
 	libsetter = Expr(:quote, Symbol("glfw", setter))   # glfwSetFooCallback
-	wrapper = gensym(string(name, "Wrapper"))          # FooCallbackWrapper
+	wrapper = Symbol(string('_', name, "Wrapper"))     # FooCallbackWrapper
 
 	window_arg = filter(iswindow, args)                # :(window::Window)
 	window_value = map(argname, window_arg)            # :window
-	handle_type = map(_ -> :WindowHandle, window_arg)  # :WindowHandle
+	handle_type = map(x -> :WindowHandle, window_arg)  # :WindowHandle
 
 	wrapper_args = map(win2handle, args)
 	wrapper_types = Expr(:tuple, map(argtype, wrapper_args)...)
@@ -23,8 +27,8 @@ macro callback(ex)
 		declare_callback_ref = :($callback_ref = Ref{Function}())
 		callback_ref = :($callback_ref[])
 	else
-		global _window_callbacks_len += 1
-		idx = _window_callbacks_len
+		_window_callbacks_len[] += 1
+		idx = _window_callbacks_len[]
 		callback_ref = :($(window_value[1]).callbacks[$idx])
 		declare_callback_ref = nothing
 	end
@@ -59,6 +63,3 @@ iswindow(ex) = argtype(ex) == :Window
 win2handle(name::Symbol) = Symbol(name, "_handle")
 win2handle(ex) = iswindow(ex) ? :($(win2handle(argname(ex)))::WindowHandle) : ex
 undef(any...) = throw(UndefRefError())
-
-# Size of vector to create during Window construction
-_window_callbacks_len = 0
