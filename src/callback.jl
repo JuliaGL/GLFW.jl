@@ -1,8 +1,7 @@
-# Generate functions for wrapping and setting a callback
-# Size of vector to create during Window construction
+# Size of callback vector to create during Window construction
 const _window_callbacks_len = Ref(0)
 
-
+# Generate functions for wrapping and setting a callback
 macro callback(ex)
 	transform = ex.head == :->
 	def = transform ? ex.args[1] : ex                  # Foo(x::T1, y::T2, etc)
