@@ -38,6 +38,11 @@ end
 GLFW.DestroyWindow(window)
 ```
 
+Trouble shooting
+---------
+On linux, you will need to install these dependencies, before running `Pkg.build("GLFW")`:
+
+`sudo apt-get install cmake libxrandr-dev libxinerama-dev libxcursor-dev`
 
 Interface
 ---------
@@ -53,3 +58,5 @@ Read the [GLFW documentation][docs] for detailed instructions on how to use the 
 Footnotes
 ---------
 * Special thanks to [@afterwise](https://github.com/afterwise) for writing an early implementation of GLFW 3 support.
+
+
