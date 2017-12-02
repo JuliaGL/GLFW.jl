@@ -415,6 +415,7 @@ end
 
 SetInputMode(window::Window, mode::Integer, value::Integer) = ccall( (:glfwSetInputMode, lib), Void, (WindowHandle, Cint, Cint), window, mode, value)
 GetKey(window::Window, key::Integer) = Bool(ccall( (:glfwGetKey, lib), Cint, (WindowHandle, Cint), window, key))
+GetKeyName(key::Integer, scancode::Integer) = unsafe_string(ccall( (:glfwGetKeyName, lib), Cstring, (Cint, Cint), key, scancode))
 GetMouseButton(window::Window, button::Integer) = Bool(ccall( (:glfwGetMouseButton, lib), Cint, (WindowHandle, Cint), window, button))
 
 function GetCursorPos(window::Window)
