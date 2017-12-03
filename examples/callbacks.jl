@@ -1,6 +1,6 @@
 import GLFW
 
-window = GLFW.CreateWindow(800, 600, "GLFW Callback Test")
+window = GLFW.CreateWindow(640, 480, "GLFW Callback Test")
 GLFW.MakeContextCurrent(window)
 
 # Window callbacks
@@ -17,12 +17,8 @@ actiontext = Dict(
 	GLFW.REPEAT  => "repeats"
 )
 GLFW.SetKeyCallback(window, (_, key, scancode, action, mods) -> begin
-	char = convert(Char, key)
-	if '!' <= char && char <= '~'
-		println("key '$char' ", actiontext[action])
-	else
-		println("key $key ", actiontext[action])
-	end
+	name = get(GLFW.GetKeyName(key, scancode), "$key")
+	println("key $name ", actiontext[action])
 end)
 
 GLFW.SetCharModsCallback(window, (_, c, mods) -> println("char: $c, mods: $mods"))
