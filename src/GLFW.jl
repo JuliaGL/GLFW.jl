@@ -12,11 +12,8 @@ end
 const libversion = GetVersion()
 
 if libversion.major == 3
-	include("constants.jl")
-	include("types.jl")
 	include("callback.jl")
-	include("functions.jl")
-	include("extensions.jl")
+	include("glfw3.jl")
 else
 	error("GLFW $libversion is not supported")
 end
