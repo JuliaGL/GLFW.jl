@@ -1,2 +1,4 @@
 deps/*
 !deps/build.jl
+
+*.txt
