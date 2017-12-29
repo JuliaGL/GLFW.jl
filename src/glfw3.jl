@@ -1,4 +1,4 @@
-#************************************************************************
+************************************************************************
 # Global definitions
 #************************************************************************
 
@@ -403,11 +403,11 @@ Base.showerror(io::IO, e::GLFWError) = print(io, "GLFWError ($(e.code)): ", e.de
 struct MonitorProperties 
     name::String
     isprimary::Bool
-    position::Vector{Int}
-    physicalsize::Vector{Int}
+    position::NTuple{2, Int}
+    physicalsize::NTuple{2, Int}
     videomode::VidMode
     videomode_supported::Vector{VidMode}
-    dpi::Vector{Float64}
+    dpi::NTuple{2, Float64}
     monitor::Monitor
 end
 
@@ -415,10 +415,10 @@ function MonitorProperties(monitor::Monitor)
     name = GetMonitorName(monitor)
     isprimary = GetPrimaryMonitor() == monitor
     position = GetMonitorPos(monitor)
-    physicalsize = Float64[GetMonitorPhysicalSize(monitor)]
+    physicalsize = GetMonitorPhysicalSize(monitor)
     videomode = GetVideoMode(monitor)
     sfactor = is_apple() ? 2.0 : 1.0
-    dpi = [videomode.width * 25.4, videomode.height * 25.4] * sfactor ./ physicalsize
+    dpi = (videomode.width * 25.4, videomode.height * 25.4) * sfactor ./ physicalsize
     videomode_supported = GetVideoModes(monitor)
 
     MonitorProperties(name, isprimary, position, physicalsize, videomode, videomode_supported, dpi, monitor)
@@ -616,7 +616,7 @@ function primarymonitorresolution()
     props = MonitorProperties(GetPrimaryMonitor())
     w,h = props.videomode.width, props.videomode.height
     # Vec(Int(w),Int(h))
-    Vector([Int(w),Int(h)])
+    (Int(w),Int(h))
 end
 
 #Came from GLWindow.jl/screen.jl
