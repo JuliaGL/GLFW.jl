@@ -1,4 +1,4 @@
-************************************************************************
+#************************************************************************
 # Global definitions
 #************************************************************************
 
@@ -331,7 +331,6 @@ function Window(
 
     MakeContextCurrent(window)
 
-    debugging && glDebugMessageCallbackARB(_openglerrorcallback, C_NULL)
     window
 end
 
@@ -340,14 +339,7 @@ import Base.==; ==(x::Window, y::Window) = (x.handle == y.handle)
 Base.cconvert(::Type{WindowHandle}, window::Window) = window.handle
 Base.cconvert(::Type{Window}, handle::WindowHandle) = ccall( (:glfwGetWindowUserPointer, lib), Ref{Window}, (WindowHandle,), handle)
 Base.hash(window::Window, h::UInt64) = hash(window.handle, h)
-function Base.isopen(window::Window)
-    window.handle == C_NULL && return false
-    !WindowShouldClose(window)
-end
 
-function Base.resize!(x::Window, w::Integer, h::Integer)
-    SetWindowSize(x, w, h)
-end
 
 function make_windowed!(window::Window)
     width, height = standard_screen_resolution()
@@ -358,12 +350,6 @@ end
 function make_fullscreen!(window::Window, monitor::Monitor = GetPrimaryMonitor())
     vidmodes = GetVideoModes(monitor)[end]
     SetWindowMonitor(window, monitor, 0, 0, vidmodes.width, vidmodes.height, GLFW.DONT_CARE)
-    return
-end
-
-function swapbuffers(window::Window)
-    window.handle == C_NULL && return
-    SwapBuffers(window)
     return
 end
 
@@ -621,19 +607,6 @@ end
 
 #Came from GLWindow.jl/screen.jl
 
-
-#question: Is this correct?
-"""
-Takes a Window and registers a list of callback functions.
-Returns a Dict{Symbol, Any}(name_of_callback => signal)
-"""
-function register_callbacks(window::Window, callbacks::Vector{Function})
-    tmp = map(callbacks) do f
-        (Symbol(last(split(string(f),"."))), f(window))
-    end
-    Dict{Symbol, Any}(tmp)
-end
-
 """
 Takes half the resolution of the primary monitor.
 This should make for sensible defaults!
@@ -685,27 +658,4 @@ function standard_window_hints()
         (STENCIL_BITS, 0),
         (AUX_BUFFERS,  0)
     ]
-end
-
-#question: what is this exactly?
-full_screen_usage_message() = """
-Keyword arg fullscreen accepts:
-    Integer: The number of the Monitor to Select
-    Bool: if true, primary monitor gets fullscreen, false no fullscren (default)
-    GLFW.Monitor: Fullscreens on the passed monitor
-"""
-
-function poll_glfw()
-    PollEvents()
-end
-
-#Came from: GLWindow/events.jl
-function to_arrow_symbol(button_set)
-    for b in button_set
-        KEY_RIGHT == b && return :right
-        KEY_LEFT  == b && return :left
-        KEY_DOWN  == b && return :down
-        KEY_UP    == b && return :up
-    end
-    return :nothing
 end
