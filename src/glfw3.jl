@@ -263,14 +263,13 @@ const DONT_CARE              = -1
 # GLFW API types
 #************************************************************************
 
-immutable Monitor
+struct Monitor
 	handle::Ptr{Void}
 end
 Base.show(io::IO, m::Monitor) = write(io, "Monitor($(m.handle == C_NULL ? m.handle : GetMonitorName(m)))")
 
 const WindowHandle = Ptr{Void}
-
-type Window
+mutable struct Window
 	handle::WindowHandle
 	callbacks::Vector{Function}
 end
@@ -366,11 +365,11 @@ function set_visibility!(screen::Window, visible::Bool)
     return
 end
 
-immutable Cursor
+struct Cursor
 	handle::Ptr{Void}
 end
 
-immutable VidMode
+struct VidMode
 	width::Cint         # The width, in screen coordinates, of the video mode.
 	height::Cint        # The height, in screen coordinates, of the video mode.
 	redbits::Cint       # The bit depth of the red channel of the video mode.
@@ -379,7 +378,7 @@ immutable VidMode
 	refreshrate::Cint   # The refresh rate, in Hz, of the video mode.
 end
 
-immutable GLFWError <: Exception
+struct GLFWError <: Exception
 	code::ErrorCode
 	description::String
 end
