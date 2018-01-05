@@ -274,10 +274,96 @@ mutable struct Window
 	callbacks::Vector{Function}
 end
 Window(handle::WindowHandle) = Window(handle, Vector{Function}(_window_callbacks_len[]))
+#Came from GLWindow.jl/screen.jl
+"""
+Function to create a pure GLFW OpenGL window
+"""
+function Window(
+        name = "GLWindow";
+        resolution = standard_screen_resolution(),
+        debugging = false,
+        major = 3,
+        minor = 3,# this is what GLVisualize needs to offer all features
+        windowhints = standard_window_hints(),
+        contexthints = standard_context_hints(major, minor),
+        visible = true,
+        focus = false,
+        fullscreen = false,
+        monitor = nothing
+    )
+    WindowHint(VISIBLE, visible)
+    WindowHint(FOCUSED, focus)
+    for ch in contexthints
+        WindowHint(ch[1], ch[2])
+    end
+    for wh in windowhints
+        WindowHint(wh[1], wh[2])
+    end
+
+    @static if is_apple()
+        if debugging
+            warn("OpenGL debug message callback not available on osx")
+            debugging = false
+        end
+    end
+
+    WindowHint(OPENGL_DEBUG_CONTEXT, Cint(debugging))
+
+    monitor = if monitor == nothing
+        GetPrimaryMonitor()
+    elseif isa(monitor, Integer)
+        GetMonitors()[monitor]
+    elseif isa(monitor, Monitor)
+        monitor
+    else
+        error("Monitor needs to be nothing, int, or GLFW.Monitor. Found: $monitor")
+    end
+
+    window = CreateWindow(resolution..., String(name))
+
+    if fullscreen
+        SetKeyCallback(window, (_1, button, _2, _3, _4) -> begin
+            button == KEY_ESCAPE && make_windowed!(window)
+        end)
+        make_fullscreen!(window, monitor)
+    end
+
+    MakeContextCurrent(window)
+
+    window
+end
+
+
 import Base.==; ==(x::Window, y::Window) = (x.handle == y.handle)
 Base.cconvert(::Type{WindowHandle}, window::Window) = window.handle
 Base.cconvert(::Type{Window}, handle::WindowHandle) = ccall( (:glfwGetWindowUserPointer, lib), Ref{Window}, (WindowHandle,), handle)
 Base.hash(window::Window, h::UInt64) = hash(window.handle, h)
+
+
+function make_windowed!(window::Window)
+    width, height = standard_screen_resolution()
+    SetWindowMonitor(window, Monitor(C_NULL), 0, 0, width, height, DONT_CARE)
+    return
+end
+
+function make_fullscreen!(window::Window, monitor::Monitor = GetPrimaryMonitor())
+    vidmodes = GetVideoModes(monitor)[end]
+    SetWindowMonitor(window, monitor, 0, 0, vidmodes.width, vidmodes.height, GLFW.DONT_CARE)
+    return
+end
+
+"""
+Sets visibility of OpenGL window. Will still render if not visible.
+Only applies to the root screen holding the opengl context.
+"""
+function set_visibility!(screen::Window, visible::Bool)
+    if visible
+        ShowWindow(screen)
+    else !visible
+        HideWindow(screen)
+    end
+    return
+end
 
 struct Cursor
 	handle::Ptr{Void}
@@ -297,6 +383,39 @@ struct GLFWError <: Exception
 	description::String
 end
 Base.showerror(io::IO, e::GLFWError) = print(io, "GLFWError ($(e.code)): ", e.description)
+
+#Came from GLWindow.jl/types.jl
+struct MonitorProperties 
+    name::String
+    isprimary::Bool
+    position::NTuple{2, Int}
+    physicalsize::NTuple{2, Int}
+    videomode::VidMode
+    videomode_supported::Vector{VidMode}
+    dpi::NTuple{2, Float64}
+    monitor::Monitor
+end
+
+function MonitorProperties(monitor::Monitor)
+    name = GetMonitorName(monitor)
+    isprimary = GetPrimaryMonitor() == monitor
+    position = GetMonitorPos(monitor)
+    physicalsize = GetMonitorPhysicalSize(monitor)
+    videomode = GetVideoMode(monitor)
+    sfactor = is_apple() ? 2.0 : 1.0
+    dpi = (videomode.width * 25.4, videomode.height * 25.4) * sfactor ./ physicalsize
+    videomode_supported = GetVideoModes(monitor)
+
+    MonitorProperties(name, isprimary, position, physicalsize, videomode, videomode_supported, dpi, monitor)
+end
+
+#Came from GLWindow/core.jl
+function Base.show(io::IO, m::MonitorProperties)
+    println(io, "name: ", m.name)
+    println(io, "physicalsize: ",  m.physicalsize[1], "x", m.physicalsize[2])
+    println(io, "resolution: ", m.videomode.width, "x", m.videomode.height)
+    println(io, "dpi: ", m.dpi[1], "x", m.dpi[2])
+end
 
 #************************************************************************
 # GLFW API functions
@@ -472,4 +591,70 @@ GetProcAddress(procname::AbstractString) = ccall((:glfwGetProcAddress, lib), Ptr
 
 function SetWindowMonitor(window::Window, monitor::Monitor, xpos, ypos, width, height, refreshRate)
     ccall((:glfwSetWindowMonitor, lib), Void, (WindowHandle, Monitor, Cint, Cint, Cint, Cint, Cint), window, monitor, xpos, ypos, width, height, refreshRate)
+end
+
+#came from GLWindow/core.jl
+"""
+Returns the monitor resolution of the primary monitor.
+"""
+function primarymonitorresolution()
+    props = MonitorProperties(GetPrimaryMonitor())
+    w,h = props.videomode.width, props.videomode.height
+    # Vec(Int(w),Int(h))
+    (Int(w),Int(h))
+end
+
+#Came from GLWindow.jl/screen.jl
+
+"""
+Takes half the resolution of the primary monitor.
+This should make for sensible defaults!
+"""
+function standard_screen_resolution()
+    w, h = primarymonitorresolution()
+    (div(w,2), div(h,2)) # half of total resolution seems like a good fit!
+end
+
+
+"""
+Tries to create sensible context hints!
+Taken from lessons learned at:
+[GLFW](http://www.glfw.org/docs/latest/window.html)
+"""
+function standard_context_hints(major, minor)
+    # this is spaar...Modern OpenGL !!!!
+    major < 3 && error("OpenGL major needs to be at least 3.0. Given: $major")
+    # core profile is only supported for OpenGL 3.2+ (and a must for OSX, so
+    # for the sake of homogenity, we try to default to it for everyone!)
+    if (major > 3 || (major == 3 && minor >= 2 ))
+        profile = OPENGL_CORE_PROFILE
+    else
+        profile = OPENGL_ANY_PROFILE
+    end
+    [
+        (CONTEXT_VERSION_MAJOR, major),
+        (CONTEXT_VERSION_MINOR, minor),
+        (OPENGL_FORWARD_COMPAT, Cint(1)),
+        (OPENGL_PROFILE, profile)
+    ]
+end
+
+
+"""
+Standard window hints for creating a plain context without any multisampling
+or extra buffers beside the color buffer
+"""
+function standard_window_hints()
+    [
+        (SAMPLES,      0),
+        (DEPTH_BITS,   0),
+
+        (ALPHA_BITS,   8),
+        (RED_BITS,     8),
+        (GREEN_BITS,   8),
+        (BLUE_BITS,    8),
+
+        (STENCIL_BITS, 0),
+        (AUX_BUFFERS,  0)
+    ]
 end
