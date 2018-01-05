@@ -426,7 +426,7 @@ Terminate() = ccall( (:glfwTerminate, lib), Cvoid, ())
 GetVersionString() = unsafe_string(ccall( (:glfwGetVersionString, lib), Cstring, ()))
 
 # Error handling
-@callback Error(code::Cint, description::Cstring) -> (code, unsafe_string(description))
+@callback Error(code::Cint, description::Cstring) -> (GLFWError(ErrorCode(code), unsafe_string(description)),)
 
 # Monitor handling
 function GetMonitors()

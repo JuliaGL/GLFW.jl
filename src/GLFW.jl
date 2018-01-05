@@ -19,22 +19,19 @@ else
 	error("GLFW $libversion is not supported")
 end
 
-pusherror!(collection) = (code, description) -> push!(collection, GLFWError(code, description))
-throwerror(code, description) = throw(GLFWError(code, description))
-
 function __init__()
 	initialized = false
 
 	# Save errors that occur during initialization
 	errors = Vector{Exception}()
-	SetErrorCallback(pusherror!(errors))
+	SetErrorCallback(err -> push!(errors, err))
 
 	try
 		initialized = GLFW.Init()
 	catch err
 		push!(errors, err)
 	finally
-		SetErrorCallback(throwerror)
+		SetErrorCallback(throw)
 	end
 
 	if initialized
