@@ -11,7 +11,7 @@ macro callback(ex)
 
 	setter = Symbol("Set", name)                       # SetFooCallback
 	libsetter = Expr(:quote, Symbol("glfw", setter))   # glfwSetFooCallback
-	wrapper = Symbol(string('_', name, "Wrapper"))     # FooCallbackWrapper
+	wrapper = Symbol(string('_', name, "Wrapper"))     # _FooCallbackWrapper
 
 	window_arg = filter(iswindow, args)                # :(window::Window)
 	window_value = map(argname, window_arg)            # :window
