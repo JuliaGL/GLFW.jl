@@ -384,7 +384,7 @@ end
 Base.showerror(io::IO, e::GLFWError) = print(io, "GLFWError ($(e.code)): ", e.description)
 
 # From GLWindow.jl/types.jl
-immutable MonitorProperties
+struct MonitorProperties
     name::String
     isprimary::Bool
     position::NTuple{2, Int}
