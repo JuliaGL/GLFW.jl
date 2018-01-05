@@ -28,9 +28,9 @@ cmake_options = map(x -> "-D$(x[1])=$(x[2])", [
 cmake_build_steps = @build_steps begin
 	GetSources(glfw)
 	@build_steps begin
-	ChangeDirectory(srcdir)
-	`cmake $cmake_options .`
-	MakeTargets(["install"])
+		ChangeDirectory(srcdir)
+		`cmake $cmake_options .`
+		MakeTargets("install")
 	end
 end
 provides(SimpleBuild, cmake_build_steps, glfw)
