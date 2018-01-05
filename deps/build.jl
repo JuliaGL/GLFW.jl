@@ -1,3 +1,5 @@
+include("../src/compat.jl")
+
 # version of library to download
 const version = v"3.2.1"
 
@@ -6,7 +8,7 @@ using BinDeps
 
 function compatible_version(lib, handle)
 	major, minor, rev = Ref{Cint}(), Ref{Cint}(), Ref{Cint}()
-	ccall(Libdl.dlsym(handle, :glfwGetVersion), Void, (Ref{Cint}, Ref{Cint}, Ref{Cint}), major, minor, rev)
+	ccall(Libdl.dlsym(handle, :glfwGetVersion), Cvoid, (Ref{Cint}, Ref{Cint}, Ref{Cint}), major, minor, rev)
 	libversion = VersionNumber(major[], minor[], rev[])
 	return libversion >= version
 end
