@@ -2,11 +2,12 @@ __precompile__()
 
 module GLFW
 
+include("compat.jl")
 include("../deps/deps.jl")
 
 function GetVersion()
 	major, minor, rev = Ref{Cint}(), Ref{Cint}(), Ref{Cint}()
-	ccall( (:glfwGetVersion, lib), Void, (Ref{Cint}, Ref{Cint}, Ref{Cint}), major, minor, rev)
+	ccall( (:glfwGetVersion, lib), Cvoid, (Ref{Cint}, Ref{Cint}, Ref{Cint}), major, minor, rev)
 	VersionNumber(major[], minor[], rev[])
 end
 const libversion = GetVersion()

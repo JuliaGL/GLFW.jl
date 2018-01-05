@@ -3,6 +3,8 @@ import GLFW
 # Note: This was written as a quick test for multiwindow support.
 # It is not a clean example (yet) of the proper way to do it.
 
+include("../src/compat.jl")
+
 windows = []
 glClear = Dict{GLFW.Window, Function}()
 for i in 1:3
@@ -14,7 +16,7 @@ for i in 1:3
 			println(name)
 		end
 	end)
-	glClearFunc() = ccall(@eval(GLFW.GetProcAddress("glClear")), Void, (Cuint,), 0x00004000)
+	glClearFunc() = ccall(@eval(GLFW.GetProcAddress("glClear")), Cvoid, (Cuint,), 0x00004000)
 	glClear[window] = glClearFunc 
 	push!(windows, window)
 end

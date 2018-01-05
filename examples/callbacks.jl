@@ -1,5 +1,7 @@
 import GLFW
 
+include("../src/compat.jl")
+
 window = GLFW.CreateWindow(640, 480, "GLFW Callback Test")
 GLFW.MakeContextCurrent(window)
 
@@ -29,7 +31,7 @@ GLFW.SetScrollCallback(window, (_, xoff, yoff) -> println("scroll: $xoff, $yoff"
 
 GLFW.SetDropCallback(window, (_, paths) -> println(paths))
 
-glClear() = ccall(@eval(GLFW.GetProcAddress("glClear")), Void, (Cuint,), 0x00004000)
+glClear() = ccall(@eval(GLFW.GetProcAddress("glClear")), Cvoid, (Cuint,), 0x00004000)
 
 gc() # Force garbage collection so that improper reference management is more apparent via crashes
 
