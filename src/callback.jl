@@ -18,7 +18,7 @@ macro callback(ex)
 	handle_type = map(x -> :WindowHandle, window_arg)  # :WindowHandle
 
 	wrapper_args = map(win2handle, args)
-	wrapper_types = Expr(:tuple, map(argtype, wrapper_args)...)
+	wrapper_types = Expr(:curly, :Tuple, map(argtype, wrapper_args)...)
 	window_lookup = map(x -> :($x = Base.cconvert(Window, $(win2handle(x)));), window_value)
 
 	if isempty(window_arg)
