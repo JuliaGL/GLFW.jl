@@ -378,9 +378,10 @@ struct VidMode
 end
 
 struct GLFWError <: Exception
-	code::ErrorCode
+	code::Union{ErrorCode, Cint}
 	description::String
 end
+GLFWError(code::Cint, desc::String) = GLFWError(try ErrorCode(code) catch; code end, desc)
 Base.showerror(io::IO, e::GLFWError) = print(io, "GLFWError ($(e.code)): ", e.description)
 
 # From GLWindow.jl/types.jl
@@ -426,7 +427,7 @@ Terminate() = ccall( (:glfwTerminate, lib), Cvoid, ())
 GetVersionString() = unsafe_string(ccall( (:glfwGetVersionString, lib), Cstring, ()))
 
 # Error handling
-@callback Error(code::Cint, description::Cstring) -> (GLFWError(ErrorCode(code), unsafe_string(description)),)
+@callback Error(code::Cint, description::Cstring) -> (GLFWError(code, unsafe_string(description)),)
 
 # Monitor handling
 function GetMonitors()
