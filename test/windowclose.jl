@@ -15,34 +15,11 @@ ccall( (:glfwSetWindowShouldClose, GLFW.lib), Cvoid, (GLFW.WindowHandle, Cint), 
 
 GLFW.DestroyWindow(window)
 
-# Test for a segfault triggered by a scheduled task
-using ModernGL
-window = GLFW.CreateWindow(1024, 768, "Segfault")
+# Scheduled tasks that use a destroyed window can blow up.
+# Test the workaround that was put in place.
+# https://github.com/JuliaGL/GLFW.jl/pull/74
+window = GLFW.CreateWindow(800, 600, "")
 GLFW.MakeContextCurrent(window)
-
-vao = Ref(GLuint(0))
-glGenVertexArrays(1, vao)
-glBindVertexArray(vao[])
-
-vbo = Ref(GLuint(0))
-glGenBuffers(1, vbo)
-glBindBuffer(GL_ARRAY_BUFFER, vbo[])
-vertices = NTuple{3, Float32}[(-1,-1,0), (1,-1,0), (0, 1, 1)]
-
-glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW)
-
-glEnableVertexAttribArray(0)
-glBindBuffer(GL_ARRAY_BUFFER, vbo[])
-glVertexAttribPointer(0, length(vertices), GL_FLOAT, GL_FALSE, 0, C_NULL)
-
-function render()
-    glDrawArrays(GL_TRIANGLES, 0, length(vertices))
-    GLFW.SwapBuffers(window)
-    GLFW.PollEvents()
-end
-
-schedule(Task(render))
-
+@schedule GLFW.SetWindowTitle(window, "Scheduled")
 GLFW.DestroyWindow(window)
-
-sleep(0.25)
+yield()
