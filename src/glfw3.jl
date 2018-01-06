@@ -378,10 +378,12 @@ struct VidMode
 end
 
 struct GLFWError <: Exception
-	code::Union{ErrorCode, Cint}
+	code::Union{ErrorCode, Integer}
 	description::String
+
+	GLFWError(code::ErrorCode, desc) = new(code, desc)
+	GLFWError(code::Integer, desc) = new(try ErrorCode(code) catch; code end, desc)
 end
-GLFWError(code::Cint, desc::String) = GLFWError(try ErrorCode(code) catch; code end, desc)
 Base.showerror(io::IO, e::GLFWError) = print(io, "GLFWError ($(e.code)): ", e.description)
 
 # From GLWindow.jl/types.jl
