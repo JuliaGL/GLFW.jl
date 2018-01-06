@@ -15,6 +15,10 @@ const libversion = GetVersion()
 if libversion.major == 3
 	include("callback.jl")
 	include("glfw3.jl")
+	if isdefined(Base, :getproperty) && isdefined(Base, :setproperty!)
+		# TODO: Remove if-branch once the required minimum Julia version supports property overloading
+		include("monitor_properties.jl")
+	end
 else
 	error("GLFW $libversion is not supported")
 end
