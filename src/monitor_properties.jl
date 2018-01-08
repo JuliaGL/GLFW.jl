@@ -8,10 +8,10 @@ function Base.getproperty(monitor::Monitor, name::Symbol)
 		GetMonitorPhysicalSize(monitor)
 	elseif name == :position
 		GetMonitorPos(monitor)
+	elseif name == :supported_videomodes
+		GetVideoModes(monitor)
 	elseif name == :videomode
 		GetVideoMode(monitor)
-	elseif name == :videomodes
-		GetVideoModes(monitor)
 	else
 		getfield(monitor, name)
 	end
