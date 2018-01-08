@@ -16,7 +16,8 @@ if libversion.major == 3
 	include("callback.jl")
 	include("glfw3.jl")
 	if isdefined(Base, :getproperty) && isdefined(Base, :setproperty!)
-		# TODO: Remove if-branch once the required minimum Julia version supports property overloading
+		# Julia 0.7 supports property overloading
+		# TODO for Julia upgrade: remove feature guard
 		include("monitor_properties.jl")
 	end
 else
