@@ -386,39 +386,6 @@ struct GLFWError <: Exception
 end
 Base.showerror(io::IO, e::GLFWError) = print(io, "GLFWError ($(e.code)): ", e.description)
 
-# From GLWindow.jl/types.jl
-struct MonitorProperties
-	name::String
-	isprimary::Bool
-	position::NTuple{2, Int}
-	physicalsize::NTuple{2, Int}
-	videomode::VidMode
-	videomode_supported::Vector{VidMode}
-	dpi::NTuple{2, Float64}
-	monitor::Monitor
-end
-
-function MonitorProperties(monitor::Monitor)
-	name = GetMonitorName(monitor)
-	isprimary = GetPrimaryMonitor() == monitor
-	position = GetMonitorPos(monitor)
-	physicalsize = GetMonitorPhysicalSize(monitor)
-	videomode = GetVideoMode(monitor)
-	sfactor = is_apple() ? 2.0 : 1.0
-	dpi = (videomode.width * 25.4, videomode.height * 25.4) * sfactor ./ physicalsize
-	videomode_supported = GetVideoModes(monitor)
-
-	MonitorProperties(name, isprimary, position, physicalsize, videomode, videomode_supported, dpi, monitor)
-end
-
-# From GLWindow.jl/core.jl
-function Base.show(io::IO, m::MonitorProperties)
-	println(io, "name: ", m.name)
-	println(io, "physicalsize: ",  m.physicalsize[1], "x", m.physicalsize[2])
-	println(io, "resolution: ", m.videomode.width, "x", m.videomode.height)
-	println(io, "dpi: ", m.dpi[1], "x", m.dpi[2])
-end
-
 #************************************************************************
 # GLFW API functions
 #************************************************************************
