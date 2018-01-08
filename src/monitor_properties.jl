@@ -1,8 +1,9 @@
 function Base.getproperty(monitor::Monitor, name::Symbol)
-	if name == :name
-		GetMonitorName(monitor)
-	elseif name == :isprimary
+	# TODO(3.3): contentscale is GetMonitorContentScale
+	if name == :isprimary
 		GetPrimaryMonitor() == monitor
+	elseif name == :name
+		GetMonitorName(monitor)
 	elseif name == :physicalsize
 		GetMonitorPhysicalSize(monitor)
 	elseif name == :position
