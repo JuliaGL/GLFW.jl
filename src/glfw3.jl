@@ -504,12 +504,10 @@ end
 SetInputMode(window::Window, mode::Integer, value::Integer) = ccall( (:glfwSetInputMode, lib), Cvoid, (WindowHandle, Cint, Cint), window, mode, value)
 GetKey(window::Window, key::Integer) = Bool(ccall( (:glfwGetKey, lib), Cint, (WindowHandle, Cint), window, key))
 
-function GetKeyName(key::Integer, scancode::Integer)
+function GetKeyName(key::Integer, scancode::Integer=0)
 	ptr = ccall( (:glfwGetKeyName, lib), Cstring, (Cint, Cint), key, scancode)
-	if ptr == C_NULL
-		Nullable{String}()
-	else
-		Nullable(unsafe_string(ptr))
+	if ptr != C_NULL
+		unsafe_string(ptr)
 	end
 end
 
