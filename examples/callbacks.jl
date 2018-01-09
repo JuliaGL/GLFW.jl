@@ -19,8 +19,12 @@ actiontext = Dict(
 	GLFW.REPEAT  => "repeats"
 )
 GLFW.SetKeyCallback(window, (_, key, scancode, action, mods) -> begin
-	name = get(GLFW.GetKeyName(key, scancode), "$key")
-	println("key $name ", actiontext[action])
+	name = GLFW.GetKeyName(key, scancode)
+	if name == nothing
+		println("scancode $scancode ", actiontext[action])
+	else
+		println("key $name ", actiontext[action])
+	end
 end)
 
 GLFW.SetCharModsCallback(window, (_, c, mods) -> println("char: $c, mods: $mods"))
