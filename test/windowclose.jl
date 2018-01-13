@@ -12,14 +12,4 @@ window = GLFW.CreateWindow(800, 600, "InexactError")
 # GLFW.WindowShouldClose.
 ccall( (:glfwSetWindowShouldClose, GLFW.lib), Cvoid, (GLFW.WindowHandle, Cint), window, 189)
 @test GLFW.WindowShouldClose(window)
-
 GLFW.DestroyWindow(window)
-
-# Scheduled tasks that use a destroyed window can blow up.
-# Test the workaround that was put in place.
-# https://github.com/JuliaGL/GLFW.jl/pull/74
-window = GLFW.CreateWindow(800, 600, "")
-GLFW.MakeContextCurrent(window)
-@schedule GLFW.SetWindowTitle(window, "Scheduled")
-GLFW.DestroyWindow(window)
-yield()
