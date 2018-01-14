@@ -13,23 +13,18 @@ GLFW.SetWindowFocusCallback(window, (_, focused) -> println("window focus: $focu
 GLFW.SetWindowIconifyCallback(window, (_, iconified) -> println("window iconify: $iconified"))
 
 # Input callbacks
-actiontext = Dict(
-	GLFW.RELEASE => "released",
-	GLFW.PRESS   => "pressed",
-	GLFW.REPEAT  => "repeats"
-)
 GLFW.SetKeyCallback(window, (_, key, scancode, action, mods) -> begin
 	name = GLFW.GetKeyName(key, scancode)
 	if name == nothing
-		println("scancode $scancode ", actiontext[action])
+		println("scancode $scancode ", action)
 	else
-		println("key $name ", actiontext[action])
+		println("key $name ", action)
 	end
 end)
 
 GLFW.SetCharModsCallback(window, (_, c, mods) -> println("char: $c, mods: $mods"))
 GLFW.SetMouseButtonCallback(window, (_, button, action, mods) ->
-	println("mouse button $button ", actiontext[action]))
+	println("mouse button $button ", action))
 GLFW.SetCursorPosCallback(window, (_, x, y) -> println("cursor: $x, $y"))
 GLFW.SetScrollCallback(window, (_, xoff, yoff) -> println("scroll: $xoff, $yoff"))
 
