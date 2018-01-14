@@ -3,9 +3,11 @@
 #************************************************************************
 
 # Key and button actions
-const RELEASE                = 0
-const PRESS                  = 1
-const REPEAT                 = 2
+@enum(Action::Cint,
+	RELEASE                = 0,
+	PRESS                  = 1,
+	REPEAT                 = 2,
+)
 
 @enum(Key::Cint,
 	# Unknown key
@@ -525,10 +527,10 @@ CreateStandardCursor(shape::Integer) = ccall( (:glfwCreateStandardCursor, lib), 
 DestroyCursor(cursor::Cursor) = ccall( (:glfwDestroyCursor, lib), Cvoid, (Cursor,), cursor)
 SetCursor(window::Window, cursor::Cursor) = ccall( (:glfwSetCursor, lib), Cvoid, (WindowHandle, Cursor), window, cursor)
 SetCursor(window::Window, ::Cvoid) = SetCursor(window, Cursor(C_NULL))
-@callback Key(window::Window, key::Key, scancode::Cint, action::Cint, mods::Cint)
+@callback Key(window::Window, key::Key, scancode::Cint, action::Action, mods::Cint)
 @callback Char(window::Window, codepoint::Cuint) -> (window, convert(Char, codepoint))
 @callback CharMods(window::Window, codepoint::Cuint, mods::Cint) -> (window, convert(Char, codepoint), mods)
-@callback MouseButton(window::Window, button::Cint, action::Cint, mods::Cint)
+@callback MouseButton(window::Window, button::Cint, action::Action, mods::Cint)
 @callback CursorPos(window::Window, xpos::Cdouble, ypos::Cdouble)
 @callback CursorEnter(window::Window, entered::Cint) -> (window, Bool(entered))
 @callback Scroll(window::Window, xoffset::Cdouble, yoffset::Cdouble)
