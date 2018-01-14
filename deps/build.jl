@@ -38,13 +38,13 @@ end
 provides(SimpleBuild, cmake_build_steps, glfw)
 
 # get library through Homebrew, if available
-if is_apple()
+if Sys.isapple()
 	using Homebrew
 	provides(Homebrew.HB, "glfw", glfw, os=:Darwin)
 end
 
 # download a pre-compiled binary (built by GLFW)
-if is_windows()
+if Sys.iswindows()
 	archive = "glfw-$version.bin.WIN$(Sys.WORD_SIZE)"
 	libpath = joinpath(archive, "lib-mingw-w64")
 	uri = URI("https://github.com/glfw/glfw/releases/download/$version/$archive.zip")
