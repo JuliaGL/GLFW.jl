@@ -428,7 +428,7 @@ WindowHint(target::Integer, hint::Integer) = ccall( (:glfwWindowHint, lib), Cvoi
 
 function CreateWindow(width::Integer, height::Integer, title::AbstractString, monitor::Monitor=Monitor(C_NULL), share::Window=Window(C_NULL))
 	window = ccall( (:glfwCreateWindow, lib), Window, (Cint, Cint, Cstring, Monitor, Window), width, height, title, monitor, share)
-	callbacks = Vector{Function}(_window_callbacks_len[])
+	callbacks = fill(undef, _window_callbacks_len[])
 	_window_callbacks[window] = callbacks
 	ccall( (:glfwSetWindowUserPointer, lib), Cvoid, (Window, Ptr{Cvoid}), window, callbacks)
 	window

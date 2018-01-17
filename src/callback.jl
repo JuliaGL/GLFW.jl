@@ -24,7 +24,7 @@ macro callback(ex)
 
 	if isempty(window_arg)
 		callback_ref = gensym(name)
-		declare_callback_ref = :($callback_ref = Ref{Function}())
+		declare_callback_ref = :($callback_ref = Ref{Function}(undef))
 		callback_ref = :($callback_ref[])
 	else
 		_window_callbacks_len[] += 1
@@ -38,16 +38,19 @@ macro callback(ex)
 
 		# Set the callback function
 		function $setter($(window_arg...), callback::Function)
+			old_callback = $callback_ref
 			$callback_ref = callback # Prevent Julia function from being garbage-collected
 			cfunptr = cfunction($wrapper, Cvoid, $wrapper_types)
-			ccall( ($libsetter, lib), Cvoid, ($(handle_type...), Ptr{Cvoid}), $(window_value...), cfunptr)
+			old_cfunptr = ccall( ($libsetter, lib), Ptr{Cvoid}, ($(handle_type...), Ptr{Cvoid}), $(window_value...), cfunptr)
+			return old_cfunptr == C_NULL ? nothing : old_callback
 		end
 
 		# Unset the callback function
 		function $setter($(window_arg...), ::Nothing)
-			ccall( ($libsetter, lib), Cvoid, ($(handle_type...), Ptr{Cvoid}), $(window_value...), C_NULL)
+			old_cfunptr = ccall( ($libsetter, lib), Ptr{Cvoid}, ($(handle_type...), Ptr{Cvoid}), $(window_value...), C_NULL)
+			old_callback = $callback_ref
 			$callback_ref = undef # Allow former callback function to be garbage-collected
-			return nothing
+			return old_cfunptr == C_NULL ? nothing : old_callback
 		end
 
 		# Julia callback wrapper that can be passed to `cfunction`
