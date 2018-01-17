@@ -1,6 +1,8 @@
 # Size of callback vector to create during Window construction
 const _window_callbacks_len = Ref(0)
 
+_window_callbacks = Dict{Window, Vector{Function}}()
+
 # Generate functions for wrapping and setting a callback
 macro callback(ex)
 	transform = ex.head == :->
@@ -15,11 +17,10 @@ macro callback(ex)
 
 	window_arg = filter(iswindow, args)                # :(window::Window)
 	window_value = map(argname, window_arg)            # :window
-	handle_type = map(x -> :WindowHandle, window_arg)  # :WindowHandle
+	handle_type = map(x -> :Window, window_arg)        # :Window
 
-	wrapper_args = map(win2handle, args)
+	wrapper_args = args
 	wrapper_types = Expr(:curly, :Tuple, map(argtype, wrapper_args)...)
-	window_lookup = map(x -> :($x = Base.cconvert(Window, $(win2handle(x)));), window_value)
 
 	if isempty(window_arg)
 		callback_ref = gensym(name)
@@ -28,7 +29,7 @@ macro callback(ex)
 	else
 		_window_callbacks_len[] += 1
 		idx = _window_callbacks_len[]
-		callback_ref = :($(window_value[1]).callbacks[$idx])
+		callback_ref = :(_window_callbacks[window][$idx])
 		declare_callback_ref = nothing
 	end
 
@@ -50,7 +51,7 @@ macro callback(ex)
 		end
 
 		# Julia callback wrapper that can be passed to `cfunction`
-		$wrapper($(wrapper_args...)) = ($(window_lookup...); $callback_ref($(values...)); return nothing)
+		$wrapper($(wrapper_args...)) = ($callback_ref($(values...)); return nothing)
 	end
 	esc(ex)
 end
@@ -59,6 +60,4 @@ end
 argname(ex) = ex.args[1]
 argtype(ex) = ex.args[2]
 iswindow(ex) = argtype(ex) == :Window
-win2handle(name::Symbol) = Symbol(name, "_handle")
-win2handle(ex) = iswindow(ex) ? :($(win2handle(argname(ex)))::WindowHandle) : ex
 undef(any...) = throw(UndefRefError())
