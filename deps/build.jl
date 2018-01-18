@@ -3,7 +3,7 @@ include("../src/compat.jl")
 # version of library to download
 const version = v"3.2.1"
 
-using BinDeps
+using BinDeps, Libdl
 @BinDeps.setup
 
 if !isdefined(Base, :Libdl)
