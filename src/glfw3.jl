@@ -430,9 +430,11 @@ function CreateWindow(width::Integer, height::Integer, title::AbstractString, mo
 	window = ccall( (:glfwCreateWindow, lib), Window, (Cint, Cint, Cstring, Monitor, Window), width, height, title, monitor, share)
 	callbacks = fill(undef, _window_callbacks_len[])
 	_window_callbacks[window] = callbacks
-	ccall( (:glfwSetWindowUserPointer, lib), Cvoid, (Window, Ptr{Cvoid}), window, callbacks)
+	ccall( (:glfwSetWindowUserPointer, lib), Cvoid, (Window, Ref{Vector{Function}}), window, callbacks)
 	window
 end
+
+callbacks(window) = ccall( (:glfwGetWindowUserPointer, lib), Ref{Vector{Function}}, (Window,), window)
 
 function DestroyWindow(window::Window)
 	ccall( (:glfwDestroyWindow, lib), Cvoid, (Window,), window)

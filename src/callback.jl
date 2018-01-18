@@ -20,7 +20,7 @@ const _window_callbacks_len = Ref(0)
 macro windowcallback(ex)
 	_window_callbacks_len[] += 1
 	idx = _window_callbacks_len[]
-	var_ex = :(_window_callbacks[window][$idx])
+	var_ex = :(callbacks(window)[$idx])
 	code = callbackcode(extractargs(ex)..., var_ex, [:(window::Window)])
 	esc(code)
 end
