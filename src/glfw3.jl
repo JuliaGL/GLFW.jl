@@ -271,6 +271,9 @@ struct Monitor
 end
 Base.show(io::IO, m::Monitor) = write(io, "Monitor($(m.handle == C_NULL ? m.handle : GetMonitorName(m)))")
 
+struct Window
+	handle::Ptr{Cvoid}
+end
 #Came from GLWindow.jl/screen.jl
 """
 Function to create a pure GLFW OpenGL window
@@ -426,9 +429,13 @@ SetGamma(monitor::Monitor, gamma::Real) = ccall( (:glfwSetGamma, lib), Cvoid, (M
 DefaultWindowHints() = ccall( (:glfwDefaultWindowHints, lib), Cvoid, ())
 WindowHint(target::Integer, hint::Integer) = ccall( (:glfwWindowHint, lib), Cvoid, (Cint, Cint), target, hint)
 
+# Pairs window handles with a callback function list and
+# prevents it from being garbage-collected
+_window_callbacks = Dict{Window, Vector{Function}}()
+
 function CreateWindow(width::Integer, height::Integer, title::AbstractString, monitor::Monitor=Monitor(C_NULL), share::Window=Window(C_NULL))
 	window = ccall( (:glfwCreateWindow, lib), Window, (Cint, Cint, Cstring, Monitor, Window), width, height, title, monitor, share)
-	callbacks = fill(undef, _window_callbacks_len[])
+	callbacks = fill(undef, _window_callback_num[])
 	_window_callbacks[window] = callbacks
 	ccall( (:glfwSetWindowUserPointer, lib), Cvoid, (Window, Ref{Vector{Function}}), window, callbacks)
 	window

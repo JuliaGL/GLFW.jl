@@ -10,16 +10,13 @@ macro callback(ex)
 	end)
 end
 
-# Pairs window handles with a callback function list
-_window_callbacks = Dict{Window, Vector{Function}}()
-
-# Size of callback function list
-const _window_callbacks_len = Ref(0)
+# Number of callback functions per window
+const _window_callback_num = Ref(0)
 
 # Generate code for a window-specific callback
 macro windowcallback(ex)
-	_window_callbacks_len[] += 1
-	idx = _window_callbacks_len[]
+	_window_callback_num[] += 1
+	idx = _window_callback_num[]
 	var_ex = :(callbacks(window)[$idx])
 	code = callbackcode(extractargs(ex)..., var_ex, [:(window::Window)])
 	esc(code)

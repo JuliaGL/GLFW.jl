@@ -13,9 +13,6 @@ end
 const libversion = GetVersion()
 
 if libversion.major == 3
-	struct Window
-		handle::Ptr{Cvoid}
-	end
 	include("callback.jl")
 	include("glfw3.jl")
 	if isdefined(Base, :getproperty) && isdefined(Base, :setproperty!)
