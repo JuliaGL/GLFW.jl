@@ -1,8 +1,4 @@
-# Size of callback vector to create during Window construction
-const _window_callbacks_len = Ref(0)
-
-_window_callbacks = Dict{Window, Vector{Function}}()
-
+# Generate a global callback
 macro callback(ex)
 	ref = gensym()
 	declare_ref = :($ref = Ref{Function}(undef))
@@ -25,6 +21,13 @@ macro callback(ex)
 	end)
 end
 
+# Pairs window handle with a callback function list
+_window_callbacks = Dict{Window, Vector{Function}}()
+
+# Size of callback function list
+const _window_callbacks_len = Ref(0)
+
+# Generate a window-specific callback
 macro windowcallback(ex)
 	_window_callbacks_len[] += 1
 	idx = _window_callbacks_len[]
@@ -84,8 +87,7 @@ function callbackexpr(
 	end
 end
 
-# Helper functions for the callback macro
-paramname(ex) = ex.args[1]
-paramtype(ex) = ex.args[2]
+paramname(param_ex) = param_ex.args[1]
+paramtype(param_ex) = param_ex.args[2]
 notnothing(a) = a != nothing
 undef(any...) = throw(UndefRefError())
