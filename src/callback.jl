@@ -1,58 +1,36 @@
-# Generate a global callback
+# Generate code for a global callback
 macro callback(ex)
-	ref = gensym()
-	declare_ref = :($ref = Ref{Function}(undef))
-	ref = :($ref[])
-
-	# Decompose expression
-	warp = ex.head == :->
-	name_with_params = warp ? ex.args[1] : ex  # Foo(x::T1, y::T2, etc)
-	name = string(name_with_params.args[1])    # Foo
-	params = name_with_params.args[2:end]      #    (x::T1, y::T2, etc)
-	transformed_args = if warp
-		ex.args[2].args[2].args                # Everything after ->
-	else
-		map(paramname, params)                 #    (x,     y,     etc)
-	end
-
+	var_sym = gensym()
+	var_ex = :($var_sym[])
+	declare_var = :($var_sym = Ref{Function}(undef))
+	code = callbackcode(extractargs(ex)..., var_ex)
 	esc(quote
-		$declare_ref
-		$(callbackexpr(name, params, ref, transformed_args=transformed_args))
+		$declare_var
+		$code
 	end)
 end
 
-# Pairs window handle with a callback function list
+# Pairs window handles with a callback function list
 _window_callbacks = Dict{Window, Vector{Function}}()
 
 # Size of callback function list
 const _window_callbacks_len = Ref(0)
 
-# Generate a window-specific callback
+# Generate code for a window-specific callback
 macro windowcallback(ex)
 	_window_callbacks_len[] += 1
 	idx = _window_callbacks_len[]
-	ref = :(_window_callbacks[window][$idx])
-
-	# Decompose expression
-	warp = ex.head == :->
-	name_with_params = warp ? ex.args[1] : ex  # Foo(x::T1, y::T2, etc)
-	name = string(name_with_params.args[1])    # Foo
-	params = name_with_params.args[2:end]      #    (x::T1, y::T2, etc)
-	transformed_args = if warp
-		ex.args[2].args[2].args                # Everything after ->
-	else
-		map(paramname, params)                 #    (x,     y,     etc)
-	end
-
-	esc(callbackexpr(name, params, ref, setter_params=[:(window::Window)], transformed_args=transformed_args))
+	var_ex = :(_window_callbacks[window][$idx])
+	code = callbackcode(extractargs(ex)..., var_ex, [:(window::Window)])
+	esc(code)
 end
 
-function callbackexpr(
+function callbackcode(
 	name,
 	callback_params,
-	callback_var_ex;
+	callback_args,
+	callback_var_ex,
 	setter_params=[],
-	transformed_args=map(paramname, callback_params),
 )
 	# Construct function names
 	setter = Symbol("Set", name, "Callback")          # SetFooCallback
@@ -83,11 +61,26 @@ function callbackexpr(
 		end
 
 		# Julia callback wrapper that can be passed to `cfunction`
-		$wrapper($(callback_params...)) = ($callback_var_ex($(transformed_args...)); return nothing)
+		$wrapper($(callback_params...)) = ($callback_var_ex($(callback_args...)); return nothing)
+	end
+end
+
+function extractargs(ex)
+	before, after = arrowsplit(ex)
+	name = string(before.args[1])
+	params = before.args[2:end]
+	args = isa(after, Expr) ? after.args : map(paramname, params)
+	name, params, args
+end
+
+function arrowsplit(ex)
+	if ex.head == :->
+		ex.args[1], ex.args[2].args[2]
+	else
+		ex, nothing
 	end
 end
 
 paramname(param_ex) = param_ex.args[1]
 paramtype(param_ex) = param_ex.args[2]
-notnothing(a) = a != nothing
 undef(any...) = throw(UndefRefError())
