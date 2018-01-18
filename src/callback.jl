@@ -15,22 +15,22 @@ macro callback(ex)
 	libsetter = Expr(:quote, Symbol("glfw", setter))   # glfwSetFooCallback
 	wrapper = Symbol(string('_', name, "Wrapper"))     # _FooCallbackWrapper
 
-	window_arg = filter(iswindow, args)                # :(window::Window)
-	handle_arg = map(argname, window_arg)              # :window
-	handle_type = map(x -> :Window, window_arg)        # :Window
-
 	wrapper_args = args
 	wrapper_types = Expr(:curly, :Tuple, map(argtype, wrapper_args)...)
 
-	if isempty(window_arg)
+	if isempty(filter(iswindow, args))
 		callback_ref = gensym(name)
 		declare_callback_ref = :($callback_ref = Ref{Function}(undef))
 		callback_ref = :($callback_ref[])
+		handle_arg = ()
+		handle_type = ()
 	else
 		_window_callbacks_len[] += 1
 		idx = _window_callbacks_len[]
 		callback_ref = :(_window_callbacks[window][$idx])
 		declare_callback_ref = nothing
+		handle_arg = (:window,)
+		handle_type = (:Window,)
 	end
 
 	ex = quote
@@ -41,13 +41,13 @@ macro callback(ex)
 			old_callback = $callback_ref
 			$callback_ref = callback # Prevent Julia function from being garbage-collected
 			cfunptr = cfunction($wrapper, Cvoid, $wrapper_types)
-			old_cfunptr = ccall( ($libsetter, lib), Ptr{Cvoid}, ($(handle_type...), Ptr{Cvoid}), $(window_arg...), cfunptr)
+			old_cfunptr = ccall( ($libsetter, lib), Ptr{Cvoid}, ($(handle_type...), Ptr{Cvoid}), $(handle_arg...), cfunptr)
 			return old_cfunptr == C_NULL ? nothing : old_callback
 		end
 
 		# Unset the callback function
 		function $setter($(handle_arg...), ::Nothing)
-			old_cfunptr = ccall( ($libsetter, lib), Ptr{Cvoid}, ($(handle_type...), Ptr{Cvoid}), $(window_arg...), C_NULL)
+			old_cfunptr = ccall( ($libsetter, lib), Ptr{Cvoid}, ($(handle_type...), Ptr{Cvoid}), $(handle_arg...), C_NULL)
 			old_callback = $callback_ref
 			$callback_ref = undef # Allow former callback function to be garbage-collected
 			return old_cfunptr == C_NULL ? nothing : old_callback
