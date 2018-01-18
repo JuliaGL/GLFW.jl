@@ -22,16 +22,20 @@ macro callback(ex)
 		callback_ref = gensym(name)
 		declare_callback_ref = :($callback_ref = Ref{Function}(undef))
 		callback_ref = :($callback_ref[])
-		handle_arg = ()
-		handle_type = ()
+		handle_arg = nothing
+		handle_type = nothing
 	else
 		_window_callbacks_len[] += 1
 		idx = _window_callbacks_len[]
 		callback_ref = :(_window_callbacks[window][$idx])
 		declare_callback_ref = nothing
-		handle_arg = (:window,)
-		handle_type = (:Window,)
+		handle_arg = :window
+		handle_type = :Window
 	end
+
+	# Convert to iterables that can be splatted into expression
+	handle_arg = filter(notnothing, [handle_arg])
+	handle_type = filter(notnothing, [handle_type])
 
 	ex = quote
 		$declare_callback_ref
@@ -63,4 +67,5 @@ end
 argname(ex) = ex.args[1]
 argtype(ex) = ex.args[2]
 iswindow(ex) = argtype(ex) == :Window
+notnothing(a) = a != nothing
 undef(any...) = throw(UndefRefError())
