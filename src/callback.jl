@@ -1,11 +1,10 @@
 # Generate code for a global callback
 macro callback(ex)
-	var_sym = gensym()
-	var_ex = :($var_sym[])
-	declare_var = :($var_sym = Ref{Function}(undef))
-	code = callbackcode(extractargs(ex)..., var_ex)
+	ref = gensym()
+	declare_ref = :(const $ref = Ref{Function}(undef))
+	code = callbackcode(extractargs(ex)..., :($ref[]))
 	esc(quote
-		$declare_var
+		$declare_ref
 		$code
 	end)
 end
@@ -16,18 +15,18 @@ const _window_callback_num = Ref(0)
 # Generate code for a window-specific callback
 macro windowcallback(ex)
 	_window_callback_num[] += 1
-	idx = _window_callback_num[]
-	var_ex = :(callbacks(window)[$idx])
-	code = callbackcode(extractargs(ex)..., var_ex, [:(window::Window)])
-	esc(code)
+	i = _window_callback_num[]
+	ref = :(callbacks(window)[$i])
+	esc(callbackcode(extractargs(ex)..., ref, [:(window::Window)]))
 end
 
+# Generate functions for [un]setting a callback from the component expressions
 function callbackcode(
 	name,
-	callback_params,
-	callback_args,
-	callback_var_ex,
-	setter_params=[],
+	callback_params,  # Signature of the C-compatible wrapper function
+	callback_args,    # How the wrapper passes arguments to the callback
+	callback_var,     # Variable that stores reference to callback function
+	setter_params=[], # Initial parameter(s) to setter (e.g. window handle)
 )
 	# Construct function names
 	setter = Symbol("Set", name, "Callback")          # SetFooCallback
@@ -42,8 +41,8 @@ function callbackcode(
 	quote
 		# Set the callback function
 		function $setter($(setter_param_names...), callback::Function)
-			old_callback = $callback_var_ex
-			$callback_var_ex = callback # Prevent Julia function from being garbage-collected
+			old_callback = $callback_var
+			$callback_var = callback  # Prevent callback function from being garbage-collected
 			cfunptr = cfunction($wrapper, Cvoid, $callback_param_types)
 			old_cfunptr = ccall( ($libsetter, lib), Ptr{Cvoid}, ($(setter_param_types...), Ptr{Cvoid}), $(setter_param_names...), cfunptr)
 			return old_cfunptr == C_NULL ? nothing : old_callback
@@ -52,13 +51,13 @@ function callbackcode(
 		# Unset the callback function
 		function $setter($(setter_param_names...), ::Nothing)
 			old_cfunptr = ccall( ($libsetter, lib), Ptr{Cvoid}, ($(setter_param_types...), Ptr{Cvoid}), $(setter_param_names...), C_NULL)
-			old_callback = $callback_var_ex
-			$callback_var_ex = undef # Allow former callback function to be garbage-collected
+			old_callback = $callback_var
+			$callback_var = undef  # Allow former callback function to be garbage-collected
 			return old_cfunptr == C_NULL ? nothing : old_callback
 		end
 
-		# Julia callback wrapper that can be passed to `cfunction`
-		$wrapper($(callback_params...)) = ($callback_var_ex($(callback_args...)); return nothing)
+		# Callback wrapper that can be passed to `cfunction`
+		$wrapper($(callback_params...)) = ($callback_var($(callback_args...)); return nothing)
 	end
 end
 

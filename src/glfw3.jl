@@ -429,8 +429,8 @@ SetGamma(monitor::Monitor, gamma::Real) = ccall( (:glfwSetGamma, lib), Cvoid, (M
 DefaultWindowHints() = ccall( (:glfwDefaultWindowHints, lib), Cvoid, ())
 WindowHint(target::Integer, hint::Integer) = ccall( (:glfwWindowHint, lib), Cvoid, (Cint, Cint), target, hint)
 
-# Pairs window handles with a callback function list and
-# prevents it from being garbage-collected
+# Pair window handles with a callback function list
+# to prevent them from being garbage-collected
 _window_callbacks = Dict{Window, Vector{Function}}()
 
 function CreateWindow(width::Integer, height::Integer, title::AbstractString, monitor::Monitor=Monitor(C_NULL), share::Window=Window(C_NULL))
