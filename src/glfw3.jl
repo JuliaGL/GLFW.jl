@@ -435,7 +435,7 @@ _window_callbacks = Dict{Window, Ref{Vector{Function}}}()
 
 function CreateWindow(width::Integer, height::Integer, title::AbstractString, monitor::Monitor=Monitor(C_NULL), share::Window=Window(C_NULL))
 	window = ccall( (:glfwCreateWindow, lib), Window, (Cint, Cint, Cstring, Monitor, Window), width, height, title, monitor, share)
-	callbacks = Ref{Vector{Function}}(fill(undef, _window_callback_num[]))
+	callbacks = Ref{Vector{Function}}(fill(nocallback, _window_callback_num[]))
 	_window_callbacks[window] = callbacks
 	ccall( (:glfwSetWindowUserPointer, lib), Cvoid, (Window, Ref{Vector{Function}}), window, callbacks)
 	window
