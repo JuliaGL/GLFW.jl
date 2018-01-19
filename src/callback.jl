@@ -1,11 +1,9 @@
 # Generate code for a global callback
 macro callback(ex)
 	ref = gensym()
-	declare_ref = :(const $ref = Ref{Function}(undef))
-	code = callbackcode(extractargs(ex)..., :($ref[]))
 	esc(quote
-		$declare_ref
-		$code
+		const $ref = Ref{Function}(undef)
+		$(callbackcode(extractargs(ex)..., :($ref[])))
 	end)
 end
 
@@ -20,7 +18,7 @@ macro windowcallback(ex)
 	esc(callbackcode(extractargs(ex)..., ref, [:(window::Window)]))
 end
 
-# Generate functions for [un]setting a callback from the component expressions
+# Generate expression with functions for [un]setting a callback
 function callbackcode(
 	name,
 	callback_params,  # Signature of the C-compatible wrapper function
