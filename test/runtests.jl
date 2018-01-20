@@ -8,6 +8,8 @@ using Base.Test
 # GLFWError uses integer for unrecognized error code
 @test isa(GLFW.GLFWError(0xDEADBEEF, "").code, Integer)
 
+println(ENV)
+
 if !haskey(ENV, "TRAVIS")
 	include("windowclose.jl")
 end
