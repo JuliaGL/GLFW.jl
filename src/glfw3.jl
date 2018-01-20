@@ -431,17 +431,17 @@ WindowHint(target::Integer, hint::Integer) = ccall( (:glfwWindowHint, lib), Cvoi
 
 # Pair window handles with a callback function list
 # to prevent them from being garbage-collected
-const _window_callbacks = Dict{Window, Ref{Vector{Function}}}()
+const _window_callbacks = Dict{Window, Ref{Vector{Callback}}}()
 
 function CreateWindow(width::Integer, height::Integer, title::AbstractString, monitor::Monitor=Monitor(C_NULL), share::Window=Window(C_NULL))
 	window = ccall( (:glfwCreateWindow, lib), Window, (Cint, Cint, Cstring, Monitor, Window), width, height, title, monitor, share)
-	callbacks = Ref{Vector{Function}}(fill(nocallback, _window_callback_num[]))
+	callbacks = Ref{Vector{Callback}}(fill(nothing, _window_callback_num[]))
 	_window_callbacks[window] = callbacks
-	ccall( (:glfwSetWindowUserPointer, lib), Cvoid, (Window, Ref{Vector{Function}}), window, callbacks)
+	ccall( (:glfwSetWindowUserPointer, lib), Cvoid, (Window, Ref{Vector{Callback}}), window, callbacks)
 	window
 end
 
-callbacks(window) = ccall( (:glfwGetWindowUserPointer, lib), Ref{Vector{Function}}, (Window,), window)
+callbacks(window) = ccall( (:glfwGetWindowUserPointer, lib), Ref{Vector{Callback}}, (Window,), window)
 
 function DestroyWindow(window::Window)
 	ccall( (:glfwDestroyWindow, lib), Cvoid, (Window,), window)
