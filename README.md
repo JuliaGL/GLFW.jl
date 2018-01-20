@@ -17,7 +17,7 @@ Example
 -------
 
 ```julia
-import GLFW
+using GLFW
 
 # Create a window and its OpenGL context
 window = GLFW.CreateWindow(640, 480, "GLFW.jl")

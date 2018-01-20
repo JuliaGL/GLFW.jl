@@ -1,4 +1,4 @@
-import GLFW
+using GLFW
 
 # Note: This was written as a quick test for multiwindow support.
 # It is not a clean example (yet) of the proper way to do it.

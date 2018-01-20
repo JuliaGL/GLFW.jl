@@ -1,4 +1,4 @@
-import GLFW
+using GLFW
 using Base.Test
 
 include("../src/compat.jl")

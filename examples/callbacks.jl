@@ -1,4 +1,4 @@
-import GLFW
+using GLFW
 
 include("../src/compat.jl")
 

@@ -1,4 +1,4 @@
-import GLFW
+using GLFW
 using Base.Test
 
 # GLFWError uses enum for known error code
