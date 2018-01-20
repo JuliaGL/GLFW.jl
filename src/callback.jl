@@ -1,64 +1,80 @@
-# Size of callback vector to create during Window construction
-const _window_callbacks_len = Ref(0)
-
-# Generate functions for wrapping and setting a callback
+# Generate code for a global callback
 macro callback(ex)
-	transform = ex.head == :->
-	def = transform ? ex.args[1] : ex                  # Foo(x::T1, y::T2, etc)
-	name = string(def.args[1], "Callback")             # FooCallback
-	args = def.args[2:end]                             # (x::T1, y::T2, etc)
-	values = transform ? ex.args[2].args[2].args : map(argname, args)  # (x, y, etc) or whatever came after the ->
+	ref = gensym()
+	esc(quote
+		const $ref = Ref{Function}(nocallback)
+		$(callbackcode(extractargs(ex)..., :($ref[])))
+	end)
+end
 
-	setter = Symbol("Set", name)                       # SetFooCallback
-	libsetter = Expr(:quote, Symbol("glfw", setter))   # glfwSetFooCallback
-	wrapper = Symbol(string('_', name, "Wrapper"))     # _FooCallbackWrapper
+# Number of callback functions per window
+const _window_callback_num = Ref(0)
 
-	window_arg = filter(iswindow, args)                # :(window::Window)
-	window_value = map(argname, window_arg)            # :window
-	handle_type = map(x -> :WindowHandle, window_arg)  # :WindowHandle
+# Generate code for a window-specific callback
+macro windowcallback(ex)
+	_window_callback_num[] += 1
+	i = _window_callback_num[]
+	ref = :(callbacks(window)[$i])
+	esc(callbackcode(extractargs(ex)..., ref, [:(window::Window)]))
+end
 
-	wrapper_args = map(win2handle, args)
-	wrapper_types = Expr(:curly, :Tuple, map(argtype, wrapper_args)...)
-	window_lookup = map(x -> :($x = Base.cconvert(Window, $(win2handle(x)));), window_value)
+# Generate expression with functions for [un]setting a callback
+function callbackcode(
+	name,
+	callback_params,  # Signature of the C-compatible wrapper function
+	callback_args,    # How the wrapper passes arguments to the callback
+	callback_ref,     # Persisted reference to callback function
+	setter_params=[], # Initial parameter(s) to setter (e.g. window handle)
+)
+	# Construct function names
+	setter = Symbol("Set", name, "Callback")          # SetFooCallback
+	libsetter = Expr(:quote, Symbol("glfw", setter))  # glfwSetFooCallback
+	wrapper = Symbol('_', name, "CallbackWrapper")    # _FooCallbackWrapper
 
-	if isempty(window_arg)
-		callback_ref = gensym(name)
-		declare_callback_ref = :($callback_ref = Ref{Function}())
-		callback_ref = :($callback_ref[])
-	else
-		_window_callbacks_len[] += 1
-		idx = _window_callbacks_len[]
-		callback_ref = :($(window_value[1]).callbacks[$idx])
-		declare_callback_ref = nothing
-	end
+	# Separate names and types of parameters
+	callback_param_types = Expr(:curly, :Tuple, map(paramtype, callback_params)...)
+	setter_param_names = map(paramname, setter_params)
+	setter_param_types = map(paramtype, setter_params)
 
-	ex = quote
-		$declare_callback_ref
-
+	quote
 		# Set the callback function
-		function $setter($(window_arg...), callback::Function)
-			$callback_ref = callback # Prevent Julia function from being garbage-collected
-			cfunptr = cfunction($wrapper, Cvoid, $wrapper_types)
-			ccall( ($libsetter, lib), Cvoid, ($(handle_type...), Ptr{Cvoid}), $(window_value...), cfunptr)
+		function $setter($(setter_param_names...), callback::Function)
+			old_callback = $callback_ref
+			$callback_ref = callback  # Prevent callback function from being garbage-collected
+			cfunptr = cfunction($wrapper, Cvoid, $callback_param_types)
+			old_cfunptr = ccall( ($libsetter, lib), Ptr{Cvoid}, ($(setter_param_types...), Ptr{Cvoid}), $(setter_param_names...), cfunptr)
+			return old_cfunptr == C_NULL ? nothing : old_callback
 		end
 
 		# Unset the callback function
-		function $setter($(window_arg...), ::Nothing)
-			ccall( ($libsetter, lib), Cvoid, ($(handle_type...), Ptr{Cvoid}), $(window_value...), C_NULL)
-			$callback_ref = undef # Allow former callback function to be garbage-collected
-			return nothing
+		function $setter($(setter_param_names...), ::Nothing)
+			old_cfunptr = ccall( ($libsetter, lib), Ptr{Cvoid}, ($(setter_param_types...), Ptr{Cvoid}), $(setter_param_names...), C_NULL)
+			old_callback = $callback_ref
+			$callback_ref = nocallback  # Allow former callback function to be garbage-collected
+			return old_cfunptr == C_NULL ? nothing : old_callback
 		end
 
-		# Julia callback wrapper that can be passed to `cfunction`
-		$wrapper($(wrapper_args...)) = ($(window_lookup...); $callback_ref($(values...)); return nothing)
+		# Callback wrapper that can be passed to `cfunction`
+		$wrapper($(callback_params...)) = ($callback_ref($(callback_args...)); return nothing)
 	end
-	esc(ex)
 end
 
-# Helper functions for the callback macro
-argname(ex) = ex.args[1]
-argtype(ex) = ex.args[2]
-iswindow(ex) = argtype(ex) == :Window
-win2handle(name::Symbol) = Symbol(name, "_handle")
-win2handle(ex) = iswindow(ex) ? :($(win2handle(argname(ex)))::WindowHandle) : ex
-undef(any...) = throw(UndefRefError())
+function extractargs(ex)
+	before, after = arrowsplit(ex)
+	name = string(before.args[1])
+	params = before.args[2:end]
+	args = isa(after, Expr) ? after.args : map(paramname, params)
+	name, params, args
+end
+
+function arrowsplit(ex)
+	if ex.head == :->
+		ex.args[1], ex.args[2].args[2]
+	else
+		ex, nothing
+	end
+end
+
+paramname(param_ex) = param_ex.args[1]
+paramtype(param_ex) = param_ex.args[2]
+nocallback(any...) = throw(UndefRefError())
