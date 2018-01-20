@@ -6,6 +6,11 @@ const version = v"3.2.1"
 using BinDeps
 @BinDeps.setup
 
+if !isdefined(Base, :Libdl)
+	# TODO for Julia upgrade: remove check
+	using Libdl
+end
+
 function compatible_version(lib, handle)
 	major, minor, rev = Ref{Cint}(), Ref{Cint}(), Ref{Cint}()
 	ccall(Libdl.dlsym(handle, :glfwGetVersion), Cvoid, (Ref{Cint}, Ref{Cint}, Ref{Cint}), major, minor, rev)
