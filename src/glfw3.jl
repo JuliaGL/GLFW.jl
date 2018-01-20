@@ -431,7 +431,7 @@ WindowHint(target::Integer, hint::Integer) = ccall( (:glfwWindowHint, lib), Cvoi
 
 # Pair window handles with a callback function list
 # to prevent them from being garbage-collected
-_window_callbacks = Dict{Window, Ref{Vector{Function}}}()
+const _window_callbacks = Dict{Window, Ref{Vector{Function}}}()
 
 function CreateWindow(width::Integer, height::Integer, title::AbstractString, monitor::Monitor=Monitor(C_NULL), share::Window=Window(C_NULL))
 	window = ccall( (:glfwCreateWindow, lib), Window, (Cint, Cint, Cstring, Monitor, Window), width, height, title, monitor, share)
