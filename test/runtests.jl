@@ -8,8 +8,6 @@ using Base.Test
 # GLFWError uses integer for unrecognized error code
 @test isa(GLFW.GLFWError(0xDEADBEEF, "").code, Integer)
 
-println(ENV)
-
-if !haskey(ENV, "TRAVIS")
+if !haskey(ENV, "CI")  # AppVeyor and Travis don't support OpenGL
 	include("windowclose.jl")
 end
