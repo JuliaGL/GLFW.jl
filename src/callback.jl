@@ -1,8 +1,10 @@
+const Callback = Union{Function, Nothing}
+
 # Generate code for a global callback
 macro callback(ex)
 	ref = gensym()
 	esc(quote
-		const $ref = Ref{Function}(nocallback)
+		const $ref = Ref{Callback}(nothing)
 		$(callbackcode(extractargs(ex)..., :($ref[])))
 	end)
 end
@@ -42,16 +44,16 @@ function callbackcode(
 			old_callback = $callback_ref
 			$callback_ref = callback  # Prevent callback function from being garbage-collected
 			cfunptr = cfunction($wrapper, Cvoid, $callback_param_types)
-			old_cfunptr = ccall( ($libsetter, lib), Ptr{Cvoid}, ($(setter_param_types...), Ptr{Cvoid}), $(setter_param_names...), cfunptr)
-			return old_cfunptr == C_NULL ? nothing : old_callback
+			ccall( ($libsetter, lib), Ptr{Cvoid}, ($(setter_param_types...), Ptr{Cvoid}), $(setter_param_names...), cfunptr)
+			return old_callback
 		end
 
 		# Unset the callback function
 		function $setter($(setter_param_names...), ::Nothing)
-			old_cfunptr = ccall( ($libsetter, lib), Ptr{Cvoid}, ($(setter_param_types...), Ptr{Cvoid}), $(setter_param_names...), C_NULL)
+			ccall( ($libsetter, lib), Ptr{Cvoid}, ($(setter_param_types...), Ptr{Cvoid}), $(setter_param_names...), C_NULL)
 			old_callback = $callback_ref
-			$callback_ref = nocallback  # Allow former callback function to be garbage-collected
-			return old_cfunptr == C_NULL ? nothing : old_callback
+			$callback_ref = nothing  # Allow former callback function to be garbage-collected
+			return old_callback
 		end
 
 		# Callback wrapper that can be passed to `cfunction`
@@ -77,4 +79,3 @@ end
 
 paramname(param_ex) = param_ex.args[1]
 paramtype(param_ex) = param_ex.args[2]
-nocallback(any...) = throw(UndefRefError())
