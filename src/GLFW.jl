@@ -15,6 +15,7 @@ const libversion = GetVersion()
 if libversion.major == 3
 	include("callback.jl")
 	include("glfw3.jl")
+	include("vulkan.jl")
 	if isdefined(Base, :getproperty) && isdefined(Base, :setproperty!)
 		# Julia 0.7 supports property overloading
 		# TODO for Julia upgrade: remove feature guard
