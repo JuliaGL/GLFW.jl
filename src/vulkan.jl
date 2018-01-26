@@ -33,9 +33,9 @@ end
     CreateWindowSurface(instance, window, allocator=C_NULL)
 Create a Vulkan surface for the specified window.
 """
-function CreateWindowSurface(instance, window::Window, allocator=C_NULL)
+function CreateWindowSurface(instance, window, allocator=C_NULL)
     surface = Ref{VkSurfaceKHR}(C_NULL)
-    ccall((:glfwCreateWindowSurface, lib), VkResult, (VkInstance, WindowHandle, Ptr{VkAllocationCallbacks}, Ref{VkSurfaceKHR}), instance, window, allocator, surface)
+    ccall((:glfwCreateWindowSurface, lib), VkResult, (VkInstance, Window, Ptr{VkAllocationCallbacks}, Ref{VkSurfaceKHR}), instance, window, allocator, surface)
     return surface[]
 end
 
