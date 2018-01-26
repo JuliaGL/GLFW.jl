@@ -228,6 +228,7 @@ const CONTEXT_RELEASE_BEHAVIOR = 0x00022009
 
 const OPENGL_API             = 0x00030001
 const OPENGL_ES_API          = 0x00030002
+const NO_API                 =          0
 
 const NO_ROBUSTNESS          =          0
 const NO_RESET_NOTIFICATION  = 0x00031001
