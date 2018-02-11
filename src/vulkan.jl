@@ -1,16 +1,16 @@
 # define Vulkan types locally, so we don't need to add VulkanCore.jl as dependency
 const VkResult = Cuint
-const VkInstance = Ptr{Void}
-const VkSurfaceKHR = Ptr{Void}
-const VkPhysicalDevice = Ptr{Void}
+const VkInstance = Ptr{Cvoid}
+const VkSurfaceKHR = Ptr{Cvoid}
+const VkPhysicalDevice = Ptr{Cvoid}
 
 struct VkAllocationCallbacks
-    pUserData::Ptr{Void}
-    pfnAllocation::Ptr{Void}
-    pfnReallocation::Ptr{Void}
-    pfnFree::Ptr{Void}
-    pfnInternalAllocation::Ptr{Void}
-    pfnInternalFree::Ptr{Void}
+    pUserData::Ptr{Cvoid}
+    pfnAllocation::Ptr{Cvoid}
+    pfnReallocation::Ptr{Cvoid}
+    pfnFree::Ptr{Cvoid}
+    pfnInternalAllocation::Ptr{Cvoid}
+    pfnInternalFree::Ptr{Cvoid}
 end
 
 """
@@ -44,7 +44,7 @@ end
 Return the address of the specified Vulkan core or extension function for the specified instance.
 `funcptr` can be used directly as the first argument of `ccall`: ccall(funcptr, ...).
 """
-GetInstanceProcAddress(instance, procname) = ccall((:glfwGetInstanceProcAddress, lib), Ptr{Void}, (VkInstance, Cstring), instance, procname)
+GetInstanceProcAddress(instance, procname) = ccall((:glfwGetInstanceProcAddress, lib), Ptr{Cvoid}, (VkInstance, Cstring), instance, procname)
 
 """
     GetPhysicalDevicePresentationSupport(instance, device, queuefamily)
