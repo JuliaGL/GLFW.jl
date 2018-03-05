@@ -633,14 +633,14 @@ function standard_window_hints()
 end
 
 struct GLFWImage
-    width::Cint
-    height::Cint
-    pixels::Ptr{UInt8}
-    gc_ref::Any
+	width::Cint
+	height::Cint
+	pixels::Ptr{UInt8}
+	gc_ref::Any
 end
 function Base.cconvert(::Type{GLFWImage}, image::Matrix{NTuple{4, UInt8}})
-    ptr = Base.unsafe_convert(Ptr{UInt8}, Base.cconvert(Ptr{UInt8}, image))
-    GLFWImage(size(image, 1), size(image, 2), ptr, image)
+	ptr = Base.unsafe_convert(Ptr{UInt8}, Base.cconvert(Ptr{UInt8}, image))
+	GLFWImage(size(image, 1), size(image, 2), ptr, image)
 end
 
 """
@@ -659,5 +659,5 @@ GLFW.PollEvents() # seems to need a poll events to become active
 ```
 """
 function SetWindowIcon(window::Window, image::Matrix{NTuple{4, UInt8}})
-    ccall((:glfwSetWindowIcon, lib), Void, (WindowHandle, Cint, GLFWImage), window, 1, image)
+	ccall((:glfwSetWindowIcon, lib), Void, (WindowHandle, Cint, GLFWImage), window, 1, image)
 end
