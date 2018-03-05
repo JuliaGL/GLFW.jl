@@ -632,9 +632,6 @@ function standard_window_hints()
 	]
 end
 
-struct JLImage
-    img::Matrix{NTuple{4, UInt8}}
-end
 struct GLFWImage
     width::Cint
     height::Cint
