@@ -437,6 +437,7 @@ const _window_callbacks = Dict{Window, Ref{Vector{Callback}}}()
 function CreateWindow(width::Integer, height::Integer, title::AbstractString, monitor::Monitor=Monitor(C_NULL), share::Window=Window(C_NULL))
 	window = ccall( (:glfwCreateWindow, lib), Window, (Cint, Cint, Cstring, Monitor, Window), width, height, title, monitor, share)
 	callbacks = Ref{Vector{Callback}}(fill(nothing, _window_callback_num[]))
+    MakeContextCurrent(window)
 	_window_callbacks[window] = callbacks
 	ccall( (:glfwSetWindowUserPointer, lib), Cvoid, (Window, Ref{Vector{Callback}}), window, callbacks)
 	window
@@ -659,5 +660,5 @@ GLFW.PollEvents() # seems to need a poll events to become active
 ```
 """
 function SetWindowIcon(window::Window, image::Matrix{NTuple{4, UInt8}})
-	ccall((:glfwSetWindowIcon, lib), Void, (WindowHandle, Cint, GLFWImage), window, 1, image)
+	ccall((:glfwSetWindowIcon, lib), Void, (Window, Cint, GLFWImage), window, 1, image)
 end
