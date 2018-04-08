@@ -328,9 +328,7 @@ function Window(
 		end)
 		make_fullscreen!(window, monitor)
 	end
-
 	MakeContextCurrent(window)
-
 	window
 end
 
@@ -437,7 +435,6 @@ const _window_callbacks = Dict{Window, Ref{Vector{Callback}}}()
 function CreateWindow(width::Integer, height::Integer, title::AbstractString, monitor::Monitor=Monitor(C_NULL), share::Window=Window(C_NULL))
 	window = ccall( (:glfwCreateWindow, lib), Window, (Cint, Cint, Cstring, Monitor, Window), width, height, title, monitor, share)
 	callbacks = Ref{Vector{Callback}}(fill(nothing, _window_callback_num[]))
-    MakeContextCurrent(window)
 	_window_callbacks[window] = callbacks
 	ccall( (:glfwSetWindowUserPointer, lib), Cvoid, (Window, Ref{Vector{Callback}}), window, callbacks)
 	window
