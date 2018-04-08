@@ -634,11 +634,15 @@ struct GLFWImage
 	width::Cint
 	height::Cint
 	pixels::Ptr{UInt8}
-	gc_ref::Any
 end
+
 function Base.cconvert(::Type{GLFWImage}, image::Matrix{NTuple{4, UInt8}})
-	ptr = Base.unsafe_convert(Ptr{UInt8}, Base.cconvert(Ptr{UInt8}, image))
-	GLFWImage(size(image, 1), size(image, 2), ptr, image)
+	ptr = Base.cconvert(Ptr{UInt8}, image)
+	(size(image)..., ptr)
+end
+function Base.unsafe_convert(::Type{GLFWImage}, data::Tuple{Int, Int, Matrix{NTuple{4, UInt8}}})
+	ptr = Base.unsafe_convert(Ptr{UInt8}, data[3])
+	GLFWImage(Cint(data[1]), Cint(data[2]), ptr)
 end
 
 """
