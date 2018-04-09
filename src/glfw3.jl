@@ -275,12 +275,13 @@ Base.show(io::IO, m::Monitor) = write(io, "Monitor($(m.handle == C_NULL ? m.hand
 struct Window
 	handle::Ptr{Cvoid}
 end
+
 #Came from GLWindow.jl/screen.jl
 """
 Function to create a pure GLFW OpenGL window
 """
 function Window(
-		name = "GLWindow";
+		;name = "GLWindow",
 		resolution = standard_screen_resolution(),
 		debugging = false,
 		major = 3,
@@ -301,7 +302,7 @@ function Window(
 		WindowHint(wh[1], wh[2])
 	end
 
-	@static if is_apple()
+	@static if isapple()
 		if debugging
 			warn("OpenGL debug message callback not available on osx")
 			debugging = false

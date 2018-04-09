@@ -8,10 +8,14 @@ if !isdefined(Base, :Nothing)
 	const Nothing = Void
 end
 
-if !isdefined(Sys, :isapple)
-	Sys.eval(:(isapple = is_apple))
+const isapple = if !isdefined(Sys, :isapple)
+	is_apple
+else
+	Sys.isapple
 end
 
-if !isdefined(Sys, :iswindows)
-	Sys.eval(:(iswindows = is_windows))
+const iswindows = if !isdefined(Sys, :iswindows)
+	is_windows
+else
+	Sys.iswindows
 end
