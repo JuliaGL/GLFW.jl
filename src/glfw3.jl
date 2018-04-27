@@ -291,7 +291,8 @@ function Window(
 		visible = true,
 		focus = false,
 		fullscreen = false,
-		monitor = nothing
+		monitor = nothing,
+		share = Window(C_NULL)
 	)
 	WindowHint(VISIBLE, visible)
 	WindowHint(FOCUSED, focus)
@@ -321,7 +322,7 @@ function Window(
 		error("Monitor needs to be nothing, int, or GLFW.Monitor. Found: $monitor")
 	end
 
-	window = CreateWindow(resolution..., String(name))
+	window = CreateWindow(resolution..., String(name), Monitor(C_NULL), share)
 
 	if fullscreen
 		SetKeyCallback(window, (_1, button, _2, _3, _4) -> begin
