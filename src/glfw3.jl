@@ -328,9 +328,7 @@ function Window(
 		end)
 		make_fullscreen!(window, monitor)
 	end
-
 	MakeContextCurrent(window)
-
 	window
 end
 
@@ -630,4 +628,38 @@ function standard_window_hints()
 		(STENCIL_BITS, 0),
 		(AUX_BUFFERS,  0)
 	]
+end
+
+struct GLFWImage
+	width::Cint
+	height::Cint
+	pixels::Ptr{UInt8}
+end
+
+function Base.cconvert(::Type{GLFWImage}, image::Matrix{NTuple{4, UInt8}})
+	ptr = Base.cconvert(Ptr{UInt8}, image)
+	(size(image)..., ptr)
+end
+function Base.unsafe_convert(::Type{GLFWImage}, data::Tuple{Int, Int, Matrix{NTuple{4, UInt8}}})
+	ptr = Base.unsafe_convert(Ptr{UInt8}, data[3])
+	GLFWImage(Cint(data[1]), Cint(data[2]), ptr)
+end
+
+"""
+    SetWindowIcon(window::Window, image::Matrix{NTuple{4, UInt8}})
+Usage:
+
+```Julia
+using Colors, FixedPointNumbers, FileIO
+image = RGBA{N0f8}.(load("my_icon.png")) # expexts RGBA
+# Needs to be rotated, when it's a standard julia image
+image = rotl90(image)
+# we don't want a dependecy to Colors.jl, so we use an NTuple instead
+buff = reinterpret(NTuple{4, UInt8}, image)
+GLFW.SetWindowIcon(win, buff)
+GLFW.PollEvents() # seems to need a poll events to become active
+```
+"""
+function SetWindowIcon(window::Window, image::Matrix{NTuple{4, UInt8}})
+	ccall((:glfwSetWindowIcon, lib), Void, (Window, Cint, GLFWImage), window, 1, image)
 end
