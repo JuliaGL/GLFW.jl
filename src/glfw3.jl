@@ -272,7 +272,7 @@ struct Monitor
 end
 Base.show(io::IO, m::Monitor) = write(io, "Monitor($(m.handle == C_NULL ? m.handle : GetMonitorName(m)))")
 
-struct Window
+mutable struct Window
 	handle::Ptr{Cvoid}
 end
 
