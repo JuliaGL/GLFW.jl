@@ -21,8 +21,12 @@ if isdefined(Base, :getproperty) && isdefined(Base, :setproperty!)
 	include("monitor_properties.jl")
 end
 
+const GLFW_INITIALIZED = Ref(false)
+
+is_initialized() = GLFW_INITIALIZED[]
+
+
 function __init__()
-	initialized = false
 	check_deps()
 
 	libversion = GetVersion()
@@ -35,15 +39,18 @@ function __init__()
 	SetErrorCallback(err -> push!(errors, err))
 
 	try
-		initialized = GLFW.Init()
+		GLFW_INITIALIZED[] = GLFW.Init()
 	catch err
 		push!(errors, err)
 	finally
 		SetErrorCallback(throw)
 	end
 
-	if initialized
-		atexit(GLFW.Terminate)
+	if GLFW_INITIALIZED[]
+		atexit() do
+			GLFW.Terminate()
+			GLFW_INITIALIZED[] = false
+		end
 		for err in errors
 			warn(err)  # Warn about any non-fatal errors that may have occurred during initialization
 		end
