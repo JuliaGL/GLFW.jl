@@ -27,8 +27,6 @@ is_initialized() = GLFW_INITIALIZED[]
 
 
 function __init__()
-	check_deps()
-
 	libversion = GetVersion()
 
 	if libversion.major != 3
