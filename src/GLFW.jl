@@ -37,18 +37,15 @@ function __init__()
 	SetErrorCallback(err -> push!(errors, err))
 
 	try
-		GLFW_INITIALIZED[] = GLFW.Init()
+		Init()
 	catch err
 		push!(errors, err)
 	finally
 		SetErrorCallback(throw)
 	end
 
-	if GLFW_INITIALIZED[]
-		atexit() do
-			GLFW.Terminate()
-			GLFW_INITIALIZED[] = false
-		end
+	if is_initialized()
+		atexit(Terminate)
 		for err in errors
 			warn(err)  # Warn about any non-fatal errors that may have occurred during initialization
 		end
