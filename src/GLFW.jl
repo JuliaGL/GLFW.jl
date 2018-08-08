@@ -1,5 +1,3 @@
-__precompile__()
-
 module GLFW
 
 include("../deps/deps.jl")
