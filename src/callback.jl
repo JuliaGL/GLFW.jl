@@ -34,16 +34,19 @@ function callbackcode(
 	wrapper = Symbol('_', name, "CallbackWrapper")    # _FooCallbackWrapper
 
 	# Separate names and types of parameters
-	callback_param_types = Expr(:curly, :Tuple, map(paramtype, callback_params)...)
+	callback_param_types = Expr(:tuple, map(paramtype, callback_params)...)
 	setter_param_names = map(paramname, setter_params)
 	setter_param_types = map(paramtype, setter_params)
 
 	quote
+		# Callback wrapper that can be passed to `cfunction`
+		$wrapper($(callback_params...)) = ($callback_ref($(callback_args...)); return nothing)
+		
 		# Set the callback function
 		function $setter($(setter_param_names...), callback::Function)
 			old_callback = $callback_ref
 			$callback_ref = callback  # Prevent callback function from being garbage-collected
-			cfunptr = cfunction($wrapper, Cvoid, $callback_param_types)
+			cfunptr = @cfunction($wrapper, Cvoid, $callback_param_types)
 			ccall( ($libsetter, lib), Ptr{Cvoid}, ($(setter_param_types...), Ptr{Cvoid}), $(setter_param_names...), cfunptr)
 			return old_callback
 		end
@@ -55,9 +58,6 @@ function callbackcode(
 			$callback_ref = nothing  # Allow former callback function to be garbage-collected
 			return old_callback
 		end
-
-		# Callback wrapper that can be passed to `cfunction`
-		$wrapper($(callback_params...)) = ($callback_ref($(callback_args...)); return nothing)
 	end
 end
 

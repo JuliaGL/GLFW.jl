@@ -1,15 +1,8 @@
-include("../src/compat.jl")
-
 # version of library to download
 const version = v"3.2.1"
 
-using BinDeps
+using BinDeps, Libdl
 @BinDeps.setup
-
-if !isdefined(Base, :Libdl)
-	# TODO for Julia upgrade: remove check
-	using Libdl
-end
 
 function compatible_version(lib, handle)
 	major, minor, rev = Ref{Cint}(), Ref{Cint}(), Ref{Cint}()
@@ -18,42 +11,36 @@ function compatible_version(lib, handle)
 	return libversion >= version
 end
 
-glfw = library_dependency("libglfw", aliases=["glfw", "glfw3", "libglfw3"], validate=compatible_version)
+glfw = library_dependency("glfw", aliases=["glfw", "glfw3", "libglfw", "libglfw3"], validate=compatible_version)
 
 # library source code
 provides(Sources, URI("https://github.com/glfw/glfw/archive/$version.tar.gz"), glfw, unpacked_dir="glfw-$version")
-srcdir = joinpath(BinDeps.srcdir(glfw), "glfw-$version")
 
-# how to build library from source
-cmake_options = map(x -> "-D$(x[1])=$(x[2])", [
-	("BUILD_SHARED_LIBS",    "ON"),
-	("CMAKE_INSTALL_PREFIX", BinDeps.usrdir(glfw)),
-	("GLFW_BUILD_DOCS",      "OFF"),
-	("GLFW_BUILD_EXAMPLES",  "OFF"),
-	("GLFW_BUILD_TESTS",     "OFF")
-])
-cmake_build_steps = @build_steps begin
-	GetSources(glfw)
-	@build_steps begin
-		ChangeDirectory(srcdir)
-		`cmake $cmake_options .`
-		MakeTargets("install")
-	end
+# build library from source
+@static if !Sys.iswindows()
+	using CMakeWrapper
+	build_options = [
+		("BUILD_SHARED_LIBS",   "ON"),
+		("GLFW_BUILD_DOCS",     "OFF"),
+		("GLFW_BUILD_EXAMPLES", "OFF"),
+		("GLFW_BUILD_TESTS",    "OFF"),
+	]
+	build_defines = ["-D$k=$v" for (k, v) in build_options]
+	provides(BuildProcess, CMakeProcess(cmake_args=build_defines), glfw)
 end
-provides(SimpleBuild, cmake_build_steps, glfw)
 
-# get library through Homebrew, if available
-if isapple()
+# get library through Homebrew package manager
+@static if Sys.isapple()
 	using Homebrew
 	provides(Homebrew.HB, "glfw", glfw, os=:Darwin)
 end
 
 # download a pre-compiled binary (built by GLFW)
-if iswindows()
+@static if Sys.iswindows()
 	archive = "glfw-$version.bin.WIN$(Sys.WORD_SIZE)"
 	libpath = joinpath(archive, "lib-mingw-w64")
 	uri = URI("https://github.com/glfw/glfw/releases/download/$version/$archive.zip")
 	provides(Binaries, uri, glfw, unpacked_dir=archive, installed_libpath=libpath, os=:Windows)
 end
 
-@BinDeps.install Dict("libglfw"=>"lib")
+@BinDeps.install Dict(:glfw => :lib)

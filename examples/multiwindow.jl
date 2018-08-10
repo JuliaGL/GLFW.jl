@@ -3,8 +3,6 @@ using GLFW
 # Note: This was written as a quick test for multiwindow support.
 # It is not a clean example (yet) of the proper way to do it.
 
-include("../src/compat.jl")
-
 windows = []
 glClear = Dict{GLFW.Window, Function}()
 for i in 1:3
@@ -21,7 +19,7 @@ for i in 1:3
 	push!(windows, window)
 end
 
-gc() # Force garbage collection so that improper reference management is more apparent via crashes
+GC.gc() # Force garbage collection so that improper reference management is more apparent via crashes
 
 while !any(GLFW.WindowShouldClose, windows)
 	for window in windows

@@ -1,5 +1,4 @@
-using GLFW
-using Base.Test
+using GLFW, Test
 
 # GLFWError uses enum for known error code
 @test isa(GLFW.GLFWError(GLFW.NOT_INITIALIZED, "").code, GLFW.ErrorCode)

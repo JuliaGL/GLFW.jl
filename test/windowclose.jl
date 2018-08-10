@@ -1,7 +1,4 @@
-using GLFW
-using Base.Test
-
-include("../src/compat.jl")
+using GLFW, Test
 
 window = GLFW.CreateWindow(800, 600, "InexactError")
 @test !GLFW.WindowShouldClose(window)
