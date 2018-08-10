@@ -19,13 +19,14 @@ provides(Sources, URI("https://github.com/glfw/glfw/archive/$version.tar.gz"), g
 # build library from source
 @static if !Sys.iswindows()
 	using CMakeWrapper
-	cmake_options = map(x -> "-D$(x[1])=$(x[2])", [
+	build_options = [
 		("BUILD_SHARED_LIBS",   "ON"),
 		("GLFW_BUILD_DOCS",     "OFF"),
 		("GLFW_BUILD_EXAMPLES", "OFF"),
-		("GLFW_BUILD_TESTS",    "OFF")
-	])
-	provides(BuildProcess, CMakeProcess(cmake_args=cmake_options), glfw)
+		("GLFW_BUILD_TESTS",    "OFF"),
+	]
+	build_defines = ["-D$k=$v" for (k, v) in cmake_options]
+	provides(BuildProcess, CMakeProcess(cmake_args=build_defines), glfw)
 end
 
 # get library through Homebrew, if available
