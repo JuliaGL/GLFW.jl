@@ -43,4 +43,4 @@ end
 	provides(Binaries, uri, glfw, unpacked_dir=archive, installed_libpath=libpath, os=:Windows)
 end
 
-@BinDeps.install Dict("libglfw"=>"lib")
+@BinDeps.install Dict("glfw"=>"lib")
