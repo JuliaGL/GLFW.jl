@@ -672,5 +672,5 @@ GLFW.PollEvents() # seems to need a poll events to become active
 ```
 """
 function SetWindowIcon(window::Window, image::Matrix{NTuple{4, UInt8}})
-	ccall((:glfwSetWindowIcon, lib), Void, (Window, Cint, GLFWImage), window, 1, image)
+	ccall((:glfwSetWindowIcon, lib), Cvoid, (Window, Cint, GLFWImage), window, 1, image)
 end

@@ -1,8 +1,7 @@
-__precompile__()
-
 module GLFW
 
-include("compat.jl")
+using Base.Sys: isapple, iswindows
+
 include("../deps/deps.jl")
 
 function GetVersion()
