@@ -17,6 +17,18 @@ glfw = library_dependency("libglfw", aliases=["glfw", "glfw3", "libglfw3"], vali
 provides(Sources, URI("https://github.com/glfw/glfw/archive/$version.tar.gz"), glfw, unpacked_dir="glfw-$version")
 srcdir = joinpath(BinDeps.srcdir(glfw), "glfw-$version")
 
+# build library from source
+@static if Sys.islinux()
+	using CMakeWrapper
+	cmake_options = map(x -> "-D$(x[1])=$(x[2])", [
+		("BUILD_SHARED_LIBS",   "ON"),
+		("GLFW_BUILD_DOCS",     "OFF"),
+		("GLFW_BUILD_EXAMPLES", "OFF"),
+		("GLFW_BUILD_TESTS",    "OFF")
+	])
+	provides(BuildProcess, CMakeProcess(cmake_args=cmake_options), glfw)
+end
+
 # get library through Homebrew, if available
 @static if Sys.isapple()
 	using Homebrew
