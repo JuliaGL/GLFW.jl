@@ -11,7 +11,7 @@ function compatible_version(lib, handle)
 	return libversion >= version
 end
 
-glfw = library_dependency("libglfw", aliases=["glfw", "glfw3", "libglfw", "libglfw3"], validate=compatible_version)
+glfw = library_dependency("glfw", aliases=["glfw", "glfw3", "libglfw", "libglfw3"], validate=compatible_version)
 
 # library source code
 provides(Sources, URI("https://github.com/glfw/glfw/archive/$version.tar.gz"), glfw, unpacked_dir="glfw-$version")

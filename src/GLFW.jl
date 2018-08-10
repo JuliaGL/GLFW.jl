@@ -39,7 +39,7 @@ function __init__()
 	if is_initialized()
 		atexit(Terminate)
 		for err in errors
-			warn(err)  # Warn about any non-fatal errors that may have occurred during initialization
+			@warn err  # Warn about any non-fatal errors that may have occurred during initialization
 		end
 	else
 		throw(errors)  # Throw fatal errors
