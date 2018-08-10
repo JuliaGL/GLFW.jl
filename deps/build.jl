@@ -25,7 +25,7 @@ provides(Sources, URI("https://github.com/glfw/glfw/archive/$version.tar.gz"), g
 		("GLFW_BUILD_EXAMPLES", "OFF"),
 		("GLFW_BUILD_TESTS",    "OFF"),
 	]
-	build_defines = ["-D$k=$v" for (k, v) in cmake_options]
+	build_defines = ["-D$k=$v" for (k, v) in build_options]
 	provides(BuildProcess, CMakeProcess(cmake_args=build_defines), glfw)
 end
 
