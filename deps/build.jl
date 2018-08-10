@@ -29,7 +29,7 @@ provides(Sources, URI("https://github.com/glfw/glfw/archive/$version.tar.gz"), g
 	provides(BuildProcess, CMakeProcess(cmake_args=build_defines), glfw)
 end
 
-# get library through Homebrew, if available
+# get library through Homebrew
 @static if Sys.isapple()
 	using Homebrew
 	provides(Homebrew.HB, "glfw", glfw, os=:Darwin)
