@@ -1,5 +1,7 @@
 module GLFW
 
+using Base.Sys: isapple, iswindows
+
 include("../deps/deps.jl")
 
 function GetVersion()

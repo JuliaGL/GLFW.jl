@@ -41,7 +41,6 @@ function callbackcode(
 	quote
 		# Callback wrapper that can be passed to `cfunction`
 		$wrapper($(callback_params...)) = ($callback_ref($(callback_args...)); return nothing)
-		
 		# Set the callback function
 		function $setter($(setter_param_names...), callback::Function)
 			old_callback = $callback_ref
