@@ -2,7 +2,6 @@ __precompile__()
 
 module GLFW
 
-include("compat.jl")
 include("../deps/deps.jl")
 
 function GetVersion()
@@ -14,17 +13,11 @@ end
 include("callback.jl")
 include("glfw3.jl")
 include("vulkan.jl")
-
-if isdefined(Base, :getproperty) && isdefined(Base, :setproperty!)
-	# Julia 0.7 supports property overloading
-	# TODO for Julia upgrade: remove feature guard
-	include("monitor_properties.jl")
-end
+include("monitor_properties.jl")
 
 const GLFW_INITIALIZED = Ref(false)
 
 is_initialized() = GLFW_INITIALIZED[]
-
 
 function __init__()
 	libversion = GetVersion()
@@ -32,6 +25,7 @@ function __init__()
 	if libversion.major != 3
 		error("GLFW version $libversion not supported")
 	end
+
 	# Save errors that occur during initialization
 	errors = Vector{Exception}()
 	SetErrorCallback(err -> push!(errors, err))

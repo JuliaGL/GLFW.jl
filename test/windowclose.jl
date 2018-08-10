@@ -1,8 +1,6 @@
 using GLFW
 using Base.Test
 
-include("../src/compat.jl")
-
 window = GLFW.CreateWindow(800, 600, "InexactError")
 @test !GLFW.WindowShouldClose(window)
 # If you call the julia function GLFW.SetWindowShouldClose(window,

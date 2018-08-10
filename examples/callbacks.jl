@@ -1,7 +1,5 @@
 using GLFW
 
-include("../src/compat.jl")
-
 window = GLFW.CreateWindow(640, 480, "GLFW Callback Test")
 GLFW.MakeContextCurrent(window)
 
@@ -32,7 +30,7 @@ GLFW.SetDropCallback(window, (_, paths) -> println(paths))
 
 glClear() = ccall(@eval(GLFW.GetProcAddress("glClear")), Cvoid, (Cuint,), 0x00004000)
 
-gc() # Force garbage collection so that improper reference management is more apparent via crashes
+GC.gc() # Force garbage collection so that improper reference management is more apparent via crashes
 
 try
 	while !GLFW.WindowShouldClose(window)
