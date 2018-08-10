@@ -15,10 +15,9 @@ glfw = library_dependency("glfw", aliases=["glfw", "glfw3", "libglfw", "libglfw3
 
 # library source code
 provides(Sources, URI("https://github.com/glfw/glfw/archive/$version.tar.gz"), glfw, unpacked_dir="glfw-$version")
-srcdir = joinpath(BinDeps.srcdir(glfw), "glfw-$version")
 
 # build library from source
-@static if Sys.islinux()
+@static if !Sys.iswindows()
 	using CMakeWrapper
 	cmake_options = map(x -> "-D$(x[1])=$(x[2])", [
 		("BUILD_SHARED_LIBS",   "ON"),
