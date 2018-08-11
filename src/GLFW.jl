@@ -11,7 +11,7 @@ end
 include("callback.jl")
 include("glfw3.jl")
 include("vulkan.jl")
-include("monitor_properties.jl")
+include("properties.jl")
 
 function __init__()
 	libversion = GetVersion()
