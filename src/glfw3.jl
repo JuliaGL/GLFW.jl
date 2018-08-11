@@ -272,7 +272,7 @@ const DONT_CARE              = -1
 struct Monitor
 	handle::Ptr{Cvoid}
 end
-Base.show(io, m::Monitor) = write(io, m.handle != C_NULL ? "$(m.name) Monitor ($(m.videomode))" : "No Monitor")
+Base.show(io::IO, m::Monitor) = write(io, m.handle != C_NULL ? "$(m.name) Monitor ($(m.videomode))" : "No Monitor")
 
 mutable struct Window
 	handle::Ptr{Cvoid}
@@ -373,7 +373,7 @@ struct VidMode
 	bluebits::Cint      # The bit depth of the blue channel of the video mode.
 	refreshrate::Cint   # The refresh rate, in Hz, of the video mode.
 end
-Base.show(io, vm::VidMode) = write(io, "$(vm.width)x$(vm.height)@$(vm.refreshrate)Hz")
+Base.show(io::IO, vm::VidMode) = write(io, "$(vm.width)x$(vm.height)@$(vm.refreshrate)Hz")
 
 struct GLFWError <: Exception
 	code::Union{ErrorCode, Integer}
