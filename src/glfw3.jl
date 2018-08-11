@@ -416,15 +416,15 @@ end
 GetPrimaryMonitor() = ccall((:glfwGetPrimaryMonitor, lib), Monitor, ())
 
 function GetMonitorPos(monitor::Monitor)
-	xpos, ypos = Ref{Cint}(), Ref{Cint}()
-	ccall((:glfwGetMonitorPos, lib), Cvoid, (Monitor, Ref{Cint}, Ref{Cint}), monitor, xpos, ypos)
-	(xpos[], ypos[])
+	x, y = Ref{Cint}(), Ref{Cint}()
+	ccall((:glfwGetMonitorPos, lib), Cvoid, (Monitor, Ref{Cint}, Ref{Cint}), monitor, x, y)
+	(x=x[], y=y[])
 end
 
 function GetMonitorPhysicalSize(monitor::Monitor)
 	width, height = Ref{Cint}(), Ref{Cint}()
 	ccall((:glfwGetMonitorPhysicalSize, lib), Cvoid, (Monitor, Ref{Cint}, Ref{Cint}), monitor, width, height)
-	(width[], height[])
+	(width=width[], height=height[])
 end
 
 GetMonitorName(monitor::Monitor) = unsafe_string(ccall((:glfwGetMonitorName, lib), Cstring, (Monitor,), monitor))
@@ -467,17 +467,17 @@ SetWindowShouldClose(window::Window, value::Bool) = ccall((:glfwSetWindowShouldC
 SetWindowTitle(window::Window, title::AbstractString) = ccall((:glfwSetWindowTitle, lib), Cvoid, (Window, Cstring), window, title)
 
 function GetWindowPos(window::Window)
-	xpos, ypos = Ref{Cint}(), Ref{Cint}()
-	ccall((:glfwGetWindowPos, lib), Cvoid, (Window, Ref{Cint}, Ref{Cint}), window, xpos, ypos)
-	(xpos[], ypos[])
+	x, y = Ref{Cint}(), Ref{Cint}()
+	ccall((:glfwGetWindowPos, lib), Cvoid, (Window, Ref{Cint}, Ref{Cint}), window, x, y)
+	(x=x[], y=y[])
 end
 
-SetWindowPos(window::Window, xpos::Integer, ypos::Integer) = ccall((:glfwSetWindowPos, lib), Cvoid, (Window, Cint, Cint), window, xpos, ypos)
+SetWindowPos(window::Window, x::Integer, y::Integer) = ccall((:glfwSetWindowPos, lib), Cvoid, (Window, Cint, Cint), window, x, y)
 
 function GetWindowSize(window::Window)
 	width, height = Ref{Cint}(), Ref{Cint}()
 	ccall((:glfwGetWindowSize, lib), Cvoid, (Window, Ref{Cint}, Ref{Cint}), window, width, height)
-	(width[], height[])
+	(width=width[], height=height[])
 end
 
 SetWindowSize(window::Window, width::Integer, height::Integer) = ccall((:glfwSetWindowSize, lib), Cvoid, (Window, Cint, Cint), window, width, height)
@@ -485,13 +485,13 @@ SetWindowSize(window::Window, width::Integer, height::Integer) = ccall((:glfwSet
 function GetFramebufferSize(window::Window)
 	width, height = Ref{Cint}(), Ref{Cint}()
 	ccall((:glfwGetFramebufferSize, lib), Cvoid, (Window, Ref{Cint}, Ref{Cint}), window, width, height)
-	(width[], height[])
+	(width=width[], height=height[])
 end
 
 function GetWindowFrameSize(window::Window)
 	left, top, right, bottom = Ref{Cint}(), Ref{Cint}(), Ref{Cint}(), Ref{Cint}()
 	ccall((:glfwGetWindowFrameSize, lib), Cvoid, (Window, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}), window, left, top, right, bottom)
-	(left[], top[], right[], bottom[])
+	(left=left[], top=top[], right=right[], bottom=bottom[])
 end
 
 IconifyWindow(window::Window) = ccall((:glfwIconifyWindow, lib), Cvoid, (Window,), window)
@@ -500,7 +500,7 @@ ShowWindow(window::Window) = ccall((:glfwShowWindow, lib), Cvoid, (Window,), win
 HideWindow(window::Window) = ccall((:glfwHideWindow, lib), Cvoid, (Window,), window)
 GetWindowMonitor(window::Window) = ccall((:glfwGetWindowMonitor, lib), Monitor, (Window,), window)
 GetWindowAttrib(window::Window, attrib::Integer) = ccall((:glfwGetWindowAttrib, lib), Cint, (Window, Cint), window, attrib)
-@windowcallback WindowPos(window::Window, xpos::Cint, ypos::Cint)
+@windowcallback WindowPos(window::Window, x::Cint, y::Cint)
 @windowcallback WindowSize(window::Window, width::Cint, height::Cint)
 @windowcallback WindowClose(window::Window)
 @windowcallback WindowRefresh(window::Window)
@@ -533,12 +533,12 @@ end
 GetMouseButton(window::Window, button::Integer) = Bool(ccall((:glfwGetMouseButton, lib), Cint, (Window, Cint), window, button))
 
 function GetCursorPos(window::Window)
-	xpos, ypos = Ref{Cdouble}(), Ref{Cdouble}()
-	ccall((:glfwGetCursorPos, lib), Cvoid, (Window, Ref{Cdouble}, Ref{Cdouble}), window, xpos, ypos)
-	(xpos[], ypos[])
+	x, y = Ref{Cdouble}(), Ref{Cdouble}()
+	ccall((:glfwGetCursorPos, lib), Cvoid, (Window, Ref{Cdouble}, Ref{Cdouble}), window, x, y)
+	(x=x[], y=y[])
 end
 
-SetCursorPos(window::Window, xpos::Real, ypos::Real) = ccall((:glfwSetCursorPos, lib), Cvoid, (Window, Cdouble, Cdouble), window, xpos, ypos)
+SetCursorPos(window::Window, x::Real, y::Real) = ccall((:glfwSetCursorPos, lib), Cvoid, (Window, Cdouble, Cdouble), window, x, y)
 CreateStandardCursor(shape::StandardCursorShape) = ccall((:glfwCreateStandardCursor, lib), Cursor, (Cint,), shape)
 DestroyCursor(cursor::Cursor) = ccall((:glfwDestroyCursor, lib), Cvoid, (Cursor,), cursor)
 SetCursor(window::Window, cursor::Cursor) = ccall((:glfwSetCursor, lib), Cvoid, (Window, Cursor), window, cursor)
@@ -547,7 +547,7 @@ SetCursor(window::Window, ::Nothing) = SetCursor(window, Cursor(C_NULL))
 @windowcallback Char(window::Window, codepoint::Cuint) -> (window, convert(Char, codepoint))
 @windowcallback CharMods(window::Window, codepoint::Cuint, mods::Cint) -> (window, convert(Char, codepoint), mods)
 @windowcallback MouseButton(window::Window, button::Cint, action::Action, mods::Cint)
-@windowcallback CursorPos(window::Window, xpos::Cdouble, ypos::Cdouble)
+@windowcallback CursorPos(window::Window, x::Cdouble, y::Cdouble)
 @windowcallback CursorEnter(window::Window, entered::Cint) -> (window, Bool(entered))
 @windowcallback Scroll(window::Window, xoffset::Cdouble, yoffset::Cdouble)
 @windowcallback Drop(window::Window, count::Cint, paths::Ptr{Cstring}) -> (window, map(unsafe_string, unsafe_wrap(Array, paths, count)))
@@ -575,8 +575,8 @@ SwapInterval(interval::Integer) = ccall((:glfwSwapInterval, lib), Cvoid, (Cint,)
 ExtensionSupported(extension::AbstractString) = Bool(ccall((:glfwExtensionSupported, lib), Cint, (Cstring,), extension))
 GetProcAddress(procname::AbstractString) = ccall((:glfwGetProcAddress, lib), Ptr{Cvoid}, (Cstring,), procname)
 
-function SetWindowMonitor(window::Window, monitor::Monitor, xpos, ypos, width, height, refreshRate)
-	ccall((:glfwSetWindowMonitor, lib), Cvoid, (Window, Monitor, Cint, Cint, Cint, Cint, Cint), window, monitor, xpos, ypos, width, height, refreshRate)
+function SetWindowMonitor(window::Window, monitor::Monitor, x, y, width, height, refreshRate)
+	ccall((:glfwSetWindowMonitor, lib), Cvoid, (Window, Monitor, Cint, Cint, Cint, Cint, Cint), window, monitor, x, y, width, height, refreshRate)
 end
 
 #came from GLWindow/core.jl
