@@ -1,81 +1,50 @@
-function Base.getproperty(monitor::Monitor, name::Symbol)
+function genproperties(typ, props)
+	props = [(name=p[1], getter=p[2], setter=p[3]) for p in props]
+	getbranch(prop) = quote
+		if name == $(QuoteNode(prop.name))
+			return $(prop.getter)(value)
+		end
+	end
+	setbranch(prop) = quote
+		if name == $(QuoteNode(prop.name))
+			return $(prop.setter)(value, x)
+		end
+	end
+	quote
+		Base.propertynames(::$typ) =
+			(fieldnames($typ)..., $(map(p -> QuoteNode(p.name), props)...))
+
+		function Base.getproperty(value::$typ, name::Symbol)
+			$(map(getbranch, props)...)
+			getfield(value, name)
+		end
+
+		function Base.setproperty!(value::$typ, name::Symbol, x)
+			$(map(setbranch, props)...)
+			setfield!(value, name, x)
+		end
+	end
+end
+
+readonly(_1, _2) = error("property is read-only")
+writeonly(_) = error("property is write-only")
+
+eval(genproperties(Monitor, [
 	# TODO for GLFW 3.3: contentscale is GetMonitorContentScale
-	if name == :isprimary
-		GetPrimaryMonitor() == monitor
-	elseif name == :name
-		GetMonitorName(monitor)
-	elseif name == :physicalsize
-		GetMonitorPhysicalSize(monitor)
-	elseif name == :position
-		GetMonitorPos(monitor)
-	elseif name == :supported_videomodes
-		GetVideoModes(monitor)
-	elseif name == :videomode
-		GetVideoMode(monitor)
-	else
-		getfield(monitor, name)
-	end
-end
+	(:isprimary, m -> GetPrimaryMonitor() == m, readonly),
+	(:name, GetMonitorName, readonly),
+	(:physicalsize, GetMonitorPhysicalSize, readonly),
+	(:position, GetMonitorPos, readonly),
+	(:supported_videomodes, GetVideoModes, readonly),
+	(:videomode, GetVideoMode, readonly),
+]))
 
-Base.setproperty!(::Monitor, ::Symbol, _) = error("type Monitor properties are read-only")
-
-Base.propertynames(::Monitor) = (
-	fieldnames(Monitor)...,
-	:isprimary,
-	:name,
-	:physicalsize,
-	:position,
-	:supported_videomodes,
-	:videomode,
-)
-
-function Base.getproperty(window::Window, name::Symbol)
-	if name == :focused
-		Bool(GetWindowAttrib(window, FOCUSED))
-	elseif name == :minimized
-		Bool(GetWindowAttrib(window, ICONIFIED))
-	elseif name == :monitor
-		GetWindowMonitor(window)
-	elseif name == :position
-		GetWindowPos(window)
-	elseif name == :size
-		GetWindowSize(window)
-	elseif name == :title
-		error("title property is write-only")
-	elseif name == :visible
-		Bool(GetWindowAttrib(window, VISIBLE))
-	else
-		getfield(window, name)
-	end
-end
-
-function Base.setproperty!(window::Window, name::Symbol, value)
-	if name == :focused
-		error("focused property is read-only")
-	elseif name == :minimized
-		value ? IconifyWindow(window) : RestoreWindow(window)
-	elseif name == :monitor
-		error("monitor property is read-only; use GLFW.SetWindowMonitor to change it")
-	elseif name == :position
-		SetWindowPos(window, value...)
-	elseif name == :size
-		SetWindowSize(window, value...)
-	elseif name == :title
-		SetWindowTitle(window, value)
-	elseif name == :visible
-		value ? ShowWindow(window) : HideWindow(window)
-	else
-		setfield!(window, name, value)
-	end
-end
-
-Base.propertynames(::Window) = (
-	fieldnames(Window)...,
-	:focused,
-	:minimized,
-	:monitor,
-	:position,
-	:size,
-	:title,
-	:visible,
-)
+eval(genproperties(Window, [
+	(:focused, w -> Bool(GetWindowAttrib(w, FOCUSED)), readonly),
+	(:minimized, w -> Bool(GetWindowAttrib(w, ICONIFIED)), (w, yes) -> yes ? IconifyWindow(w) : RestoreWindow(w)), # FIXME
+	(:monitor, GetWindowMonitor, readonly),
+	(:position, GetWindowPos, (w, pos) -> SetWindowPos(w, pos...)),
+	(:size, GetWindowSize, (w, size) -> SetWindowSize(w, size...)),
+	(:title, writeonly, SetWindowTitle),
+	(:visible, w -> Bool(GetWindowAttrib(w, VISIBLE)), (w, yes) -> yes ? ShowWindow(w) : HideWindow(w)),
+]))
