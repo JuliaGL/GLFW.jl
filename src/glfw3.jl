@@ -251,12 +251,14 @@ const RELEASE_BEHAVIOR_FLUSH = 0x00035001
 const RELEASE_BEHAVIOR_NONE  = 0x00035002
 
 # Standard cursor shapes
-const ARROW_CURSOR           = 0x00036001
-const IBEAM_CURSOR           = 0x00036002
-const CROSSHAIR_CURSOR       = 0x00036003
-const HAND_CURSOR            = 0x00036004
-const HRESIZE_CURSOR         = 0x00036005
-const VRESIZE_CURSOR         = 0x00036006
+@enum StandardCursorShape::Cint begin
+	ARROW_CURSOR           = 0x00036001
+	IBEAM_CURSOR           = 0x00036002
+	CROSSHAIR_CURSOR       = 0x00036003
+	HAND_CURSOR            = 0x00036004
+	HRESIZE_CURSOR         = 0x00036005
+	VRESIZE_CURSOR         = 0x00036006
+end
 
 const CONNECTED              = 0x00040001
 const DISCONNECTED           = 0x00040002
@@ -535,7 +537,7 @@ function GetCursorPos(window::Window)
 end
 
 SetCursorPos(window::Window, xpos::Real, ypos::Real) = ccall( (:glfwSetCursorPos, lib), Cvoid, (Window, Cdouble, Cdouble), window, xpos, ypos)
-CreateStandardCursor(shape::Integer) = ccall( (:glfwCreateStandardCursor, lib), Cursor, (Cint,), shape)
+CreateStandardCursor(shape::StandardCursorShape) = ccall( (:glfwCreateStandardCursor, lib), Cursor, (Cint,), shape)
 DestroyCursor(cursor::Cursor) = ccall( (:glfwDestroyCursor, lib), Cvoid, (Cursor,), cursor)
 SetCursor(window::Window, cursor::Cursor) = ccall( (:glfwSetCursor, lib), Cvoid, (Window, Cursor), window, cursor)
 SetCursor(window::Window, ::Nothing) = SetCursor(window, Cursor(C_NULL))
