@@ -3,8 +3,8 @@ GLFW.jl  [![Travis Build Status][travis-img]][travis] [![AppVeyor Build status][
 
 [Julia][julia] interface to [GLFW 3][glfw], a multi-platform library for creating windows with [OpenGL][opengl] or OpenGL ES contexts and receiving many kinds of input. GLFW has native support for Windows, OS X and many Unix-like systems using the X Window System, such as Linux and FreeBSD.
 
-[julia]:  http://julialang.org/
-[glfw]:   http://www.glfw.org/
+[julia]:  https://julialang.org
+[glfw]:   https://www.glfw.org
 [opengl]: https://wikipedia.org/wiki/OpenGL
 
 [appveyor]: https://ci.appveyor.com/project/jayschwa/glfw-jl
@@ -40,11 +40,12 @@ end
 GLFW.DestroyWindow(window)
 ```
 
-Trouble shooting
----------
-On linux, you will need to install these dependencies, before running `Pkg.build("GLFW")`:
+Troubleshooting
+---------------
 
-`sudo apt-get install cmake libxrandr-dev libxinerama-dev libxcursor-dev`
+On Debian or Ubuntu, you may need to install these dependencies before building the package:
+
+`sudo apt-get install xorg-dev`
 
 Interface
 ---------
@@ -54,11 +55,12 @@ Read the [GLFW documentation][docs] for detailed instructions on how to use the 
 * Clipboard (`glfwGetClipboard`, `glfwSetClipboard`) and time (`glfwGetTime`, `glfwSetTime`) functions have been omitted because Julia's standard library already supports similar functionality.
 * `glfwInit` and `glfwTerminate` are called automatically using the `__init__` and `atexit` functions. While it is okay to still call them explicitly, it is redundant and not required.
 
-[docs]: http://www.glfw.org/docs/latest/
+[docs]: https://www.glfw.org/docs/latest/
 
 
 Footnotes
 ---------
+
 * Special thanks to [@afterwise](https://github.com/afterwise) for writing an early implementation of GLFW 3 support.
 
 
