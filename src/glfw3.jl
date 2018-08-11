@@ -387,18 +387,20 @@ Base.showerror(io::IO, e::GLFWError) = print(io, "GLFWError ($(e.code)): ", e.de
 # GLFW API functions
 #************************************************************************
 
+const INITIALIZED = Ref(false)
+
+is_initialized() = INITIALIZED[]
+
 # Initialization and version information
 function Init()
-	initialized = Bool(ccall( (:glfwInit, lib), Cint, ()))
-	initialized || error("glfwInit failed")
-	GLFW_INITIALIZED[] = initialized
-	initialized
+	INITIALIZED[] = Bool(ccall( (:glfwInit, lib), Cint, ())) || error("glfwInit failed")
 end
+
 function Terminate()
+	INITIALIZED[] = false
 	ccall( (:glfwTerminate, lib), Cvoid, ())
-	GLFW_INITIALIZED[] = false
-	return
 end
+
 GetVersionString() = unsafe_string(ccall( (:glfwGetVersionString, lib), Cstring, ()))
 
 # Error handling

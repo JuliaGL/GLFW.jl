@@ -13,10 +13,6 @@ include("glfw3.jl")
 include("vulkan.jl")
 include("monitor_properties.jl")
 
-const GLFW_INITIALIZED = Ref(false)
-
-is_initialized() = GLFW_INITIALIZED[]
-
 function __init__()
 	libversion = GetVersion()
 
