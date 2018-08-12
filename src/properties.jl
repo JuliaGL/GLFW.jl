@@ -41,6 +41,8 @@ eval(genproperties(Monitor, [
 
 eval(genproperties(Window, [
 	(:focused, w -> Bool(GetWindowAttrib(w, FOCUSED)), readonly),
+	(:framesize, GetWindowFrameSize, readonly),
+	(:framebuffersize, GetFramebufferSize, readonly),
 	(:maximized, w -> Bool(GetWindowAttrib(w, MAXIMIZED)), (w, yes) -> yes ? MaximizeWindow(w) : RestoreWindow(w)),
 	(:minimized, w -> Bool(GetWindowAttrib(w, ICONIFIED)), (w, yes) -> yes ? IconifyWindow(w) : RestoreWindow(w)), # FIXME
 	(:monitor, GetWindowMonitor, readonly),
