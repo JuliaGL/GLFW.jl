@@ -29,6 +29,13 @@ end
 readonly(_1, _2) = error("property is read-only")
 writeonly(_) = error("property is write-only")
 
+eval(genproperties(Joystick, [
+	(:axes, GetJoystickAxes, readonly),
+	(:buttons, GetJoystickButtons, readonly),
+	(:name, GetJoystickName, readonly),
+	(:present, JoystickPresent, readonly),
+]))
+
 eval(genproperties(Monitor, [
 	# TODO for GLFW 3.3: contentscale is GetMonitorContentScale
 	(:isprimary, m -> GetPrimaryMonitor() == m, readonly),
