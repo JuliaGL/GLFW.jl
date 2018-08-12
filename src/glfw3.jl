@@ -160,24 +160,24 @@ const MOUSE_BUTTON_RIGHT     = MOUSE_BUTTON_2
 const MOUSE_BUTTON_MIDDLE    = MOUSE_BUTTON_3
 
 # Joysticks
-# TODO: Convert to enums
-const JOYSTICK_1             = 0
-const JOYSTICK_2             = 1
-const JOYSTICK_3             = 2
-const JOYSTICK_4             = 3
-const JOYSTICK_5             = 4
-const JOYSTICK_6             = 5
-const JOYSTICK_7             = 6
-const JOYSTICK_8             = 7
-const JOYSTICK_9             = 8
-const JOYSTICK_10            = 9
-const JOYSTICK_11            = 10
-const JOYSTICK_12            = 11
-const JOYSTICK_13            = 12
-const JOYSTICK_14            = 13
-const JOYSTICK_15            = 14
-const JOYSTICK_16            = 15
-const JOYSTICK_LAST          = JOYSTICK_16
+@enum Joystick::Cint begin
+	JOYSTICK_1             = 0
+	JOYSTICK_2             = 1
+	JOYSTICK_3             = 2
+	JOYSTICK_4             = 3
+	JOYSTICK_5             = 4
+	JOYSTICK_6             = 5
+	JOYSTICK_7             = 6
+	JOYSTICK_8             = 7
+	JOYSTICK_9             = 8
+	JOYSTICK_10            = 9
+	JOYSTICK_11            = 10
+	JOYSTICK_12            = 11
+	JOYSTICK_13            = 12
+	JOYSTICK_14            = 13
+	JOYSTICK_15            = 14
+	JOYSTICK_16            = 15
+end
 
 # Error codes
 @enum ErrorCode::Cint begin
@@ -268,8 +268,10 @@ const EGL_CONTEXT_API        = 0x00036002
 	VRESIZE_CURSOR         = 0x00036006
 end
 
-const CONNECTED              = 0x00040001
-const DISCONNECTED           = 0x00040002
+@enum DeviceConfigEvent::Cint begin
+	CONNECTED              = 0x00040001
+	DISCONNECTED           = 0x00040002
+end
 
 const DONT_CARE              = -1
 
@@ -437,7 +439,7 @@ function GetMonitorPhysicalSize(monitor::Monitor)
 end
 
 GetMonitorName(monitor::Monitor) = unsafe_string(ccall((:glfwGetMonitorName, lib), Cstring, (Monitor,), monitor))
-@callback Monitor(monitor::Monitor, event::Cint)
+@callback Monitor(monitor::Monitor, event::DeviceConfigEvent)
 
 function GetVideoModes(monitor::Monitor)
 	count = Ref{Cint}()
@@ -579,22 +581,32 @@ SetCursor(window::Window, ::Nothing) = SetCursor(window, Cursor(C_NULL))
 @windowcallback CursorEnter(window::Window, entered::Cint) -> (window, Bool(entered))
 @windowcallback Scroll(window::Window, xoffset::Cdouble, yoffset::Cdouble)
 @windowcallback Drop(window::Window, count::Cint, paths::Ptr{Cstring}) -> (window, map(unsafe_string, unsafe_wrap(Array, paths, count)))
-JoystickPresent(joy::Integer) = Bool(ccall((:glfwJoystickPresent, lib), Cint, (Cint,), joy))
+JoystickPresent(joy::Joystick) = Bool(ccall((:glfwJoystickPresent, lib), Cint, (Cint,), joy))
 
-function GetJoystickAxes(joy::Integer)
+function GetJoystickAxes(joy::Joystick)
 	count = Ref{Cint}()
 	ptr = ccall((:glfwGetJoystickAxes, lib), Ptr{Cfloat}, (Cint, Ref{Cint}), joy, count)
-	unsafe_wrap(Array, ptr, count[])
+	if ptr != C_NULL
+		unsafe_wrap(Array, ptr, count[])
+	end
 end
 
-function GetJoystickButtons(joy::Integer)
+function GetJoystickButtons(joy::Joystick)
 	count = Ref{Cint}()
 	ptr = ccall((:glfwGetJoystickButtons, lib), Ptr{Cuchar}, (Cint, Ref{Cint}), joy, count)
-	unsafe_wrap(Array, ptr, count[])
+	if ptr != C_NULL
+		unsafe_wrap(Array, ptr, count[])
+	end
 end
 
-GetJoystickName(joy::Integer) = unsafe_string(ccall((:glfwGetJoystickName, lib), Cstring, (Cint,), joy))
-# TODO: Add glfwSetJoystickCallback
+function GetJoystickName(joy::Joystick)
+	ptr = ccall((:glfwGetJoystickName, lib), Cstring, (Cint,), joy)
+	if ptr != C_NULL
+		unsafe_string(ptr)
+	end
+end
+
+@callback Joystick(joy::Joystick, event::DeviceConfigEvent)
 
 # Context handling
 MakeContextCurrent(window::Window) = ccall((:glfwMakeContextCurrent, lib), Cvoid, (Window,), window)
