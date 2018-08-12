@@ -1,4 +1,4 @@
 julia 0.7
 BinDeps
 @!windows CMakeWrapper
-@osx Homebrew
+@osx Homebrew 0.6.5
