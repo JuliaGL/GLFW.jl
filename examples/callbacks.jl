@@ -1,5 +1,9 @@
 using GLFW
 
+# Device callbacks
+GLFW.SetJoystickCallback((joystick, event) -> println("$joystick $event"))
+GLFW.SetMonitorCallback((monitor, event) -> println("$monitor $event"))
+
 window = GLFW.CreateWindow(640, 480, "GLFW Callback Test")
 GLFW.MakeContextCurrent(window)
 
