@@ -491,14 +491,11 @@ function GetWindowSize(window::Window)
 	(width=width[], height=height[])
 end
 
-SetWindowSizeLimits(window, minwidth, minheight, maxwidth, maxheight) =
-	ccall((:glfwSetWindowSizeLimits, lib),
-		Cvoid, (Window, Cint, Cint, Cint, Cint),
-		window, minwidth, minheight, maxwidth, maxheight)
-
+SetWindowSizeLimits(window, minwidth, minheight, maxwidth, maxheight) = ccall((:glfwSetWindowSizeLimits, lib),
+	Cvoid, (Window, Cint, Cint, Cint, Cint), window, minwidth, minheight, maxwidth, maxheight)
 SetWindowAspectRatio(window, numer, denom) = ccall((:glfwSetWindowAspectRatio, lib),
 	Cvoid, (Window, Cint, Cint), window, numer, denom)
-
+SetWindowAspectRatio(window, r::Rational) = SetWindowAspectRatio(window, r.num, r.den)
 SetWindowSize(window::Window, width::Integer, height::Integer) = ccall((:glfwSetWindowSize, lib), Cvoid, (Window, Cint, Cint), window, width, height)
 
 function GetFramebufferSize(window::Window)
