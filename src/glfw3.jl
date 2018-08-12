@@ -145,6 +145,7 @@ const MOD_ALT                = 0x0004
 const MOD_SUPER              = 0x0008
 
 # Mouse buttons
+# TODO: Convert to enums
 const MOUSE_BUTTON_1         = 0
 const MOUSE_BUTTON_2         = 1
 const MOUSE_BUTTON_3         = 2
@@ -159,6 +160,7 @@ const MOUSE_BUTTON_RIGHT     = MOUSE_BUTTON_2
 const MOUSE_BUTTON_MIDDLE    = MOUSE_BUTTON_3
 
 # Joysticks
+# TODO: Convert to enums
 const JOYSTICK_1             = 0
 const JOYSTICK_2             = 1
 const JOYSTICK_3             = 2
@@ -198,6 +200,7 @@ const VISIBLE                = 0x00020004
 const DECORATED              = 0x00020005
 const AUTO_ICONIFY           = 0x00020006
 const FLOATING               = 0x00020007
+const MAXIMIZED              = 0x00020008
 
 const RED_BITS               = 0x00021001
 const GREEN_BITS             = 0x00021002
@@ -225,6 +228,8 @@ const OPENGL_FORWARD_COMPAT  = 0x00022006
 const OPENGL_DEBUG_CONTEXT   = 0x00022007
 const OPENGL_PROFILE         = 0x00022008
 const CONTEXT_RELEASE_BEHAVIOR = 0x00022009
+const CONTEXT_NO_ERROR       = 0x0002200A
+const CONTEXT_CREATION_API   = 0x0002200B
 
 const OPENGL_API             = 0x00030001
 const OPENGL_ES_API          = 0x00030002
@@ -249,6 +254,9 @@ const CURSOR_DISABLED        = 0x00034003
 const ANY_RELEASE_BEHAVIOR   =          0
 const RELEASE_BEHAVIOR_FLUSH = 0x00035001
 const RELEASE_BEHAVIOR_NONE  = 0x00035002
+
+const NATIVE_CONTEXT_API     = 0x00036001
+const EGL_CONTEXT_API        = 0x00036002
 
 # Standard cursor shapes
 @enum StandardCursorShape::Cint begin
@@ -481,6 +489,14 @@ function GetWindowSize(window::Window)
 	(width=width[], height=height[])
 end
 
+SetWindowSizeLimits(window, minwidth, minheight, maxwidth, maxheight) =
+	ccall((:glfwSetWindowSizeLimits, lib),
+		Cvoid, (Window, Cint, Cint, Cint, Cint),
+		window, minwidth, minheight, maxwidth, maxheight)
+
+SetWindowAspectRatio(window, numer, denom) = ccall((:glfwSetWindowAspectRatio, lib),
+	Cvoid, (Window, Cint, Cint), window, numer, denom)
+
 SetWindowSize(window::Window, width::Integer, height::Integer) = ccall((:glfwSetWindowSize, lib), Cvoid, (Window, Cint, Cint), window, width, height)
 
 function GetFramebufferSize(window::Window)
@@ -497,9 +513,18 @@ end
 
 IconifyWindow(window::Window) = ccall((:glfwIconifyWindow, lib), Cvoid, (Window,), window)
 RestoreWindow(window::Window) = ccall((:glfwRestoreWindow, lib), Cvoid, (Window,), window)
+MaximizeWindow(window) = ccall((:glfwMaximizeWindow, lib), Cvoid, (Window,), window)
 ShowWindow(window::Window) = ccall((:glfwShowWindow, lib), Cvoid, (Window,), window)
 HideWindow(window::Window) = ccall((:glfwHideWindow, lib), Cvoid, (Window,), window)
 GetWindowMonitor(window::Window) = ccall((:glfwGetWindowMonitor, lib), Monitor, (Window,), window)
+
+# TODO: Add SetWindowMonitor variants:
+# - Monitor with video mode
+# - Nothing with size and position
+SetWindowMonitor(window, monitor, xpos, ypos, width, height, refreshRate) =
+	ccall((:glfwSetWindowMonitor, lib), Cvoid, (Window, Monitor, Cint, Cint, Cint, Cint, Cint),
+		window, monitor, xpos, ypos, width, height, refreshRate)
+
 GetWindowAttrib(window::Window, attrib::Integer) = ccall((:glfwGetWindowAttrib, lib), Cint, (Window, Cint), window, attrib)
 @windowcallback WindowPos(window::Window, x::Cint, y::Cint)
 @windowcallback WindowSize(window::Window, width::Cint, height::Cint)
@@ -510,6 +535,7 @@ GetWindowAttrib(window::Window, attrib::Integer) = ccall((:glfwGetWindowAttrib, 
 @windowcallback FramebufferSize(window::Window, width::Cint, height::Cint)
 PollEvents() = ccall((:glfwPollEvents, lib), Cvoid, ())
 WaitEvents() = ccall((:glfwWaitEvents, lib), Cvoid, ())
+WaitEvents(timeout) = ccall((:glfwWaitEventsTimeout, lib), Cvoid, (Cdouble,), timeout)
 PostEmptyEvent() = ccall((:glfwPostEmptyEvent, lib), Cvoid, ())
 
 # Input handling
@@ -522,15 +548,15 @@ function GetInputMode(window::Window, mode::Integer)
 end
 
 SetInputMode(window::Window, mode::Integer, value::Integer) = ccall((:glfwSetInputMode, lib), Cvoid, (Window, Cint, Cint), window, mode, value)
-GetKey(window::Window, key) = Bool(ccall((:glfwGetKey, lib), Cint, (Window, Cint), window, key))
 
-function GetKeyName(key, scancode::Integer=0)
+function GetKeyName(key, scancode=0)
 	ptr = ccall((:glfwGetKeyName, lib), Cstring, (Cint, Cint), key, scancode)
 	if ptr != C_NULL
 		unsafe_string(ptr)
 	end
 end
 
+GetKey(window::Window, key) = Bool(ccall((:glfwGetKey, lib), Cint, (Window, Cint), window, key))
 GetMouseButton(window::Window, button::Integer) = Bool(ccall((:glfwGetMouseButton, lib), Cint, (Window, Cint), window, button))
 
 function GetCursorPos(window::Window)
@@ -540,6 +566,7 @@ function GetCursorPos(window::Window)
 end
 
 SetCursorPos(window::Window, x::Real, y::Real) = ccall((:glfwSetCursorPos, lib), Cvoid, (Window, Cdouble, Cdouble), window, x, y)
+# TODO: Add glfwCreateCursor
 CreateStandardCursor(shape::StandardCursorShape) = ccall((:glfwCreateStandardCursor, lib), Cursor, (Cint,), shape)
 DestroyCursor(cursor::Cursor) = ccall((:glfwDestroyCursor, lib), Cvoid, (Cursor,), cursor)
 SetCursor(window::Window, cursor::Cursor) = ccall((:glfwSetCursor, lib), Cvoid, (Window, Cursor), window, cursor)
@@ -567,6 +594,7 @@ function GetJoystickButtons(joy::Integer)
 end
 
 GetJoystickName(joy::Integer) = unsafe_string(ccall((:glfwGetJoystickName, lib), Cstring, (Cint,), joy))
+# TODO: Add glfwSetJoystickCallback
 
 # Context handling
 MakeContextCurrent(window::Window) = ccall((:glfwMakeContextCurrent, lib), Cvoid, (Window,), window)
@@ -575,10 +603,6 @@ SwapBuffers(window::Window) = ccall((:glfwSwapBuffers, lib), Cvoid, (Window,), w
 SwapInterval(interval::Integer) = ccall((:glfwSwapInterval, lib), Cvoid, (Cint,), interval)
 ExtensionSupported(extension::AbstractString) = Bool(ccall((:glfwExtensionSupported, lib), Cint, (Cstring,), extension))
 GetProcAddress(procname::AbstractString) = ccall((:glfwGetProcAddress, lib), Ptr{Cvoid}, (Cstring,), procname)
-
-function SetWindowMonitor(window::Window, monitor::Monitor, x, y, width, height, refreshRate)
-	ccall((:glfwSetWindowMonitor, lib), Cvoid, (Window, Monitor, Cint, Cint, Cint, Cint, Cint), window, monitor, x, y, width, height, refreshRate)
-end
 
 #came from GLWindow/core.jl
 """
