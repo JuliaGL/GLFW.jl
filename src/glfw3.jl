@@ -385,6 +385,22 @@ struct VidMode
 end
 Base.show(io::IO, vm::VidMode) = write(io, "$(vm.width)x$(vm.height)@$(vm.refreshrate)Hz")
 
+struct GLFWImage
+	width::Cint
+	height::Cint
+	pixels::Ptr{Cuchar}
+end
+
+function Base.cconvert(::Type{GLFWImage}, image::Matrix{NTuple{4, UInt8}})
+	ptr = Base.cconvert(Ptr{UInt8}, image)
+	(size(image)..., ptr)
+end
+
+function Base.unsafe_convert(::Type{GLFWImage}, data::Tuple{Int, Int, Matrix{NTuple{4, UInt8}}})
+	ptr = Base.unsafe_convert(Ptr{UInt8}, data[3])
+	GLFWImage(Cint(data[1]), Cint(data[2]), ptr)
+end
+
 struct GLFWError <: Exception
 	code::Union{ErrorCode, Integer}
 	description::String
@@ -477,6 +493,24 @@ WindowShouldClose(window::Window) = ccall((:glfwWindowShouldClose, lib), Cint, (
 SetWindowShouldClose(window::Window, value::Bool) = ccall((:glfwSetWindowShouldClose, lib), Cvoid, (Window, Cint), window, value)
 SetWindowTitle(window::Window, title::AbstractString) = ccall((:glfwSetWindowTitle, lib), Cvoid, (Window, Cstring), window, title)
 
+"""
+    SetWindowIcon(window::Window, image::Matrix{NTuple{4, UInt8}})
+Usage:
+
+```Julia
+using Colors, FixedPointNumbers, FileIO
+image = RGBA{N0f8}.(load("my_icon.png")) # expects RGBA
+# Needs to be rotated, when it's a standard Julia image
+image = rotl90(image)
+# we don't want a dependecy to Colors.jl, so we use an NTuple instead
+buff = reinterpret(NTuple{4, UInt8}, image)
+GLFW.SetWindowIcon(win, buff)
+GLFW.PollEvents() # seems to need a poll events to become active
+```
+"""
+SetWindowIcon(window::Window, image::Matrix{NTuple{4, UInt8}}) = ccall((:glfwSetWindowIcon, lib),
+	Cvoid, (Window, Cint, GLFWImage), window, 1, image)
+
 function GetWindowPos(window::Window)
 	x, y = Ref{Cint}(), Ref{Cint}()
 	ccall((:glfwGetWindowPos, lib), Cvoid, (Window, Ref{Cint}, Ref{Cint}), window, x, y)
@@ -516,14 +550,11 @@ MaximizeWindow(window) = ccall((:glfwMaximizeWindow, lib), Cvoid, (Window,), win
 ShowWindow(window::Window) = ccall((:glfwShowWindow, lib), Cvoid, (Window,), window)
 HideWindow(window::Window) = ccall((:glfwHideWindow, lib), Cvoid, (Window,), window)
 GetWindowMonitor(window::Window) = ccall((:glfwGetWindowMonitor, lib), Monitor, (Window,), window)
-
 # TODO: Add SetWindowMonitor variants:
 # - Monitor with video mode
 # - Nothing with size and position
-SetWindowMonitor(window, monitor, xpos, ypos, width, height, refreshRate) =
-	ccall((:glfwSetWindowMonitor, lib), Cvoid, (Window, Monitor, Cint, Cint, Cint, Cint, Cint),
-		window, monitor, xpos, ypos, width, height, refreshRate)
-
+SetWindowMonitor(window, monitor, xpos, ypos, width, height, refreshRate) = ccall((:glfwSetWindowMonitor, lib),
+	Cvoid, (Window, Monitor, Cint, Cint, Cint, Cint, Cint), window, monitor, xpos, ypos, width, height, refreshRate)
 GetWindowAttrib(window::Window, attrib::Integer) = ccall((:glfwGetWindowAttrib, lib), Cint, (Window, Cint), window, attrib)
 @windowcallback WindowPos(window::Window, x::Cint, y::Cint)
 @windowcallback WindowSize(window::Window, width::Cint, height::Cint)
@@ -677,38 +708,4 @@ function standard_window_hints()
 		(STENCIL_BITS, 0),
 		(AUX_BUFFERS,  0)
 	]
-end
-
-struct GLFWImage
-	width::Cint
-	height::Cint
-	pixels::Ptr{UInt8}
-end
-
-function Base.cconvert(::Type{GLFWImage}, image::Matrix{NTuple{4, UInt8}})
-	ptr = Base.cconvert(Ptr{UInt8}, image)
-	(size(image)..., ptr)
-end
-function Base.unsafe_convert(::Type{GLFWImage}, data::Tuple{Int, Int, Matrix{NTuple{4, UInt8}}})
-	ptr = Base.unsafe_convert(Ptr{UInt8}, data[3])
-	GLFWImage(Cint(data[1]), Cint(data[2]), ptr)
-end
-
-"""
-    SetWindowIcon(window::Window, image::Matrix{NTuple{4, UInt8}})
-Usage:
-
-```Julia
-using Colors, FixedPointNumbers, FileIO
-image = RGBA{N0f8}.(load("my_icon.png")) # expexts RGBA
-# Needs to be rotated, when it's a standard julia image
-image = rotl90(image)
-# we don't want a dependecy to Colors.jl, so we use an NTuple instead
-buff = reinterpret(NTuple{4, UInt8}, image)
-GLFW.SetWindowIcon(win, buff)
-GLFW.PollEvents() # seems to need a poll events to become active
-```
-"""
-function SetWindowIcon(window::Window, image::Matrix{NTuple{4, UInt8}})
-	ccall((:glfwSetWindowIcon, lib), Cvoid, (Window, Cint, GLFWImage), window, 1, image)
 end
