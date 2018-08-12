@@ -47,6 +47,7 @@ eval(genproperties(Monitor, [
 ]))
 
 eval(genproperties(Window, [
+	(:cursor_position, GetCursorPos, (w, pos) -> SetCursorPos(w, pos...)),
 	(:focused, w -> Bool(GetWindowAttrib(w, FOCUSED)), readonly),
 	(:framesize, GetWindowFrameSize, readonly),
 	(:framebuffersize, GetFramebufferSize, readonly),
