@@ -25,8 +25,7 @@ GLFW.SetKeyCallback(window, (_, key, scancode, action, mods) -> begin
 end)
 
 GLFW.SetCharModsCallback(window, (_, c, mods) -> println("char: $c, mods: $mods"))
-GLFW.SetMouseButtonCallback(window, (_, button, action, mods) ->
-	println("mouse button $button ", action))
+GLFW.SetMouseButtonCallback(window, (_, button, action, mods) -> println("$button $action"))
 GLFW.SetCursorPosCallback(window, (_, x, y) -> println("cursor: $x, $y"))
 GLFW.SetScrollCallback(window, (_, xoff, yoff) -> println("scroll: $xoff, $yoff"))
 

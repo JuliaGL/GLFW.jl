@@ -145,16 +145,17 @@ const MOD_ALT                = 0x0004
 const MOD_SUPER              = 0x0008
 
 # Mouse buttons
-# TODO: Convert to enums
-const MOUSE_BUTTON_1         = 0
-const MOUSE_BUTTON_2         = 1
-const MOUSE_BUTTON_3         = 2
-const MOUSE_BUTTON_4         = 3
-const MOUSE_BUTTON_5         = 4
-const MOUSE_BUTTON_6         = 5
-const MOUSE_BUTTON_7         = 6
-const MOUSE_BUTTON_8         = 7
-const MOUSE_BUTTON_LAST      = MOUSE_BUTTON_8
+@enum MouseButton::Cint begin
+	MOUSE_BUTTON_1         = 0
+	MOUSE_BUTTON_2         = 1
+	MOUSE_BUTTON_3         = 2
+	MOUSE_BUTTON_4         = 3
+	MOUSE_BUTTON_5         = 4
+	MOUSE_BUTTON_6         = 5
+	MOUSE_BUTTON_7         = 6
+	MOUSE_BUTTON_8         = 7
+end
+
 const MOUSE_BUTTON_LEFT      = MOUSE_BUTTON_1
 const MOUSE_BUTTON_RIGHT     = MOUSE_BUTTON_2
 const MOUSE_BUTTON_MIDDLE    = MOUSE_BUTTON_3
@@ -587,7 +588,7 @@ function GetKeyName(key, scancode=0)
 end
 
 GetKey(window::Window, key) = Bool(ccall((:glfwGetKey, lib), Cint, (Window, Cint), window, key))
-GetMouseButton(window::Window, button::Integer) = Bool(ccall((:glfwGetMouseButton, lib), Cint, (Window, Cint), window, button))
+GetMouseButton(window::Window, button::MouseButton) = Bool(ccall((:glfwGetMouseButton, lib), Cint, (Window, Cint), window, button))
 
 function GetCursorPos(window::Window)
 	x, y = Ref{Cdouble}(), Ref{Cdouble}()
@@ -604,7 +605,7 @@ SetCursor(window::Window, ::Nothing) = SetCursor(window, Cursor(C_NULL))
 @windowcallback Key(window::Window, key::Key, scancode::Cint, action::Action, mods::Cint)
 @windowcallback Char(window::Window, codepoint::Cuint) -> (window, convert(Char, codepoint))
 @windowcallback CharMods(window::Window, codepoint::Cuint, mods::Cint) -> (window, convert(Char, codepoint), mods)
-@windowcallback MouseButton(window::Window, button::Cint, action::Action, mods::Cint)
+@windowcallback MouseButton(window::Window, button::MouseButton, action::Action, mods::Cint)
 @windowcallback CursorPos(window::Window, x::Cdouble, y::Cdouble)
 @windowcallback CursorEnter(window::Window, entered::Cint) -> (window, Bool(entered))
 @windowcallback Scroll(window::Window, xoffset::Cdouble, yoffset::Cdouble)
