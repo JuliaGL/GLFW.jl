@@ -1,6 +1,12 @@
 module GLFW
 
-include("../deps/deps.jl")
+# Load in `deps.jl`, complaining if it does not exist
+const depsjl_path = joinpath(dirname(@__FILE__), "..", "deps", "deps.jl")
+if !isfile(depsjl_path)
+    error("GLFW not installed properly, run Pkg.build(\"GLFW\"), restart Julia and try again")
+end
+include(depsjl_path)
+
 
 function GetVersion()
 	major, minor, rev = Ref{Cint}(), Ref{Cint}(), Ref{Cint}()
