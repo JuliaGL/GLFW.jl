@@ -389,17 +389,11 @@ Base.show(io::IO, vm::VidMode) = write(io, "$(vm.width)x$(vm.height)@$(vm.refres
 struct GLFWImage
 	width::Cint
 	height::Cint
-	pixels::Ptr{Cuchar}
+	pixels::Ptr{UInt8}
 end
 
-function Base.cconvert(::Type{GLFWImage}, image::Matrix{NTuple{4, UInt8}})
-	ptr = Base.cconvert(Ptr{UInt8}, image)
-	(size(image)..., ptr)
-end
-
-function Base.unsafe_convert(::Type{GLFWImage}, data::Tuple{Int, Int, Matrix{NTuple{4, UInt8}}})
-	ptr = Base.unsafe_convert(Ptr{UInt8}, data[3])
-	GLFWImage(Cint(data[1]), Cint(data[2]), ptr)
+function Base.convert(::Type{GLFWImage}, image::AbstractMatrix{NTuple{4,UInt8}})
+	GLFWImage(size(image)...,  Base.unsafe_convert(Ptr{UInt8}, image))
 end
 
 struct GLFWError <: Exception
@@ -496,6 +490,9 @@ SetWindowTitle(window::Window, title::AbstractString) = ccall((:glfwSetWindowTit
 
 """
     SetWindowIcon(window::Window, image::Matrix{NTuple{4, UInt8}})
+
+image is from left to right, top to bottom
+
 Usage:
 
 ```Julia
@@ -509,8 +506,12 @@ GLFW.SetWindowIcon(win, buff)
 GLFW.PollEvents() # seems to need a poll events to become active
 ```
 """
-SetWindowIcon(window::Window, image::Matrix{NTuple{4, UInt8}}) = ccall((:glfwSetWindowIcon, lib),
-	Cvoid, (Window, Cint, GLFWImage), window, 1, image)
+function SetWindowIcon(window::Window, images::Vector{<:AbstractMatrix{NTuple{4,UInt8}}})
+	glfw_images = convert(Vector{GLFWImage}, images)
+	ccall((:glfwSetWindowIcon, lib), Cvoid, (Window, Cint, Ptr{Vector{GLFWImage}}), window, length(images), glfw_images)
+end
+
+SetWindowIcon(window::Window, image::AbstractMatrix{NTuple{4,UInt8}}) = SetWindowIcon(window, [image])
 
 function GetWindowPos(window::Window)
 	x, y = Ref{Cint}(), Ref{Cint}()
