@@ -505,11 +505,13 @@ SetWindowTitle(window::Window, title::AbstractString) = ccall((:glfwSetWindowTit
 	GLFW.SetWindowIcon(window::Window, images::Vector{<:AbstractMatrix{NTuple{4,UInt8}}})
 
 Set the window icon, where a single image may be passed or a vector of images with different icon sizes.
+The images must be of RGBA format. Before calling this function it might be necessary to reinterpret the image
+as a matrix of element type NTuple{4, UInt8}  if the icons are loaded with type RGBA{N0f8}
 
 # Examples
 ```julia-repl
 using FileIO
-icons = load(["icon-16.png", "icon-32.png", "icon-128.png"]) # expects RGBA
+icons = load(["icon-16.png", "icon-32.png", "icon-128.png"])
 buffs = reinterpret.(NTuple{4, UInt8}, icons)
 GLFW.SetWindowIcon(win, buffs)
 GLFW.PollEvents() # seems to need a poll events to become active
