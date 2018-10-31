@@ -401,7 +401,9 @@ function Base.cconvert(::Type{Ref{GLFWImage}}, image::Vector{<:AbstractMatrix{NT
 end
 
 function Base.cconvert(::Type{GLFWImage}, image::AbstractMatrix{NTuple{4,UInt8}})
-	GLFWImage(size(image)..., Base.unsafe_convert(Ptr{UInt8}, image))
+	# In Julia we read images from top to bottom then left to right,
+	# so we permute the image since GLFW expects reads the image from left to right, then top to bottom
+	GLFWImage(size(image)..., Base.unsafe_convert(Ptr{UInt8}, permutedims(image)))
 end
 
 
@@ -498,23 +500,23 @@ SetWindowShouldClose(window::Window, value::Bool) = ccall((:glfwSetWindowShouldC
 SetWindowTitle(window::Window, title::AbstractString) = ccall((:glfwSetWindowTitle, lib), Cvoid, (Window, Cstring), window, title)
 
 """
-    SetWindowIcon(window::Window, image::Matrix{NTuple{4, UInt8}})
+    GLFW.SetWindowIcon(window::Window, image::Matrix{NTuple{4, UInt8}})
 
-image is from left to right, top to bottom
+	GLFW.SetWindowIcon(window::Window, images::Vector{<:AbstractMatrix{NTuple{4,UInt8}}})
 
-Usage:
+Set the window icon, where a single image may be passed or a vector of images with different icon sizes.
 
-```Julia
-using Colors, FixedPointNumbers, FileIO
-image = RGBA{N0f8}.(load("my_icon.png")) # expects RGBA
-# Needs to be rotated, when it's a standard Julia image
-image = rotl90(image)
-# we don't want a dependecy to Colors.jl, so we use an NTuple instead
-buff = reinterpret(NTuple{4, UInt8}, image)
-GLFW.SetWindowIcon(win, buff)
+# Examples
+```julia-repl
+using FileIO
+icons = load(["icon-16.png", "icon-32.png", "icon-128.png"]) # expects RGBA
+buffs = reinterpret.(NTuple{4, UInt8}, icons)
+GLFW.SetWindowIcon(win, buffs)
 GLFW.PollEvents() # seems to need a poll events to become active
 ```
 """
+SetWindowIcon
+
 function SetWindowIcon(window::Window, images::Vector{<:AbstractMatrix{NTuple{4,UInt8}}})
 	ccall((:glfwSetWindowIcon, lib), Cvoid, (Window, Cint, Ref{GLFWImage}), window, length(images), images)
 end
