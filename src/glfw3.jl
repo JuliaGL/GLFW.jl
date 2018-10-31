@@ -392,8 +392,12 @@ struct GLFWImage
 	pixels::Ptr{UInt8}
 end
 
-function Base.convert(::Type{GLFWImage}, image::AbstractMatrix{NTuple{4,UInt8}})
-	GLFWImage(size(image)...,  Base.unsafe_convert(Ptr{UInt8}, image))
+function Base.cconvert(::Type{Ptr{GLFWImage}}, image::Vector{<:AbstractMatrix{NTuple{4,UInt8}}})
+	out = Vector{GLFWImage}(undef,length(image))
+	@inbounds for i in 1:length(image)
+		out[i] = GLFWImage(size(image[i])..., Base.unsafe_convert(Ptr{UInt8}, image[i]))
+	end
+	return out
 end
 
 struct GLFWError <: Exception
@@ -507,8 +511,7 @@ GLFW.PollEvents() # seems to need a poll events to become active
 ```
 """
 function SetWindowIcon(window::Window, images::Vector{<:AbstractMatrix{NTuple{4,UInt8}}})
-	glfw_images = convert(Vector{GLFWImage}, images)
-	ccall((:glfwSetWindowIcon, lib), Cvoid, (Window, Cint, Ptr{Vector{GLFWImage}}), window, length(images), glfw_images)
+	ccall((:glfwSetWindowIcon, lib), Cvoid, (Window, Cint, Ptr{GLFWImage}), window, length(images), images)
 end
 
 SetWindowIcon(window::Window, image::AbstractMatrix{NTuple{4,UInt8}}) = SetWindowIcon(window, [image])
