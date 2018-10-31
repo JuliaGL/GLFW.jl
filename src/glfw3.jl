@@ -392,7 +392,7 @@ struct GLFWImage
 	pixels::Ptr{UInt8}
 end
 
-function Base.cconvert(::Type{Ptr{GLFWImage}}, image::Vector{<:AbstractMatrix{NTuple{4,UInt8}}})
+function Base.cconvert(::Type{Ref{GLFWImage}}, image::Vector{<:AbstractMatrix{NTuple{4,UInt8}}})
 	out = Vector{GLFWImage}(undef,length(image))
 	@inbounds for i in 1:length(image)
 		out[i] = Base.cconvert(GLFWImage, image[i])
@@ -516,7 +516,7 @@ GLFW.PollEvents() # seems to need a poll events to become active
 ```
 """
 function SetWindowIcon(window::Window, images::Vector{<:AbstractMatrix{NTuple{4,UInt8}}})
-	ccall((:glfwSetWindowIcon, lib), Cvoid, (Window, Cint, Ptr{GLFWImage}), window, length(images), images)
+	ccall((:glfwSetWindowIcon, lib), Cvoid, (Window, Cint, Ref{GLFWImage}), window, length(images), images)
 end
 
 function SetWindowIcon(window::Window, image::AbstractMatrix{NTuple{4,UInt8}})
