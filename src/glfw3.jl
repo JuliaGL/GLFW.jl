@@ -395,10 +395,15 @@ end
 function Base.cconvert(::Type{Ptr{GLFWImage}}, image::Vector{<:AbstractMatrix{NTuple{4,UInt8}}})
 	out = Vector{GLFWImage}(undef,length(image))
 	@inbounds for i in 1:length(image)
-		out[i] = GLFWImage(size(image[i])..., Base.unsafe_convert(Ptr{UInt8}, image[i]))
+		out[i] = Base.cconvert(GLFWImage, image[i])
 	end
 	return out
 end
+
+function Base.cconvert(::Type{GLFWImage}, image::AbstractMatrix{NTuple{4,UInt8}})
+	GLFWImage(size(image)..., Base.unsafe_convert(Ptr{UInt8}, image))
+end
+
 
 struct GLFWError <: Exception
 	code::Union{ErrorCode, Integer}
@@ -514,7 +519,9 @@ function SetWindowIcon(window::Window, images::Vector{<:AbstractMatrix{NTuple{4,
 	ccall((:glfwSetWindowIcon, lib), Cvoid, (Window, Cint, Ptr{GLFWImage}), window, length(images), images)
 end
 
-SetWindowIcon(window::Window, image::AbstractMatrix{NTuple{4,UInt8}}) = SetWindowIcon(window, [image])
+function SetWindowIcon(window::Window, image::AbstractMatrix{NTuple{4,UInt8}})
+	ccall((:glfwSetWindowIcon, lib), Cvoid, (Window, Cint, GLFWImage), window, 1, image)
+end
 
 function GetWindowPos(window::Window)
 	x, y = Ref{Cint}(), Ref{Cint}()
