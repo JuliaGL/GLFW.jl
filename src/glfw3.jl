@@ -392,20 +392,23 @@ struct GLFWImage
 	pixels::Ptr{UInt8}
 end
 
-function Base.cconvert(::Type{Ref{GLFWImage}}, image::Vector{<:AbstractMatrix{NTuple{4,UInt8}}})
-	out = Vector{GLFWImage}(undef,length(image))
-	@inbounds for i in 1:length(image)
-		out[i] = Base.cconvert(GLFWImage, image[i])
+function Base.cconvert(::Type{Ref{GLFWImage}}, image::AbstractMatrix{NTuple{4,UInt8}})
+	imaget = permutedims(image) # c lib expects row major matrix
+	return Base.RefValue{GLFWImage}(GLFWImage(size(imaget)..., pointer(imaget)))
+end
+
+function Base.cconvert(::Type{Ref{GLFWImage}}, images::Vector{<:AbstractMatrix{NTuple{4,UInt8}}})
+	imagest = permutedims.(images)
+	out = Vector{GLFWImage}(undef,length(imagest))
+	@inbounds for i in 1:length(imagest)
+		out[i] = GLFWImage(size(imagest[i])..., pointer(imagest[i]))
 	end
-	return out
+	return (out, imagest)
 end
 
-function Base.cconvert(::Type{GLFWImage}, image::AbstractMatrix{NTuple{4,UInt8}})
-	# In Julia we read images from top to bottom then left to right,
-	# so we permute the image since GLFW expects reads the image from left to right, then top to bottom
-	GLFWImage(size(image)..., Base.unsafe_convert(Ptr{UInt8}, permutedims(image)))
+function Base.unsafe_convert(::Type{Ref{GLFWImage}}, data::Tuple{Vector{GLFWImage},Vector{<:AbstractMatrix{NTuple{4,UInt8}}}})
+	Base.unsafe_convert(Ref{GLFWImage}, data[1])
 end
-
 
 struct GLFWError <: Exception
 	code::Union{ErrorCode, Integer}
@@ -511,10 +514,10 @@ as a matrix of element type NTuple{4, UInt8}  if the icons are loaded with type 
 # Examples
 ```julia-repl
 using FileIO
-icons = load(["icon-16.png", "icon-32.png", "icon-128.png"])
+icons = load.(["icon-16.png", "icon-32.png", "icon-128.png"])
 buffs = reinterpret.(NTuple{4, UInt8}, icons)
 GLFW.SetWindowIcon(win, buffs)
-GLFW.PollEvents() # seems to need a poll events to become active
+GLFW.PollEvents() # need's a poll events to become active
 ```
 """
 SetWindowIcon
@@ -524,7 +527,7 @@ function SetWindowIcon(window::Window, images::Vector{<:AbstractMatrix{NTuple{4,
 end
 
 function SetWindowIcon(window::Window, image::AbstractMatrix{NTuple{4,UInt8}})
-	ccall((:glfwSetWindowIcon, lib), Cvoid, (Window, Cint, GLFWImage), window, 1, image)
+	ccall((:glfwSetWindowIcon, lib), Cvoid, (Window, Cint, Ref{GLFWImage}), window, 1, image)
 end
 
 function GetWindowPos(window::Window)
