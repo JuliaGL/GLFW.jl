@@ -399,7 +399,7 @@ end
 
 function Base.cconvert(::Type{Ref{GLFWImage}}, images::Vector{<:AbstractMatrix{NTuple{4,UInt8}}})
 	imagest = permutedims.(images)
-	out = Vector{GLFWImage}(undef,length(imagest))
+	out = Vector{GLFWImage}(undef, length(imagest))
 	@inbounds for i in 1:length(imagest)
 		out[i] = GLFWImage(size(imagest[i])..., pointer(imagest[i]))
 	end
@@ -517,7 +517,7 @@ using FileIO
 icons = load.(["icon-16.png", "icon-32.png", "icon-128.png"])
 buffs = reinterpret.(NTuple{4, UInt8}, icons)
 GLFW.SetWindowIcon(win, buffs)
-GLFW.PollEvents() # need's a poll events to become active
+GLFW.PollEvents() # needs a poll events to become active
 ```
 """
 SetWindowIcon
