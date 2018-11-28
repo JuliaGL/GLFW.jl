@@ -40,8 +40,14 @@ function callbackcode(
 
 	quote
 		# Callback wrapper that can be passed to `cfunction`
-		$wrapper($(callback_params...)) = ($callback_ref($(callback_args...)); return nothing)
-		
+		function $wrapper($(callback_params...))
+			try
+				($callback_ref($(callback_args...)); return nothing)
+			catch e
+				@warn("Errors not supported in C callback. Found: $e")
+			end
+		end
+
 		# Set the callback function
 		function $setter($(setter_param_names...), callback::Function)
 			old_callback = $callback_ref
