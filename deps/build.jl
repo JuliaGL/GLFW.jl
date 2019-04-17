@@ -1,5 +1,5 @@
 # version of library to download
-const version = v"3.2.1"
+const version = "3.3"
 
 using BinDeps, Libdl
 @BinDeps.setup
@@ -8,7 +8,7 @@ function compatible_version(lib, handle)
 	major, minor, rev = Ref{Cint}(), Ref{Cint}(), Ref{Cint}()
 	ccall(Libdl.dlsym(handle, :glfwGetVersion), Cvoid, (Ref{Cint}, Ref{Cint}, Ref{Cint}), major, minor, rev)
 	libversion = VersionNumber(major[], minor[], rev[])
-	return libversion >= version
+	return libversion >= VersionNumber(version)
 end
 
 glfw = library_dependency("glfw", aliases=["glfw", "glfw3", "libglfw", "libglfw3"], validate=compatible_version)
