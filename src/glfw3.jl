@@ -318,7 +318,7 @@ function Window(
 
 	@static if Sys.isapple()
 		if debugging
-			warn("OpenGL debug message callback not available on osx")
+			@warn "OpenGL debug message callback is not available in macOS"
 			debugging = false
 		end
 	end
