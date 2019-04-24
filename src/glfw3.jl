@@ -393,7 +393,7 @@ struct GLFWImage
 end
 
 function Base.cconvert(::Type{Ref{GLFWImage}}, image::AbstractMatrix{NTuple{4,UInt8}})
-	imaget = permutedims(image) # c lib expects row major matrix
+	imaget = permutedims(image) # c libglfw expects row major matrix
 	return Base.RefValue{GLFWImage}(GLFWImage(size(imaget)..., pointer(imaget)))
 end
 
@@ -429,15 +429,15 @@ is_initialized() = INITIALIZED[]
 
 # Initialization and version information
 function Init()
-	INITIALIZED[] = Bool(ccall((:glfwInit, lib), Cint, ())) || error("glfwInit failed")
+	INITIALIZED[] = Bool(ccall((:glfwInit, libglfw), Cint, ())) || error("glfwInit failed")
 end
 
 function Terminate()
 	INITIALIZED[] = false
-	ccall((:glfwTerminate, lib), Cvoid, ())
+	ccall((:glfwTerminate, libglfw), Cvoid, ())
 end
 
-GetVersionString() = unsafe_string(ccall((:glfwGetVersionString, lib), Cstring, ()))
+GetVersionString() = unsafe_string(ccall((:glfwGetVersionString, libglfw), Cstring, ()))
 
 # Error handling
 @callback Error(code::Cint, description::Cstring) -> (GLFWError(code, unsafe_string(description)),)
@@ -445,62 +445,62 @@ GetVersionString() = unsafe_string(ccall((:glfwGetVersionString, lib), Cstring, 
 # Monitor handling
 function GetMonitors()
 	count = Ref{Cint}()
-	ptr = ccall((:glfwGetMonitors, lib), Ptr{Monitor}, (Ref{Cint},), count)
+	ptr = ccall((:glfwGetMonitors, libglfw), Ptr{Monitor}, (Ref{Cint},), count)
 	unsafe_wrap(Array, ptr, count[])
 end
 
-GetPrimaryMonitor() = ccall((:glfwGetPrimaryMonitor, lib), Monitor, ())
+GetPrimaryMonitor() = ccall((:glfwGetPrimaryMonitor, libglfw), Monitor, ())
 
 function GetMonitorPos(monitor::Monitor)
 	x, y = Ref{Cint}(), Ref{Cint}()
-	ccall((:glfwGetMonitorPos, lib), Cvoid, (Monitor, Ref{Cint}, Ref{Cint}), monitor, x, y)
+	ccall((:glfwGetMonitorPos, libglfw), Cvoid, (Monitor, Ref{Cint}, Ref{Cint}), monitor, x, y)
 	(x=x[], y=y[])
 end
 
 function GetMonitorPhysicalSize(monitor::Monitor)
 	width, height = Ref{Cint}(), Ref{Cint}()
-	ccall((:glfwGetMonitorPhysicalSize, lib), Cvoid, (Monitor, Ref{Cint}, Ref{Cint}), monitor, width, height)
+	ccall((:glfwGetMonitorPhysicalSize, libglfw), Cvoid, (Monitor, Ref{Cint}, Ref{Cint}), monitor, width, height)
 	(width=width[], height=height[])
 end
 
-GetMonitorName(monitor::Monitor) = unsafe_string(ccall((:glfwGetMonitorName, lib), Cstring, (Monitor,), monitor))
+GetMonitorName(monitor::Monitor) = unsafe_string(ccall((:glfwGetMonitorName, libglfw), Cstring, (Monitor,), monitor))
 @callback Monitor(monitor::Monitor, event::DeviceConfigEvent)
 
 function GetVideoModes(monitor::Monitor)
 	count = Ref{Cint}()
-	ptr = ccall((:glfwGetVideoModes, lib), Ptr{VidMode}, (Monitor, Ref{Cint}), monitor, count)
+	ptr = ccall((:glfwGetVideoModes, libglfw), Ptr{VidMode}, (Monitor, Ref{Cint}), monitor, count)
 	unsafe_wrap(Array, ptr, count[])
 end
 
-GetVideoMode(monitor::Monitor) = unsafe_load(ccall((:glfwGetVideoMode, lib), Ptr{VidMode}, (Monitor,), monitor))
-SetGamma(monitor::Monitor, gamma::Real) = ccall((:glfwSetGamma, lib), Cvoid, (Monitor, Cfloat), monitor, gamma)
+GetVideoMode(monitor::Monitor) = unsafe_load(ccall((:glfwGetVideoMode, libglfw), Ptr{VidMode}, (Monitor,), monitor))
+SetGamma(monitor::Monitor, gamma::Real) = ccall((:glfwSetGamma, libglfw), Cvoid, (Monitor, Cfloat), monitor, gamma)
 
 # Window handling
-DefaultWindowHints() = ccall((:glfwDefaultWindowHints, lib), Cvoid, ())
-WindowHint(target::Integer, hint::Integer) = ccall((:glfwWindowHint, lib), Cvoid, (Cint, Cint), target, hint)
+DefaultWindowHints() = ccall((:glfwDefaultWindowHints, libglfw), Cvoid, ())
+WindowHint(target::Integer, hint::Integer) = ccall((:glfwWindowHint, libglfw), Cvoid, (Cint, Cint), target, hint)
 
 # Pair window handles with a callback function list
 # to prevent them from being garbage-collected
 const _window_callbacks = Dict{Window, Ref{Vector{Callback}}}()
 
 function CreateWindow(width::Integer, height::Integer, title::AbstractString, monitor::Monitor=Monitor(C_NULL), share::Window=Window(C_NULL))
-	window = ccall((:glfwCreateWindow, lib), Window, (Cint, Cint, Cstring, Monitor, Window), width, height, title, monitor, share)
+	window = ccall((:glfwCreateWindow, libglfw), Window, (Cint, Cint, Cstring, Monitor, Window), width, height, title, monitor, share)
 	callbacks = Ref{Vector{Callback}}(fill(nothing, _window_callback_num[]))
 	_window_callbacks[window] = callbacks
-	ccall((:glfwSetWindowUserPointer, lib), Cvoid, (Window, Ref{Vector{Callback}}), window, callbacks)
+	ccall((:glfwSetWindowUserPointer, libglfw), Cvoid, (Window, Ref{Vector{Callback}}), window, callbacks)
 	window
 end
 
-callbacks(window) = ccall((:glfwGetWindowUserPointer, lib), Ref{Vector{Callback}}, (Window,), window)
+callbacks(window) = ccall((:glfwGetWindowUserPointer, libglfw), Ref{Vector{Callback}}, (Window,), window)
 
 function DestroyWindow(window::Window)
-	ccall((:glfwDestroyWindow, lib), Cvoid, (Window,), window)
+	ccall((:glfwDestroyWindow, libglfw), Cvoid, (Window,), window)
 	delete!(_window_callbacks, window)
 end
 
-WindowShouldClose(window::Window) = ccall((:glfwWindowShouldClose, lib), Cint, (Window,), window) != 0
-SetWindowShouldClose(window::Window, value::Bool) = ccall((:glfwSetWindowShouldClose, lib), Cvoid, (Window, Cint), window, value)
-SetWindowTitle(window::Window, title::AbstractString) = ccall((:glfwSetWindowTitle, lib), Cvoid, (Window, Cstring), window, title)
+WindowShouldClose(window::Window) = ccall((:glfwWindowShouldClose, libglfw), Cint, (Window,), window) != 0
+SetWindowShouldClose(window::Window, value::Bool) = ccall((:glfwSetWindowShouldClose, libglfw), Cvoid, (Window, Cint), window, value)
+SetWindowTitle(window::Window, title::AbstractString) = ccall((:glfwSetWindowTitle, libglfw), Cvoid, (Window, Cstring), window, title)
 
 """
     GLFW.SetWindowIcon(window::Window, image::Matrix{NTuple{4, UInt8}})
@@ -523,58 +523,58 @@ GLFW.PollEvents() # needs a poll events to become active
 SetWindowIcon
 
 function SetWindowIcon(window::Window, images::Vector{<:AbstractMatrix{NTuple{4,UInt8}}})
-	ccall((:glfwSetWindowIcon, lib), Cvoid, (Window, Cint, Ref{GLFWImage}), window, length(images), images)
+	ccall((:glfwSetWindowIcon, libglfw), Cvoid, (Window, Cint, Ref{GLFWImage}), window, length(images), images)
 end
 
 function SetWindowIcon(window::Window, image::AbstractMatrix{NTuple{4,UInt8}})
-	ccall((:glfwSetWindowIcon, lib), Cvoid, (Window, Cint, Ref{GLFWImage}), window, 1, image)
+	ccall((:glfwSetWindowIcon, libglfw), Cvoid, (Window, Cint, Ref{GLFWImage}), window, 1, image)
 end
 
 function GetWindowPos(window::Window)
 	x, y = Ref{Cint}(), Ref{Cint}()
-	ccall((:glfwGetWindowPos, lib), Cvoid, (Window, Ref{Cint}, Ref{Cint}), window, x, y)
+	ccall((:glfwGetWindowPos, libglfw), Cvoid, (Window, Ref{Cint}, Ref{Cint}), window, x, y)
 	(x=x[], y=y[])
 end
 
-SetWindowPos(window::Window, x::Integer, y::Integer) = ccall((:glfwSetWindowPos, lib), Cvoid, (Window, Cint, Cint), window, x, y)
+SetWindowPos(window::Window, x::Integer, y::Integer) = ccall((:glfwSetWindowPos, libglfw), Cvoid, (Window, Cint, Cint), window, x, y)
 
 function GetWindowSize(window::Window)
 	width, height = Ref{Cint}(), Ref{Cint}()
-	ccall((:glfwGetWindowSize, lib), Cvoid, (Window, Ref{Cint}, Ref{Cint}), window, width, height)
+	ccall((:glfwGetWindowSize, libglfw), Cvoid, (Window, Ref{Cint}, Ref{Cint}), window, width, height)
 	(width=width[], height=height[])
 end
 
-SetWindowSizeLimits(window, minwidth, minheight, maxwidth, maxheight) = ccall((:glfwSetWindowSizeLimits, lib),
+SetWindowSizeLimits(window, minwidth, minheight, maxwidth, maxheight) = ccall((:glfwSetWindowSizeLimits, libglfw),
 	Cvoid, (Window, Cint, Cint, Cint, Cint), window, minwidth, minheight, maxwidth, maxheight)
-SetWindowAspectRatio(window, numer, denom) = ccall((:glfwSetWindowAspectRatio, lib),
+SetWindowAspectRatio(window, numer, denom) = ccall((:glfwSetWindowAspectRatio, libglfw),
 	Cvoid, (Window, Cint, Cint), window, numer, denom)
 SetWindowAspectRatio(window, r::Rational) = SetWindowAspectRatio(window, r.num, r.den)
-SetWindowSize(window::Window, width::Integer, height::Integer) = ccall((:glfwSetWindowSize, lib), Cvoid, (Window, Cint, Cint), window, width, height)
+SetWindowSize(window::Window, width::Integer, height::Integer) = ccall((:glfwSetWindowSize, libglfw), Cvoid, (Window, Cint, Cint), window, width, height)
 
 function GetFramebufferSize(window::Window)
 	width, height = Ref{Cint}(), Ref{Cint}()
-	ccall((:glfwGetFramebufferSize, lib), Cvoid, (Window, Ref{Cint}, Ref{Cint}), window, width, height)
+	ccall((:glfwGetFramebufferSize, libglfw), Cvoid, (Window, Ref{Cint}, Ref{Cint}), window, width, height)
 	(width=width[], height=height[])
 end
 
 function GetWindowFrameSize(window::Window)
 	left, top, right, bottom = Ref{Cint}(), Ref{Cint}(), Ref{Cint}(), Ref{Cint}()
-	ccall((:glfwGetWindowFrameSize, lib), Cvoid, (Window, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}), window, left, top, right, bottom)
+	ccall((:glfwGetWindowFrameSize, libglfw), Cvoid, (Window, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}), window, left, top, right, bottom)
 	(left=left[], top=top[], right=right[], bottom=bottom[])
 end
 
-IconifyWindow(window::Window) = ccall((:glfwIconifyWindow, lib), Cvoid, (Window,), window)
-RestoreWindow(window::Window) = ccall((:glfwRestoreWindow, lib), Cvoid, (Window,), window)
-MaximizeWindow(window) = ccall((:glfwMaximizeWindow, lib), Cvoid, (Window,), window)
-ShowWindow(window::Window) = ccall((:glfwShowWindow, lib), Cvoid, (Window,), window)
-HideWindow(window::Window) = ccall((:glfwHideWindow, lib), Cvoid, (Window,), window)
-GetWindowMonitor(window::Window) = ccall((:glfwGetWindowMonitor, lib), Monitor, (Window,), window)
+IconifyWindow(window::Window) = ccall((:glfwIconifyWindow, libglfw), Cvoid, (Window,), window)
+RestoreWindow(window::Window) = ccall((:glfwRestoreWindow, libglfw), Cvoid, (Window,), window)
+MaximizeWindow(window) = ccall((:glfwMaximizeWindow, libglfw), Cvoid, (Window,), window)
+ShowWindow(window::Window) = ccall((:glfwShowWindow, libglfw), Cvoid, (Window,), window)
+HideWindow(window::Window) = ccall((:glfwHideWindow, libglfw), Cvoid, (Window,), window)
+GetWindowMonitor(window::Window) = ccall((:glfwGetWindowMonitor, libglfw), Monitor, (Window,), window)
 # TODO: Add SetWindowMonitor variants:
 # - Monitor with video mode
 # - Nothing with size and position
-SetWindowMonitor(window, monitor, xpos, ypos, width, height, refreshRate) = ccall((:glfwSetWindowMonitor, lib),
+SetWindowMonitor(window, monitor, xpos, ypos, width, height, refreshRate) = ccall((:glfwSetWindowMonitor, libglfw),
 	Cvoid, (Window, Monitor, Cint, Cint, Cint, Cint, Cint), window, monitor, xpos, ypos, width, height, refreshRate)
-GetWindowAttrib(window::Window, attrib::Integer) = ccall((:glfwGetWindowAttrib, lib), Cint, (Window, Cint), window, attrib)
+GetWindowAttrib(window::Window, attrib::Integer) = ccall((:glfwGetWindowAttrib, libglfw), Cint, (Window, Cint), window, attrib)
 @windowcallback WindowPos(window::Window, x::Cint, y::Cint)
 @windowcallback WindowSize(window::Window, width::Cint, height::Cint)
 @windowcallback WindowClose(window::Window)
@@ -582,43 +582,43 @@ GetWindowAttrib(window::Window, attrib::Integer) = ccall((:glfwGetWindowAttrib, 
 @windowcallback WindowFocus(window::Window, focused::Cint) -> (window, Bool(focused))
 @windowcallback WindowIconify(window::Window, iconified::Cint) -> (window, Bool(iconified))
 @windowcallback FramebufferSize(window::Window, width::Cint, height::Cint)
-PollEvents() = ccall((:glfwPollEvents, lib), Cvoid, ())
-WaitEvents() = ccall((:glfwWaitEvents, lib), Cvoid, ())
-WaitEvents(timeout) = ccall((:glfwWaitEventsTimeout, lib), Cvoid, (Cdouble,), timeout)
-PostEmptyEvent() = ccall((:glfwPostEmptyEvent, lib), Cvoid, ())
+PollEvents() = ccall((:glfwPollEvents, libglfw), Cvoid, ())
+WaitEvents() = ccall((:glfwWaitEvents, libglfw), Cvoid, ())
+WaitEvents(timeout) = ccall((:glfwWaitEventsTimeout, libglfw), Cvoid, (Cdouble,), timeout)
+PostEmptyEvent() = ccall((:glfwPostEmptyEvent, libglfw), Cvoid, ())
 
 # Input handling
 function GetInputMode(window::Window, mode::Integer)
-	value = ccall((:glfwGetInputMode, lib), Cint, (Window, Cint), window, mode)
+	value = ccall((:glfwGetInputMode, libglfw), Cint, (Window, Cint), window, mode)
 	if mode in (STICKY_KEYS, STICKY_MOUSE_BUTTONS)
 		value = Bool(value)
 	end
 	value
 end
 
-SetInputMode(window::Window, mode::Integer, value::Integer) = ccall((:glfwSetInputMode, lib), Cvoid, (Window, Cint, Cint), window, mode, value)
+SetInputMode(window::Window, mode::Integer, value::Integer) = ccall((:glfwSetInputMode, libglfw), Cvoid, (Window, Cint, Cint), window, mode, value)
 
 function GetKeyName(key, scancode=0)
-	ptr = ccall((:glfwGetKeyName, lib), Cstring, (Cint, Cint), key, scancode)
+	ptr = ccall((:glfwGetKeyName, libglfw), Cstring, (Cint, Cint), key, scancode)
 	if ptr != C_NULL
 		unsafe_string(ptr)
 	end
 end
 
-GetKey(window::Window, key) = Bool(ccall((:glfwGetKey, lib), Cint, (Window, Cint), window, key))
-GetMouseButton(window::Window, button::MouseButton) = Bool(ccall((:glfwGetMouseButton, lib), Cint, (Window, Cint), window, button))
+GetKey(window::Window, key) = Bool(ccall((:glfwGetKey, libglfw), Cint, (Window, Cint), window, key))
+GetMouseButton(window::Window, button::MouseButton) = Bool(ccall((:glfwGetMouseButton, libglfw), Cint, (Window, Cint), window, button))
 
 function GetCursorPos(window::Window)
 	x, y = Ref{Cdouble}(), Ref{Cdouble}()
-	ccall((:glfwGetCursorPos, lib), Cvoid, (Window, Ref{Cdouble}, Ref{Cdouble}), window, x, y)
+	ccall((:glfwGetCursorPos, libglfw), Cvoid, (Window, Ref{Cdouble}, Ref{Cdouble}), window, x, y)
 	(x=x[], y=y[])
 end
 
-SetCursorPos(window::Window, x::Real, y::Real) = ccall((:glfwSetCursorPos, lib), Cvoid, (Window, Cdouble, Cdouble), window, x, y)
+SetCursorPos(window::Window, x::Real, y::Real) = ccall((:glfwSetCursorPos, libglfw), Cvoid, (Window, Cdouble, Cdouble), window, x, y)
 # TODO: Add glfwCreateCursor
-CreateStandardCursor(shape::StandardCursorShape) = ccall((:glfwCreateStandardCursor, lib), Cursor, (Cint,), shape)
-DestroyCursor(cursor::Cursor) = ccall((:glfwDestroyCursor, lib), Cvoid, (Cursor,), cursor)
-SetCursor(window::Window, cursor::Cursor) = ccall((:glfwSetCursor, lib), Cvoid, (Window, Cursor), window, cursor)
+CreateStandardCursor(shape::StandardCursorShape) = ccall((:glfwCreateStandardCursor, libglfw), Cursor, (Cint,), shape)
+DestroyCursor(cursor::Cursor) = ccall((:glfwDestroyCursor, libglfw), Cvoid, (Cursor,), cursor)
+SetCursor(window::Window, cursor::Cursor) = ccall((:glfwSetCursor, libglfw), Cvoid, (Window, Cursor), window, cursor)
 SetCursor(window::Window, ::Nothing) = SetCursor(window, Cursor(C_NULL))
 @windowcallback Key(window::Window, key::Key, scancode::Cint, action::Action, mods::Cint)
 @windowcallback Char(window::Window, codepoint::Cuint) -> (window, convert(Char, codepoint))
@@ -628,11 +628,11 @@ SetCursor(window::Window, ::Nothing) = SetCursor(window, Cursor(C_NULL))
 @windowcallback CursorEnter(window::Window, entered::Cint) -> (window, Bool(entered))
 @windowcallback Scroll(window::Window, xoffset::Cdouble, yoffset::Cdouble)
 @windowcallback Drop(window::Window, count::Cint, paths::Ptr{Cstring}) -> (window, map(unsafe_string, unsafe_wrap(Array, paths, count)))
-JoystickPresent(joy::Joystick) = Bool(ccall((:glfwJoystickPresent, lib), Cint, (Cint,), joy))
+JoystickPresent(joy::Joystick) = Bool(ccall((:glfwJoystickPresent, libglfw), Cint, (Cint,), joy))
 
 function GetJoystickAxes(joy::Joystick)
 	count = Ref{Cint}()
-	ptr = ccall((:glfwGetJoystickAxes, lib), Ptr{Cfloat}, (Cint, Ref{Cint}), joy, count)
+	ptr = ccall((:glfwGetJoystickAxes, libglfw), Ptr{Cfloat}, (Cint, Ref{Cint}), joy, count)
 	if ptr != C_NULL
 		unsafe_wrap(Array, ptr, count[])
 	end
@@ -640,14 +640,14 @@ end
 
 function GetJoystickButtons(joy::Joystick)
 	count = Ref{Cint}()
-	ptr = ccall((:glfwGetJoystickButtons, lib), Ptr{Cuchar}, (Cint, Ref{Cint}), joy, count)
+	ptr = ccall((:glfwGetJoystickButtons, libglfw), Ptr{Cuchar}, (Cint, Ref{Cint}), joy, count)
 	if ptr != C_NULL
 		unsafe_wrap(Array, ptr, count[])
 	end
 end
 
 function GetJoystickName(joy::Joystick)
-	ptr = ccall((:glfwGetJoystickName, lib), Cstring, (Cint,), joy)
+	ptr = ccall((:glfwGetJoystickName, libglfw), Cstring, (Cint,), joy)
 	if ptr != C_NULL
 		unsafe_string(ptr)
 	end
@@ -656,12 +656,12 @@ end
 @callback Joystick(joy::Joystick, event::DeviceConfigEvent)
 
 # Context handling
-MakeContextCurrent(window::Window) = ccall((:glfwMakeContextCurrent, lib), Cvoid, (Window,), window)
-GetCurrentContext() = Base.cconvert(Window, ccall((:glfwGetCurrentContext, lib), Window, ()))
-SwapBuffers(window::Window) = ccall((:glfwSwapBuffers, lib), Cvoid, (Window,), window)
-SwapInterval(interval::Integer) = ccall((:glfwSwapInterval, lib), Cvoid, (Cint,), interval)
-ExtensionSupported(extension::AbstractString) = Bool(ccall((:glfwExtensionSupported, lib), Cint, (Cstring,), extension))
-GetProcAddress(procname::AbstractString) = ccall((:glfwGetProcAddress, lib), Ptr{Cvoid}, (Cstring,), procname)
+MakeContextCurrent(window::Window) = ccall((:glfwMakeContextCurrent, libglfw), Cvoid, (Window,), window)
+GetCurrentContext() = Base.cconvert(Window, ccall((:glfwGetCurrentContext, libglfw), Window, ()))
+SwapBuffers(window::Window) = ccall((:glfwSwapBuffers, libglfw), Cvoid, (Window,), window)
+SwapInterval(interval::Integer) = ccall((:glfwSwapInterval, libglfw), Cvoid, (Cint,), interval)
+ExtensionSupported(extension::AbstractString) = Bool(ccall((:glfwExtensionSupported, libglfw), Cint, (Cstring,), extension))
+GetProcAddress(procname::AbstractString) = ccall((:glfwGetProcAddress, libglfw), Ptr{Cvoid}, (Cstring,), procname)
 
 #came from GLWindow/core.jl
 """

@@ -9,7 +9,7 @@ include(depsjl_path)
 
 function GetVersion()
 	major, minor, rev = Ref{Cint}(), Ref{Cint}(), Ref{Cint}()
-	ccall((:glfwGetVersion, lib), Cvoid, (Ref{Cint}, Ref{Cint}, Ref{Cint}), major, minor, rev)
+	ccall((:glfwGetVersion, libglfw), Cvoid, (Ref{Cint}, Ref{Cint}, Ref{Cint}), major, minor, rev)
 	VersionNumber(major[], minor[], rev[])
 end
 
@@ -24,7 +24,7 @@ function __init__()
 	if libversion.major != 3
 		error("GLFW version $libversion not supported")
 	end
-
+	check_deps()
 	# Save errors that occur during initialization
 	errors = Vector{Exception}()
 	SetErrorCallback(err -> push!(errors, err))

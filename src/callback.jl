@@ -41,19 +41,19 @@ function callbackcode(
 	quote
 		# Callback wrapper that can be passed to `cfunction`
 		$wrapper($(callback_params...)) = ($callback_ref($(callback_args...)); return nothing)
-		
+
 		# Set the callback function
 		function $setter($(setter_param_names...), callback::Function)
 			old_callback = $callback_ref
 			$callback_ref = callback  # Prevent callback function from being garbage-collected
 			cfunptr = @cfunction($wrapper, Cvoid, $callback_param_types)
-			ccall(($libsetter, lib), Ptr{Cvoid}, ($(setter_param_types...), Ptr{Cvoid}), $(setter_param_names...), cfunptr)
+			ccall(($libsetter, libglfw), Ptr{Cvoid}, ($(setter_param_types...), Ptr{Cvoid}), $(setter_param_names...), cfunptr)
 			return old_callback
 		end
 
 		# Unset the callback function
 		function $setter($(setter_param_names...), ::Nothing)
-			ccall(($libsetter, lib), Ptr{Cvoid}, ($(setter_param_types...), Ptr{Cvoid}), $(setter_param_names...), C_NULL)
+			ccall(($libsetter, libglfw), Ptr{Cvoid}, ($(setter_param_types...), Ptr{Cvoid}), $(setter_param_names...), C_NULL)
 			old_callback = $callback_ref
 			$callback_ref = nothing  # Allow former callback function to be garbage-collected
 			return old_callback
