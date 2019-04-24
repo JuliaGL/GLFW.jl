@@ -12,10 +12,12 @@ Build from source on Linux!
 =#
 const version = "3.3"
 const products = [
-    LibraryProduct(prefix, ["libglfw"], :libglfw),
+    LibraryProduct(prefix, ["libglfw", "glfw3", "glfw3.dll"], :libglfw),
 ]
 # Install unsatisfied or updated dependencies:
 unsatisfied = any(!satisfied(p; verbose=verbose) for p in products)
+
+
 if Sys.islinux()
     libname = "libglfw"
     tarball_url = "https://github.com/glfw/glfw/archive/$(version).tar.gz"
