@@ -18,7 +18,7 @@ const products = [
 unsatisfied = any(!satisfied(p; verbose=verbose) for p in products)
 
 
-if Sys.islinux()
+if Sys.islinux() || (Sys.KERNEL == :FreeBSD #= Sys.isfreebsd() in Julia v1.1+ =#)
     libname = "libglfw"
     tarball_url = "https://github.com/glfw/glfw/archive/$(version).tar.gz"
     hash = "81bf5fde487676a8af55cb317830703086bb534c53968d71936e7b48ee5a0f3e"
@@ -95,7 +95,7 @@ else
 
     # If we have a download, and we are unsatisfied (or the version we're
     # trying to install is not itself installed) then load it up!
-    if unsatisfied || !isinstalled(dl_info...; prefix=prefix)
+    if unsatisfied || (dl_info != nothing && !isinstalled(dl_info...; prefix=prefix))
         # Download and install binaries
         install(dl_info...; prefix=prefix, force=true, verbose=verbose)
     end
