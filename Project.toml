@@ -1,5 +1,10 @@
 name = "GLFW"
 uuid = "f7f18e0c-5ee9-5ccd-a5bf-e8befd85ed98"
+version = "3.0.0"
+author = [
+	"Jay Weisskopf <jay@jayschwa.net>",
+	"Simon Danisch <sdanisch@gmail.com>",
+]
 
 [deps]
 BinaryProvider = "b99e7846-7c00-51b0-8f62-c81ae34c0232"
