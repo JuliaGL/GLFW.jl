@@ -1,0 +1,17 @@
+name = "GLFW"
+uuid = "f7f18e0c-5ee9-5ccd-a5bf-e8befd85ed98"
+
+[deps]
+BinaryProvider = "b99e7846-7c00-51b0-8f62-c81ae34c0232"
+CMake = "631607c0-34d2-5d66-819e-eb0f9aa2061a"
+
+[compat]
+BinaryProvider = "≥ 0.3.0"
+CMake = "≥ 1.1.1"
+julia = "≥ 0.7.0"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
