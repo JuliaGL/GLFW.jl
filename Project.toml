@@ -1,6 +1,6 @@
 name = "GLFW"
 uuid = "f7f18e0c-5ee9-5ccd-a5bf-e8befd85ed98"
-version = "3.0.0"
+version = "3.1.0"
 author = [
 	"Jay Weisskopf <jay@jayschwa.net>",
 	"Simon Danisch <sdanisch@gmail.com>",
