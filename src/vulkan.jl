@@ -20,13 +20,21 @@ Return whether the Vulkan loader has been found.
 VulkanSupported() = Bool(ccall((:glfwVulkanSupported, libglfw), Cint, ()))
 
 """
-    GetRequiredInstanceExtensions()
+    GetRequiredInstanceExtensions() -> Vector{String}
 Return a vector of names of Vulkan instance extensions.
 """
 function GetRequiredInstanceExtensions()
     count = Ref{Cuint}(0)
-    ptr = ccall((:glfwGetRequiredInstanceExtensions, libglfw), Ptr{Ptr{Cchar}}, (Ref{Cuint},), count)
-    return unsafe_string.(unsafe_wrap(Array, ptr, count[]))
+    ptr = GetRequiredInstanceExtensions(count)
+    return GC.@preserve ptr unsafe_string.(unsafe_wrap(Array, ptr, count[]))
+end
+
+"""
+    GetRequiredInstanceExtensions(count::Ref) -> Ptr{Cstring}
+Return a Cstring pointer that can be directly passed to `VkInstanceCreateInfo`.
+"""
+function GetRequiredInstanceExtensions(count::Ref)
+    ptr = ccall((:glfwGetRequiredInstanceExtensions, libglfw), Ptr{Cstring}, (Ref{Cuint},), count)
 end
 
 """
