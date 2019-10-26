@@ -1,20 +1,14 @@
 name = "GLFW"
 uuid = "f7f18e0c-5ee9-5ccd-a5bf-e8befd85ed98"
+author = ["Jay Weisskopf <jay@jayschwa.net>", "Simon Danisch <sdanisch@gmail.com>"]
 version = "3.1.0"
-author = [
-	"Jay Weisskopf <jay@jayschwa.net>",
-	"Simon Danisch <sdanisch@gmail.com>",
-]
 
 [deps]
-BinaryProvider = "b99e7846-7c00-51b0-8f62-c81ae34c0232"
-CMake = "631607c0-34d2-5d66-819e-eb0f9aa2061a"
-Libdl = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
+GLFW_jll = "0656b61e-2033-5cc2-a64a-77c0f6c09b89"
 
 [compat]
-BinaryProvider = "≥ 0.3.0"
-CMake = "≥ 1.1.1"
-julia = "≥ 1.0.0"
+julia = "1.3.0"
+GLFW_jll = "3.3.0"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"

@@ -1,11 +1,6 @@
 module GLFW
 
-const depsjl_path = joinpath(@__DIR__, "..", "deps", "deps.jl")
-if !isfile(depsjl_path)
-    error("GLFW not installed properly, run Pkg.build(\"GLFW\"), restart Julia and try again")
-end
-include(depsjl_path)
-
+using GLFW_jll
 
 function GetVersion()
 	major, minor, rev = Ref{Cint}(), Ref{Cint}(), Ref{Cint}()
@@ -24,7 +19,6 @@ function __init__()
 	if libversion.major != 3
 		error("GLFW version $libversion not supported")
 	end
-	check_deps()
 	# Save errors that occur during initialization
 	errors = Vector{Exception}()
 	SetErrorCallback(err -> push!(errors, err))
