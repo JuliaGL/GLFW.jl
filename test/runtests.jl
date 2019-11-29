@@ -1,6 +1,6 @@
 using GLFW, Test
 
-print(GLFW.GetVersionString())
+println(GLFW.GetVersionString())
 
 # GLFWError uses enum for known error code
 @test isa(GLFW.GLFWError(GLFW.NOT_INITIALIZED, "").code, GLFW.ErrorCode)
