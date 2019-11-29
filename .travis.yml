@@ -1,3 +1,6 @@
+arch:
+  - amd64
+  - arm64
 language: julia
 julia:
   - 1.3
@@ -10,6 +13,7 @@ notifications:
 os:
   - linux
   - osx
+  - windows
 dist: bionic
 services:
   - xvfb
