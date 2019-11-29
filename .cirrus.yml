@@ -12,6 +12,6 @@ task:
   build_script:
     - cirrusjl build
   test_script:
-    - cirrusjl test
+    - xvfb-run cirrusjl test
   coverage_script:
     - cirrusjl coverage codecov coveralls
