@@ -40,13 +40,6 @@ end
 GLFW.DestroyWindow(window)
 ```
 
-Troubleshooting
----------------
-
-On Debian or Ubuntu, you may need to install these dependencies before building the package:
-
-`sudo apt-get install xorg-dev`
-
 Interface
 ---------
 
