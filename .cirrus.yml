@@ -6,12 +6,12 @@ task:
     matrix:
       - JULIA_VERSION: 1.3
       - JULIA_VERSION: nightly
-  allow_failures: $JULIA_VERSION == "nightly"
+  allow_failures: true # $JULIA_VERSION == "nightly"
   install_script:
     - sh -c "$(fetch https://raw.githubusercontent.com/ararslan/CirrusCI.jl/master/bin/install.sh -o -)"
   build_script:
     - cirrusjl build
   test_script:
-    - xvfb-run cirrusjl test
+    - cirrusjl test
   coverage_script:
     - cirrusjl coverage codecov coveralls
