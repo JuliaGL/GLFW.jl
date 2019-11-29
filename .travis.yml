@@ -7,7 +7,9 @@ julia:
   - nightly
 matrix:
   allow_failures:
+  - arch: arm64
   - julia: nightly
+  - os: windows
 notifications:
   email: false
 os:
