@@ -668,10 +668,8 @@ GetProcAddress(procname::AbstractString) = ccall((:glfwGetProcAddress, libglfw),
 Returns the monitor resolution of the primary monitor.
 """
 function primarymonitorresolution()
-	props = MonitorProperties(GetPrimaryMonitor())
-	w,h = props.videomode.width, props.videomode.height
-	# Vec(Int(w),Int(h))
-	(Int(w),Int(h))
+	m = GetPrimaryMonitor().videomode
+	(Int(m.width), Int(m.height))
 end
 
 #Came from GLWindow.jl/screen.jl
