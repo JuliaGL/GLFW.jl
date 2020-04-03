@@ -605,8 +605,8 @@ function GetKeyName(key, scancode=0)
 	end
 end
 
-GetKey(window::Window, key) = Bool(ccall((:glfwGetKey, libglfw), Cint, (Window, Cint), window, key))
-GetMouseButton(window::Window, button::MouseButton) = Bool(ccall((:glfwGetMouseButton, libglfw), Cint, (Window, Cint), window, button))
+GetKey(window::Window, key) = ccall((:glfwGetKey, libglfw), Action, (Window, Cint), window, key)
+GetMouseButton(window::Window, button::MouseButton) = ccall((:glfwGetMouseButton, libglfw), Action, (Window, Cint), window, button)
 
 function GetCursorPos(window::Window)
 	x, y = Ref{Cdouble}(), Ref{Cdouble}()
