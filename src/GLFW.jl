@@ -14,11 +14,6 @@ include("vulkan.jl")
 include("monitor_properties.jl")
 
 function __init__()
-	libversion = GetVersion()
-
-	if libversion.major != 3
-		error("GLFW version $libversion not supported")
-	end
 	# Save errors that occur during initialization
 	errors = Vector{Exception}()
 	SetErrorCallback(err -> push!(errors, err))
