@@ -194,14 +194,18 @@ end
 	NO_WINDOW_CONTEXT      = 0x0001000A  # The specified window does not have an OpenGL or OpenGL ES context.
 end
 
-const FOCUSED                = 0x00020001
-const ICONIFIED              = 0x00020002
-const RESIZABLE              = 0x00020003
-const VISIBLE                = 0x00020004
-const DECORATED              = 0x00020005
-const AUTO_ICONIFY           = 0x00020006
-const FLOATING               = 0x00020007
-const MAXIMIZED              = 0x00020008
+const FOCUSED                 = 0x00020001
+const ICONIFIED               = 0x00020002
+const RESIZABLE               = 0x00020003
+const VISIBLE                 = 0x00020004
+const DECORATED               = 0x00020005
+const AUTO_ICONIFY            = 0x00020006
+const FLOATING                = 0x00020007
+const MAXIMIZED               = 0x00020008
+const CENTER_CURSOR           = 0x00020009
+const TRANSPARENT_FRAMEBUFFER = 0x0002000A
+const HOVERED                 = 0x0002000B
+const FOCUS_ON_SHOW           = 0x0002000C
 
 const RED_BITS               = 0x00021001
 const GREEN_BITS             = 0x00021002
@@ -231,6 +235,8 @@ const OPENGL_PROFILE         = 0x00022008
 const CONTEXT_RELEASE_BEHAVIOR = 0x00022009
 const CONTEXT_NO_ERROR       = 0x0002200A
 const CONTEXT_CREATION_API   = 0x0002200B
+
+const SCALE_TO_MONITOR       = 0x0002200C
 
 const OPENGL_API             = 0x00030001
 const OPENGL_ES_API          = 0x00030002
@@ -463,6 +469,12 @@ function GetMonitorPhysicalSize(monitor::Monitor)
 	(width=width[], height=height[])
 end
 
+function GetMonitorContentScale(monitor::Monitor)
+	xscale, yscale = Ref{Cfloat}(), Ref{Cfloat}()
+	ccall((:glfwGetMonitorContentScale, libglfw), Cvoid, (Monitor, Ref{Cfloat}, Ref{Cfloat}), monitor, xscale, yscale)
+	(xscale=xscale[], yscale=yscale[])
+end
+
 GetMonitorName(monitor::Monitor) = unsafe_string(ccall((:glfwGetMonitorName, libglfw), Cstring, (Monitor,), monitor))
 @callback Monitor(monitor::Monitor, event::DeviceConfigEvent)
 
@@ -563,6 +575,12 @@ function GetWindowFrameSize(window::Window)
 	(left=left[], top=top[], right=right[], bottom=bottom[])
 end
 
+function GetWindowContentScale(window::Window)
+	xscale, yscale = Ref{Cfloat}(), Ref{Cfloat}()
+	ccall((:glfwGetWindowContentScale, libglfw), Cvoid, (Window, Ref{Cfloat}, Ref{Cfloat}), window, xscale, yscale)
+	(xscale=xscale[], yscale=yscale[])
+end
+
 IconifyWindow(window::Window) = ccall((:glfwIconifyWindow, libglfw), Cvoid, (Window,), window)
 RestoreWindow(window::Window) = ccall((:glfwRestoreWindow, libglfw), Cvoid, (Window,), window)
 MaximizeWindow(window) = ccall((:glfwMaximizeWindow, libglfw), Cvoid, (Window,), window)
@@ -582,6 +600,7 @@ GetWindowAttrib(window::Window, attrib::Integer) = ccall((:glfwGetWindowAttrib, 
 @windowcallback WindowFocus(window::Window, focused::Cint) -> (window, Bool(focused))
 @windowcallback WindowIconify(window::Window, iconified::Cint) -> (window, Bool(iconified))
 @windowcallback FramebufferSize(window::Window, width::Cint, height::Cint)
+@windowcallback WindowContentScale(window::Window, xscale::Cfloat, yscale::Cfloat)
 PollEvents() = ccall((:glfwPollEvents, libglfw), Cvoid, ())
 WaitEvents() = ccall((:glfwWaitEvents, libglfw), Cvoid, ())
 WaitEvents(timeout) = ccall((:glfwWaitEventsTimeout, libglfw), Cvoid, (Cdouble,), timeout)
