@@ -13,6 +13,7 @@ GLFW.SetWindowPosCallback(window, (_, x, y) -> println("window position: $x, $y"
 GLFW.SetWindowSizeCallback(window, (_, w, h) -> println("window size: $h x $w"))
 GLFW.SetWindowFocusCallback(window, (_, focused) -> println("window focus: $focused"))
 GLFW.SetWindowIconifyCallback(window, (_, iconified) -> println("window iconify: $iconified"))
+GLFW.SetWindowMaximizeCallback(window, (_, maximized) -> println("window maximized: $maximized"))
 
 # Input callbacks
 GLFW.SetKeyCallback(window, (_, key, scancode, action, mods) -> begin

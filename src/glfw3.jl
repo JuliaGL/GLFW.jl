@@ -581,6 +581,22 @@ function GetWindowContentScale(window::Window)
 	(xscale=xscale[], yscale=yscale[])
 end
 
+GetWindowAttrib(window::Window, attrib::Integer) = ccall((:glfwGetWindowAttrib, libglfw), Cint, (Window, Cint), window, attrib)
+
+function SetWindowAttrib(window::Window, attrib::Integer, value::Integer)
+	ccall((:glfwSetWindowAttrib, libglfw), Cvoid, (Window, Cint, Cint), window, attrib, value)
+end
+
+function WindowHintString(hint::Integer, value::AbstractString)
+	ccall((:glfwWindowHintString, libglfw), Cvoid, (Cint, Cstring), hint, value)
+end
+
+RequestWindowAttention(window::Window) = ccall((:glfwRequestWindowAttention, libglfw), Cvoid, (Window,), window)
+
+GetWindowOpacity(window::Window) = ccall((:glfwGetWindowOpacity, libglfw), Cfloat, (Window,), window)
+SetWindowOpacity(window::Window, opacity::AbstractFloat) = ccall((:glfwSetWindowOpacity, libglfw), Cvoid, (Window, Cfloat), window, opacity)
+
+
 IconifyWindow(window::Window) = ccall((:glfwIconifyWindow, libglfw), Cvoid, (Window,), window)
 RestoreWindow(window::Window) = ccall((:glfwRestoreWindow, libglfw), Cvoid, (Window,), window)
 MaximizeWindow(window) = ccall((:glfwMaximizeWindow, libglfw), Cvoid, (Window,), window)
@@ -592,7 +608,6 @@ GetWindowMonitor(window::Window) = ccall((:glfwGetWindowMonitor, libglfw), Monit
 # - Nothing with size and position
 SetWindowMonitor(window, monitor, xpos, ypos, width, height, refreshRate) = ccall((:glfwSetWindowMonitor, libglfw),
 	Cvoid, (Window, Monitor, Cint, Cint, Cint, Cint, Cint), window, monitor, xpos, ypos, width, height, refreshRate)
-GetWindowAttrib(window::Window, attrib::Integer) = ccall((:glfwGetWindowAttrib, libglfw), Cint, (Window, Cint), window, attrib)
 @windowcallback WindowPos(window::Window, x::Cint, y::Cint)
 @windowcallback WindowSize(window::Window, width::Cint, height::Cint)
 @windowcallback WindowClose(window::Window)
@@ -601,6 +616,7 @@ GetWindowAttrib(window::Window, attrib::Integer) = ccall((:glfwGetWindowAttrib, 
 @windowcallback WindowIconify(window::Window, iconified::Cint) -> (window, Bool(iconified))
 @windowcallback FramebufferSize(window::Window, width::Cint, height::Cint)
 @windowcallback WindowContentScale(window::Window, xscale::Cfloat, yscale::Cfloat)
+@windowcallback WindowMaximize(window::Window, maximized::Cint)
 PollEvents() = ccall((:glfwPollEvents, libglfw), Cvoid, ())
 WaitEvents() = ccall((:glfwWaitEvents, libglfw), Cvoid, ())
 WaitEvents(timeout) = ccall((:glfwWaitEventsTimeout, libglfw), Cvoid, (Cdouble,), timeout)
