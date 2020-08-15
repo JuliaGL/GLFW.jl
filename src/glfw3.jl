@@ -616,7 +616,7 @@ SetWindowMonitor(window, monitor, xpos, ypos, width, height, refreshRate) = ccal
 @windowcallback WindowIconify(window::Window, iconified::Cint) -> (window, Bool(iconified))
 @windowcallback FramebufferSize(window::Window, width::Cint, height::Cint)
 @windowcallback WindowContentScale(window::Window, xscale::Cfloat, yscale::Cfloat)
-@windowcallback WindowMaximize(window::Window, maximized::Cint)
+@windowcallback WindowMaximize(window::Window, maximized::Cint) -> (window, Bool(maximized))
 PollEvents() = ccall((:glfwPollEvents, libglfw), Cvoid, ())
 WaitEvents() = ccall((:glfwWaitEvents, libglfw), Cvoid, ())
 WaitEvents(timeout) = ccall((:glfwWaitEventsTimeout, libglfw), Cvoid, (Cdouble,), timeout)
