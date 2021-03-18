@@ -1,6 +1,6 @@
 ---
 kind: pipeline
-name: linux - arm - Julia 1.3
+name: linux - arm - Julia 1.5.4
 
 platform:
   os: linux
@@ -8,7 +8,7 @@ platform:
 
 steps:
 - name: build
-  image: julia:1.3
+  image: julia:1.5.4
   commands:
   - "apt-get update"
   - "apt-get install -y xvfb xauth"
@@ -16,7 +16,7 @@ steps:
 
 ---
 kind: pipeline
-name: linux - arm64 - Julia 1.3
+name: linux - arm64 - Julia 1.5.4
 
 platform:
   os: linux
@@ -24,7 +24,7 @@ platform:
 
 steps:
 - name: build
-  image: julia:1.3
+  image: julia:1.5.4
   commands:
   - "apt-get update"
   - "apt-get install -y xvfb xauth"
