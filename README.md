@@ -1,4 +1,7 @@
-GLFW.jl  [![Travis Build Status][travis-img]][travis] [![AppVeyor Build status][appveyor-img]][appveyor]
+GLFW.jl 
+
+[![CI](https://github.com/JuliaGL/GLFW.jl/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/JuliaGL/GLFW.jl/actions/workflows/ci.yml)
+
 =======
 
 [Julia][julia] interface to [GLFW 3][glfw], a multi-platform library for creating windows with [OpenGL][opengl] or OpenGL ES contexts and receiving many kinds of input. GLFW has native support for Windows, OS X and many Unix-like systems using the X Window System, such as Linux and FreeBSD.
