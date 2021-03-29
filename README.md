@@ -10,11 +10,6 @@ GLFW.jl
 [glfw]:   https://www.glfw.org
 [opengl]: https://wikipedia.org/wiki/OpenGL
 
-[appveyor]: https://ci.appveyor.com/project/jayschwa/glfw-jl
-[appveyor-img]: https://ci.appveyor.com/api/projects/status/qumgv56ma7dg07qg/branch/master?svg=true
-[travis]: https://travis-ci.org/JuliaGL/GLFW.jl
-[travis-img]: https://travis-ci.org/JuliaGL/GLFW.jl.svg?branch=master
-
 
 Example
 -------
