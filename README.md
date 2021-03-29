@@ -53,5 +53,3 @@ Footnotes
 ---------
 
 * Special thanks to [@afterwise](https://github.com/afterwise) for writing an early implementation of GLFW 3 support.
-
-
