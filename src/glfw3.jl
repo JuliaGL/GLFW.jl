@@ -475,7 +475,12 @@ function GetMonitorContentScale(monitor::Monitor)
 	(xscale=xscale[], yscale=yscale[])
 end
 
-GetMonitorName(monitor::Monitor) = unsafe_string(ccall((:glfwGetMonitorName, libglfw), Cstring, (Monitor,), monitor))
+function GetMonitorName(monitor::Monitor)
+	ptr = ccall((:glfwGetMonitorName, libglfw), Cstring, (Monitor,), monitor)
+	ptr == C_NULL && return ""
+	return unsafe_string(ptr)
+end
+
 @callback Monitor(monitor::Monitor, event::DeviceConfigEvent)
 
 function GetVideoModes(monitor::Monitor)
