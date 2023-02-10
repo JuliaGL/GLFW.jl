@@ -8,6 +8,15 @@
 	PRESS                  = 1
 	REPEAT                 = 2
 end
+# GetKey is defined below to return a Bool, but in the documentation it is
+# defined as returning PRESS or RELEASE. In C that doesn't matter, but in
+# Julia these are different types and so e.g.
+# `GLFW.GetKey(window, GLFW.KEY_ESCAPE)) == GLFW.PRESS` will always return
+# false.
+#
+# This method tells Julia how to compare an Action and a Bool so that code
+# calling GetKey as documented will work as expected.
+Base.(==)(b::Bool, a::Action) = b == Integer(a)
 
 @enum Key::Cint begin
 	# Unknown key
