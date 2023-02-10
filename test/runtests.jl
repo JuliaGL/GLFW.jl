@@ -9,6 +9,10 @@ println(GLFW.GetVersionString())
 # GLFWError uses integer for unrecognized error code
 @test isa(GLFW.GLFWError(0xDEADBEEF, "").code, Integer)
 
+# https://github.com/JuliaGL/GLFW.jl/pull/225
+@test GLFW.PRESS == true
+@test GLFW.RELEASE == false
+
 if !haskey(ENV, "CI")  # AppVeyor and Travis CI don't support OpenGL
 	include("windowclose.jl")
 end
