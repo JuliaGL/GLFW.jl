@@ -16,7 +16,8 @@ end
 #
 # This method tells Julia how to compare an Action and a Bool so that code
 # calling GetKey as documented will work as expected.
-Base.(==)(b::Bool, a::Action) = b == Integer(a)
+Base.:(==)(b::Bool, a::Action) = b == Integer(a)
+Base.:(==)(a::Action, b::Bool) = b == a
 
 @enum Key::Cint begin
 	# Unknown key

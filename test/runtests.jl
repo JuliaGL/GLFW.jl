@@ -11,7 +11,9 @@ println(GLFW.GetVersionString())
 
 # https://github.com/JuliaGL/GLFW.jl/pull/225
 @test GLFW.PRESS == true
+@test true == GLFW.PRESS
 @test GLFW.RELEASE == false
+@test false == GLFW.RELEASE
 
 if !haskey(ENV, "CI")  # AppVeyor and Travis CI don't support OpenGL
 	include("windowclose.jl")
