@@ -604,6 +604,9 @@ function WindowHintString(hint::Integer, value::AbstractString)
 	ccall((:glfwWindowHintString, libglfw), Cvoid, (Cint, Cstring), hint, value)
 end
 
+GetWindowUserPointer(window::Window) = ccall((:glfwGetWindowUserPointer, libglfw), Ptr{Cvoid}, (Window,), window)
+SetWindowUserPointer(window::Window, ptr::Ptr{Cvoid}) = ccall((:glfwSetWindowUserPointer, libglfw), Cvoid, (Window, Ptr{Cvoid}), window, ptr)
+
 RequestWindowAttention(window::Window) = ccall((:glfwRequestWindowAttention, libglfw), Cvoid, (Window,), window)
 
 GetWindowOpacity(window::Window) = ccall((:glfwGetWindowOpacity, libglfw), Cfloat, (Window,), window)
