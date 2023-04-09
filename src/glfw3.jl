@@ -508,21 +508,19 @@ WindowHint(target::Integer, hint::Integer) = ccall((:glfwWindowHint, libglfw), C
 
 # Pair window handles with a callback function list
 # to prevent them from being garbage-collected
-const _window_callbacks = Dict{Window, Ref{Vector{Callback}}}()
+const _window_callbacks = Dict{Ptr{Cvoid}, Vector{Callback}}()
 
 function CreateWindow(width::Integer, height::Integer, title::AbstractString, monitor::Monitor=Monitor(C_NULL), share::Window=Window(C_NULL))
 	window = ccall((:glfwCreateWindow, libglfw), Window, (Cint, Cint, Cstring, Monitor, Window), width, height, title, monitor, share)
-	callbacks = Ref{Vector{Callback}}(fill(nothing, _window_callback_num[]))
-	_window_callbacks[window] = callbacks
-	ccall((:glfwSetWindowUserPointer, libglfw), Cvoid, (Window, Ref{Vector{Callback}}), window, callbacks)
+	_window_callbacks[window.handle] = fill(nothing, _window_callback_num[])
 	window
 end
 
-callbacks(window) = ccall((:glfwGetWindowUserPointer, libglfw), Ref{Vector{Callback}}, (Window,), window)
+callbacks(window) = _window_callbacks[window.handle]
 
 function DestroyWindow(window::Window)
 	ccall((:glfwDestroyWindow, libglfw), Cvoid, (Window,), window)
-	delete!(_window_callbacks, window)
+	delete!(_window_callbacks, window.handle)
 end
 
 WindowShouldClose(window::Window) = ccall((:glfwWindowShouldClose, libglfw), Cint, (Window,), window) != 0
