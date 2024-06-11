@@ -1,0 +1,4 @@
+[deps]
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+GLFW = "f7f18e0c-5ee9-5ccd-a5bf-e8befd85ed98"
+LiveServer = "16fef848-5104-11e9-1b77-fb7a48bbb589"

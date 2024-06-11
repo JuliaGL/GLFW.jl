@@ -1,18 +1,18 @@
 # GLFW.jl 
 
 [![CI](https://github.com/JuliaGL/GLFW.jl/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/JuliaGL/GLFW.jl/actions/workflows/ci.yml)
+[![](https://img.shields.io/badge/docs-stable-blue.svg)](https://juliagl.github.io/GLFW.jl/stable)
+[![](https://img.shields.io/badge/docs-dev-blue.svg)](https://juliagl.github.io/GLFW.jl/dev)
 
-
-[Julia][julia] interface to [GLFW 3][glfw], a multi-platform library for creating windows with [OpenGL][opengl] or OpenGL ES contexts and receiving many kinds of input. GLFW has native support for Windows, OS X and many Unix-like systems using the X Window System, such as Linux and FreeBSD.
+This is a[Julia][julia] interface to [GLFW 3][glfw], see the
+[docs](https://juliagl.github.io/GLFW.jl/stable) for more information.
 
 [julia]:  https://julialang.org
 [glfw]:   https://www.glfw.org
 [opengl]: https://wikipedia.org/wiki/OpenGL
 
 
-Example
--------
-
+## Example
 ```julia
 using GLFW
 
@@ -36,19 +36,3 @@ end
 
 GLFW.DestroyWindow(window)
 ```
-
-Interface
----------
-
-Read the [GLFW documentation][docs] for detailed instructions on how to use the library. The Julia interface is almost identical to the underlying C interface, with a few notable differences:
-
-* Clipboard (`glfwGetClipboard`, `glfwSetClipboard`) and time (`glfwGetTime`, `glfwSetTime`) functions have been omitted because Julia's standard library already supports similar functionality.
-* `glfwInit` and `glfwTerminate` are called automatically using the `__init__` and `atexit` functions. While it is okay to still call them explicitly, it is redundant and not required.
-
-[docs]: https://www.glfw.org/docs/latest/
-
-
-Footnotes
----------
-
-* Special thanks to [@afterwise](https://github.com/afterwise) for writing an early implementation of GLFW 3 support.
