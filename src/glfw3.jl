@@ -538,6 +538,8 @@ Set the window icon, where a single image may be passed or a vector of images wi
 The images must be of RGBA format. Before calling this function it might be necessary to reinterpret the image
 as a matrix of element type NTuple{4, UInt8}  if the icons are loaded with type RGBA{N0f8}
 
+Note that this is implemented as a no-op on MacOS since that platform does not have the concept of a window icon.
+
 # Examples
 ```julia-repl
 using FileIO
@@ -550,11 +552,15 @@ GLFW.PollEvents() # needs a poll events to become active
 SetWindowIcon
 
 function SetWindowIcon(window::Window, images::Vector{<:AbstractMatrix{NTuple{4,UInt8}}})
-	ccall((:glfwSetWindowIcon, libglfw), Cvoid, (Window, Cint, Ref{GLFWImage}), window, length(images), images)
+	if !Sys.isapple()
+		ccall((:glfwSetWindowIcon, libglfw), Cvoid, (Window, Cint, Ref{GLFWImage}), window, length(images), images)
+	end
 end
 
 function SetWindowIcon(window::Window, image::AbstractMatrix{NTuple{4,UInt8}})
-	ccall((:glfwSetWindowIcon, libglfw), Cvoid, (Window, Cint, Ref{GLFWImage}), window, 1, image)
+	if !Sys.isapple()
+		ccall((:glfwSetWindowIcon, libglfw), Cvoid, (Window, Cint, Ref{GLFWImage}), window, 1, image)
+	end
 end
 
 function GetWindowPos(window::Window)
