@@ -204,6 +204,16 @@ end
 	NO_WINDOW_CONTEXT      = 0x0001000A  # The specified window does not have an OpenGL or OpenGL ES context.
 end
 
+# Init Hints
+const JOYSTICK_HAT_BUTTONS   = 0x00050001
+const ANGLE_PLATFORM_TYPE    = 0x00050002
+const PLATFORM               = 0x00050003
+const COCOA_CHDIR_RESOURCES  = 0x00051001
+const COCOA_MENUBAR          = 0x00051002
+const X11_XCB_VULKAN_SURFACE = 0x00052001
+const WAYLAND_LIBDECOR       = 0x00053001
+
+# Window Hints
 const FOCUSED                 = 0x00020001
 const ICONIFIED               = 0x00020002
 const RESIZABLE               = 0x00020003
@@ -216,7 +226,17 @@ const CENTER_CURSOR           = 0x00020009
 const TRANSPARENT_FRAMEBUFFER = 0x0002000A
 const HOVERED                 = 0x0002000B
 const FOCUS_ON_SHOW           = 0x0002000C
+const SCALE_TO_MONITOR         = 0x0002200C
+const SCALE_FRAMEBUFFER        = 0x0002200D
+const COCOA_FRAME_NAME         = 0x00023002
+const COCOA_GRAPHICS_SWITCHING = 0x00023003
+const X11_CLASS_NAME           = 0x00024001
+const X11_INSTANCE_NAME        = 0x00024002
+const WIN32_KEYBOARD_MENU      = 0x00025001
+const WIN32_SHOWDEFAULT        = 0x00025002
+const WAYLAND_APP_ID           = 0x00026001
 
+# Framebuffer Hints
 const RED_BITS               = 0x00021001
 const GREEN_BITS             = 0x00021002
 const BLUE_BITS              = 0x00021003
@@ -246,8 +266,6 @@ const CONTEXT_RELEASE_BEHAVIOR = 0x00022009
 const CONTEXT_NO_ERROR       = 0x0002200A
 const CONTEXT_CREATION_API   = 0x0002200B
 
-const SCALE_TO_MONITOR       = 0x0002200C
-
 const OPENGL_API             = 0x00030001
 const OPENGL_ES_API          = 0x00030002
 const NO_API                 =          0
@@ -274,20 +292,52 @@ const RELEASE_BEHAVIOR_NONE  = 0x00035002
 
 const NATIVE_CONTEXT_API     = 0x00036001
 const EGL_CONTEXT_API        = 0x00036002
+const OSMESA_CONTEXT_API     = 0x00036003
+
+@enum AnglePlatform::Cint begin
+	ANGLE_PLATFORM_TYPE_NONE     = 0x00037001
+	ANGLE_PLATFORM_TYPE_OPENGL   = 0x00037002
+	ANGLE_PLATFORM_TYPE_OPENGLES = 0x00037003
+	ANGLE_PLATFORM_TYPE_D3D9     = 0x00037004
+	ANGLE_PLATFORM_TYPE_D3D11    = 0x00037005
+	ANGLE_PLATFORM_TYPE_VULKAN   = 0x00037007
+	ANGLE_PLATFORM_TYPE_METAL    = 0x00037008
+end
+
+@enum WaylandLibdecor::Cint begin
+	WAYLAND_PREFER_LIBDECOR  = 0x00038001
+	WAYLAND_DISABLE_LIBDECOR = 0x00038002
+end
 
 # Standard cursor shapes
 @enum StandardCursorShape::Cint begin
 	ARROW_CURSOR           = 0x00036001
 	IBEAM_CURSOR           = 0x00036002
 	CROSSHAIR_CURSOR       = 0x00036003
-	HAND_CURSOR            = 0x00036004
-	HRESIZE_CURSOR         = 0x00036005
-	VRESIZE_CURSOR         = 0x00036006
+	POINTING_HAND_CURSOR   = 0x00036004
+	RESIZE_EW_CURSOR       = 0x00036005
+	RESIZE_NS_CURSOR       = 0x00036006
+	RESIZE_NWSE_CURSOR     = 0x00036007
+	RESIZE_NESW_CURSOR     = 0x00036008
+	RESIZE_ALL_CURSOR      = 0x00036009
+	NOT_ALLOWED_CURSOR     = 0x0003600A
 end
+const HAND_CURSOR = POINTING_HAND_CURSOR
+const HRESIZE_CURSOR = RESIZE_EW_CURSOR
+const VRESIZE_CURSOR = RESIZE_NS_CURSOR
 
 @enum DeviceConfigEvent::Cint begin
 	CONNECTED              = 0x00040001
 	DISCONNECTED           = 0x00040002
+end
+
+@enum Platform::Cint begin
+	ANY_PLATFORM     = 0x00060000
+	PLATFORM_WIN32   = 0x00060001
+	PLATFORM_COCOA   = 0x00060002
+	PLATFORM_WAYLAND = 0x00060003
+	PLATFORM_X11     = 0x00060004
+	PLATFORM_NULL    = 0x00060005
 end
 
 const DONT_CARE              = -1
@@ -444,7 +494,11 @@ const INITIALIZED = Ref(false)
 is_initialized() = INITIALIZED[]
 
 # Initialization and version information
-function Init()
+InitHint(hint, value) = ccall((:glfwInitHint, libglfw), Cvoid, (Cint, Cint), hint, value)
+
+function Init(; platform::Platform = @static Sys.islinux() ? PLATFORM_X11 : ANY_PLATFORM)
+	# TODO: Resolve why trying Wayland backend causes errors
+	InitHint(PLATFORM, platform)
 	INITIALIZED[] = Bool(ccall((:glfwInit, libglfw), Cint, ())) || error("glfwInit failed")
 end
 
@@ -454,6 +508,9 @@ function Terminate()
 end
 
 GetVersionString() = unsafe_string(ccall((:glfwGetVersionString, libglfw), Cstring, ()))
+
+GetPlatform() = ccall((:glfwGetPlatform, libglfw), Platform, ())
+PlatformSupported(platform::Platform) = ccall((:glfwPlatformSupported, libglfw), Cint, (Platform,), platform) == 1
 
 # Error handling
 @callback Error(code::Cint, description::Cstring) -> (GLFWError(code, unsafe_string(description)),)
@@ -538,7 +595,7 @@ Set the window icon, where a single image may be passed or a vector of images wi
 The images must be of RGBA format. Before calling this function it might be necessary to reinterpret the image
 as a matrix of element type NTuple{4, UInt8}  if the icons are loaded with type RGBA{N0f8}
 
-Note that this is implemented as a no-op on MacOS since that platform does not have the concept of a window icon.
+This is implemented as a no-op on MacOS and Wayland.
 
 # Examples
 ```julia-repl
@@ -552,15 +609,19 @@ GLFW.PollEvents() # needs a poll events to become active
 SetWindowIcon
 
 function SetWindowIcon(window::Window, images::Vector{<:AbstractMatrix{NTuple{4,UInt8}}})
-	if !Sys.isapple()
-		ccall((:glfwSetWindowIcon, libglfw), Cvoid, (Window, Cint, Ref{GLFWImage}), window, length(images), images)
+	platform = GetPlatform()
+	if platform == PLATFORM_WAYLAND || platform == PLATFORM_COCOA
+		return
 	end
+	ccall((:glfwSetWindowIcon, libglfw), Cvoid, (Window, Cint, Ref{GLFWImage}), window, length(images), images)
 end
 
 function SetWindowIcon(window::Window, image::AbstractMatrix{NTuple{4,UInt8}})
-	if !Sys.isapple()
-		ccall((:glfwSetWindowIcon, libglfw), Cvoid, (Window, Cint, Ref{GLFWImage}), window, 1, image)
+	platform = GetPlatform()
+	if platform == PLATFORM_WAYLAND || platform == PLATFORM_COCOA
+		return
 	end
+	ccall((:glfwSetWindowIcon, libglfw), Cvoid, (Window, Cint, Ref{GLFWImage}), window, 1, image)
 end
 
 function GetWindowPos(window::Window)
