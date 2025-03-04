@@ -18,10 +18,13 @@ function Base.showerror(io::IO, e::ThreadAssertionError)
 	print(io, "ThreadAssertionError: Code must run on thread $(e.target_thread) but ran on thread $(e.current_thread).")
 end
 
-# mac/cocoa requires window events to be passed through the main thread
-# because of this most GLFW functions should be called from the main thread
+const ENABLE_THREAD_ASSERTIONS = Ref(get(ENV, "GLFW_ENABLE_THREAD_ASSERTIONS", "true") == "true")
+
+# The GLFW docs notes on most function that they should only be called from the main thread
 function require_main_thread()
-	Threads.threadid() == 1 || throw(ThreadAssertionError(1))
+	if ENABLE_THREAD_ASSERTIONS[] && Threads.threadid() != 1
+		throw(ThreadAssertionError(1))
+	end
 	return
 end
 
