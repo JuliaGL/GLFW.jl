@@ -17,7 +17,7 @@ end
     VulkanSupported()
 Return whether the Vulkan loader has been found.
 """
-VulkanSupported() = Bool(ccall((:glfwVulkanSupported, libglfw), Cint, ()))
+VulkanSupported() = Bool(ccall((:glfwVulkanSupported, libglfw), Cint, ())) # any thread
 
 """
     GetRequiredInstanceExtensions() -> Vector{String}
@@ -34,7 +34,7 @@ end
 Return a Cstring pointer that can be directly passed to `VkInstanceCreateInfo`.
 """
 function GetRequiredInstanceExtensions(count::Ref)
-    ptr = ccall((:glfwGetRequiredInstanceExtensions, libglfw), Ptr{Cstring}, (Ref{Cuint},), count)
+    ptr = ccall((:glfwGetRequiredInstanceExtensions, libglfw), Ptr{Cstring}, (Ref{Cuint},), count) # any thread
 end
 
 """
@@ -42,19 +42,26 @@ end
 Return the address of the specified Vulkan core or extension function for the specified instance.
 `funcptr` can be used directly as the first argument of `ccall`: ccall(funcptr, ...).
 """
-GetInstanceProcAddress(instance, procname) = ccall((:glfwGetInstanceProcAddress, libglfw), Ptr{Cvoid}, (VkInstance, Cstring), instance, procname)
+function GetInstanceProcAddress(instance, procname)
+    # any thread
+    ccall((:glfwGetInstanceProcAddress, libglfw), Ptr{Cvoid}, (VkInstance, Cstring), instance, procname)
+end
 
 """
     GetPhysicalDevicePresentationSupport(instance, device, queuefamily)
 Return whether the specified queue family of the specified physical device supports presentation to the platform GLFW was built for.
 """
-GetPhysicalDevicePresentationSupport(instance, device, queuefamily) = Bool(ccall((:glfwGetPhysicalDevicePresentationSupport, libglfw), Cint, (VkInstance, VkPhysicalDevice, Cuint), instance, device, queuefamily))
+function GetPhysicalDevicePresentationSupport(instance, device, queuefamily)
+    # any thread
+    Bool(ccall((:glfwGetPhysicalDevicePresentationSupport, libglfw), Cint, (VkInstance, VkPhysicalDevice, Cuint), instance, device, queuefamily))
+end
 
 """
     CreateWindowSurface(instance, window, allocator=C_NULL)
 Create a Vulkan surface for the specified window.
 """
 function CreateWindowSurface(instance, window, allocator=C_NULL)
+    # any thread
     surface = Ref{VkSurfaceKHR}(C_NULL)
     ccall((:glfwCreateWindowSurface, libglfw), VkResult, (VkInstance, Window, Ptr{VkAllocationCallbacks}, Ref{VkSurfaceKHR}), instance, window, allocator, surface)
     return surface[]
