@@ -494,55 +494,62 @@ const INITIALIZED = Ref(false)
 is_initialized() = INITIALIZED[]
 
 # Initialization and version information
-InitHint(hint, value) = ccall((:glfwInitHint, libglfw), Cvoid, (Cint, Cint), hint, value)
+InitHint(hint, value) = @require_main_thread ccall((:glfwInitHint, libglfw), Cvoid, (Cint, Cint), hint, value)
 
 function Init(; platform::Platform = @static Sys.islinux() ? PLATFORM_X11 : ANY_PLATFORM)
+	require_main_thread()
 	# TODO: Resolve why trying Wayland backend causes errors
 	InitHint(PLATFORM, platform)
 	INITIALIZED[] = Bool(ccall((:glfwInit, libglfw), Cint, ())) || error("glfwInit failed")
 end
 
 function Terminate()
+	require_main_thread()
 	INITIALIZED[] = false
 	ccall((:glfwTerminate, libglfw), Cvoid, ())
 end
 
-GetVersionString() = unsafe_string(ccall((:glfwGetVersionString, libglfw), Cstring, ()))
+GetVersionString() = unsafe_string(ccall((:glfwGetVersionString, libglfw), Cstring, ())) # any thread
 
-GetPlatform() = ccall((:glfwGetPlatform, libglfw), Platform, ())
-PlatformSupported(platform::Platform) = ccall((:glfwPlatformSupported, libglfw), Cint, (Platform,), platform) == 1
+GetPlatform() = ccall((:glfwGetPlatform, libglfw), Platform, ()) # any thread
+PlatformSupported(platform::Platform) = ccall((:glfwPlatformSupported, libglfw), Cint, (Platform,), platform) == 1 # any thread
 
 # Error handling
 @callback Error(code::Cint, description::Cstring) -> (GLFWError(code, unsafe_string(description)),)
 
 # Monitor handling
 function GetMonitors()
+	require_main_thread()
 	count = Ref{Cint}()
 	ptr = ccall((:glfwGetMonitors, libglfw), Ptr{Monitor}, (Ref{Cint},), count)
 	unsafe_wrap(Array, ptr, count[])
 end
 
-GetPrimaryMonitor() = ccall((:glfwGetPrimaryMonitor, libglfw), Monitor, ())
+GetPrimaryMonitor() = @require_main_thread ccall((:glfwGetPrimaryMonitor, libglfw), Monitor, ())
 
 function GetMonitorPos(monitor::Monitor)
+	require_main_thread()
 	x, y = Ref{Cint}(), Ref{Cint}()
 	ccall((:glfwGetMonitorPos, libglfw), Cvoid, (Monitor, Ref{Cint}, Ref{Cint}), monitor, x, y)
 	(x=x[], y=y[])
 end
 
 function GetMonitorPhysicalSize(monitor::Monitor)
+	require_main_thread()
 	width, height = Ref{Cint}(), Ref{Cint}()
 	ccall((:glfwGetMonitorPhysicalSize, libglfw), Cvoid, (Monitor, Ref{Cint}, Ref{Cint}), monitor, width, height)
 	(width=width[], height=height[])
 end
 
 function GetMonitorContentScale(monitor::Monitor)
+	require_main_thread()
 	xscale, yscale = Ref{Cfloat}(), Ref{Cfloat}()
 	ccall((:glfwGetMonitorContentScale, libglfw), Cvoid, (Monitor, Ref{Cfloat}, Ref{Cfloat}), monitor, xscale, yscale)
 	(xscale=xscale[], yscale=yscale[])
 end
 
 function GetMonitorName(monitor::Monitor)
+	require_main_thread()
 	ptr = ccall((:glfwGetMonitorName, libglfw), Cstring, (Monitor,), monitor)
 	ptr == C_NULL && return ""
 	return unsafe_string(ptr)
@@ -551,40 +558,45 @@ end
 @callback Monitor(monitor::Monitor, event::DeviceConfigEvent)
 
 function GetVideoModes(monitor::Monitor)
+	require_main_thread()
 	count = Ref{Cint}()
 	ptr = ccall((:glfwGetVideoModes, libglfw), Ptr{VidMode}, (Monitor, Ref{Cint}), monitor, count)
 	unsafe_wrap(Array, ptr, count[])
 end
 
-GetVideoMode(monitor::Monitor) = unsafe_load(ccall((:glfwGetVideoMode, libglfw), Ptr{VidMode}, (Monitor,), monitor))
-SetGamma(monitor::Monitor, gamma::Real) = ccall((:glfwSetGamma, libglfw), Cvoid, (Monitor, Cfloat), monitor, gamma)
+GetVideoMode(monitor::Monitor) = @require_main_thread unsafe_load(ccall((:glfwGetVideoMode, libglfw), Ptr{VidMode}, (Monitor,), monitor))
+SetGamma(monitor::Monitor, gamma::Real) = @require_main_thread ccall((:glfwSetGamma, libglfw), Cvoid, (Monitor, Cfloat), monitor, gamma)
 
 # Window handling
-DefaultWindowHints() = ccall((:glfwDefaultWindowHints, libglfw), Cvoid, ())
-WindowHint(target::Integer, hint::Integer) = ccall((:glfwWindowHint, libglfw), Cvoid, (Cint, Cint), target, hint)
+DefaultWindowHints() = @require_main_thread ccall((:glfwDefaultWindowHints, libglfw), Cvoid, ())
+WindowHint(target::Integer, hint::Integer) = @require_main_thread ccall((:glfwWindowHint, libglfw), Cvoid, (Cint, Cint), target, hint)
 
 # Pair window handles with a callback function list
 # to prevent them from being garbage-collected
 const _window_callbacks = Dict{Window, Ref{Vector{Callback}}}()
 
 function CreateWindow(width::Integer, height::Integer, title::AbstractString, monitor::Monitor=Monitor(C_NULL), share::Window=Window(C_NULL))
+	require_main_thread()
 	window = ccall((:glfwCreateWindow, libglfw), Window, (Cint, Cint, Cstring, Monitor, Window), width, height, title, monitor, share)
 	callbacks = Ref{Vector{Callback}}(fill(nothing, _window_callback_num[]))
 	_window_callbacks[window] = callbacks
-	ccall((:glfwSetWindowUserPointer, libglfw), Cvoid, (Window, Ref{Vector{Callback}}), window, callbacks)
+	ccall((:glfwSetWindowUserPointer, libglfw), Cvoid, (Window, Ref{Vector{Callback}}), window, callbacks) # any thread valid
 	window
 end
 
-callbacks(window) = ccall((:glfwGetWindowUserPointer, libglfw), Ref{Vector{Callback}}, (Window,), window)
+callbacks(window) = ccall((:glfwGetWindowUserPointer, libglfw), Ref{Vector{Callback}}, (Window,), window) # any thread valid
 
 function DestroyWindow(window::Window)
+	require_main_thread()
 	ccall((:glfwDestroyWindow, libglfw), Cvoid, (Window,), window)
 	delete!(_window_callbacks, window)
 end
 
+# any thread valid
 WindowShouldClose(window::Window) = ccall((:glfwWindowShouldClose, libglfw), Cint, (Window,), window) != 0
 SetWindowShouldClose(window::Window, value::Bool) = ccall((:glfwSetWindowShouldClose, libglfw), Cvoid, (Window, Cint), window, value)
-SetWindowTitle(window::Window, title::AbstractString) = ccall((:glfwSetWindowTitle, libglfw), Cvoid, (Window, Cstring), window, title)
+
+SetWindowTitle(window::Window, title::AbstractString) = @require_main_thread ccall((:glfwSetWindowTitle, libglfw), Cvoid, (Window, Cstring), window, title)
 
 """
     GLFW.SetWindowIcon(window::Window, image::Matrix{NTuple{4, UInt8}})
@@ -613,6 +625,7 @@ function SetWindowIcon(window::Window, images::Vector{<:AbstractMatrix{NTuple{4,
 	if platform == PLATFORM_WAYLAND || platform == PLATFORM_COCOA
 		return
 	end
+	require_main_thread()
 	ccall((:glfwSetWindowIcon, libglfw), Cvoid, (Window, Cint, Ref{GLFWImage}), window, length(images), images)
 end
 
@@ -621,75 +634,106 @@ function SetWindowIcon(window::Window, image::AbstractMatrix{NTuple{4,UInt8}})
 	if platform == PLATFORM_WAYLAND || platform == PLATFORM_COCOA
 		return
 	end
+	require_main_thread()
 	ccall((:glfwSetWindowIcon, libglfw), Cvoid, (Window, Cint, Ref{GLFWImage}), window, 1, image)
 end
 
 function GetWindowPos(window::Window)
+	require_main_thread()
 	x, y = Ref{Cint}(), Ref{Cint}()
 	ccall((:glfwGetWindowPos, libglfw), Cvoid, (Window, Ref{Cint}, Ref{Cint}), window, x, y)
 	(x=x[], y=y[])
 end
 
-SetWindowPos(window::Window, x::Integer, y::Integer) = ccall((:glfwSetWindowPos, libglfw), Cvoid, (Window, Cint, Cint), window, x, y)
+function SetWindowPos(window::Window, x::Integer, y::Integer)
+	require_main_thread()
+	ccall((:glfwSetWindowPos, libglfw), Cvoid, (Window, Cint, Cint), window, x, y)
+end
 
 function GetWindowSize(window::Window)
+	require_main_thread()
 	width, height = Ref{Cint}(), Ref{Cint}()
 	ccall((:glfwGetWindowSize, libglfw), Cvoid, (Window, Ref{Cint}, Ref{Cint}), window, width, height)
 	(width=width[], height=height[])
 end
 
-SetWindowSizeLimits(window, minwidth, minheight, maxwidth, maxheight) = ccall((:glfwSetWindowSizeLimits, libglfw),
-	Cvoid, (Window, Cint, Cint, Cint, Cint), window, minwidth, minheight, maxwidth, maxheight)
-SetWindowAspectRatio(window, numer, denom) = ccall((:glfwSetWindowAspectRatio, libglfw),
-	Cvoid, (Window, Cint, Cint), window, numer, denom)
+function SetWindowSizeLimits(window, minwidth, minheight, maxwidth, maxheight)
+	require_main_thread()
+	ccall((:glfwSetWindowSizeLimits, libglfw), Cvoid, (Window, Cint, Cint, Cint, Cint), window, minwidth, minheight, maxwidth, maxheight)
+end
+
+function SetWindowAspectRatio(window, numer, denom)
+	require_main_thread()
+	ccall((:glfwSetWindowAspectRatio, libglfw), Cvoid, (Window, Cint, Cint), window, numer, denom)
+end
+
 SetWindowAspectRatio(window, r::Rational) = SetWindowAspectRatio(window, r.num, r.den)
-SetWindowSize(window::Window, width::Integer, height::Integer) = ccall((:glfwSetWindowSize, libglfw), Cvoid, (Window, Cint, Cint), window, width, height)
+
+function SetWindowSize(window::Window, width::Integer, height::Integer)
+	require_main_thread()
+	ccall((:glfwSetWindowSize, libglfw), Cvoid, (Window, Cint, Cint), window, width, height)
+end
 
 function GetFramebufferSize(window::Window)
+	require_main_thread()
 	width, height = Ref{Cint}(), Ref{Cint}()
 	ccall((:glfwGetFramebufferSize, libglfw), Cvoid, (Window, Ref{Cint}, Ref{Cint}), window, width, height)
 	(width=width[], height=height[])
 end
 
 function GetWindowFrameSize(window::Window)
+	require_main_thread()
 	left, top, right, bottom = Ref{Cint}(), Ref{Cint}(), Ref{Cint}(), Ref{Cint}()
 	ccall((:glfwGetWindowFrameSize, libglfw), Cvoid, (Window, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}), window, left, top, right, bottom)
 	(left=left[], top=top[], right=right[], bottom=bottom[])
 end
 
 function GetWindowContentScale(window::Window)
+	require_main_thread()
 	xscale, yscale = Ref{Cfloat}(), Ref{Cfloat}()
 	ccall((:glfwGetWindowContentScale, libglfw), Cvoid, (Window, Ref{Cfloat}, Ref{Cfloat}), window, xscale, yscale)
 	(xscale=xscale[], yscale=yscale[])
 end
 
-GetWindowAttrib(window::Window, attrib::Integer) = ccall((:glfwGetWindowAttrib, libglfw), Cint, (Window, Cint), window, attrib)
+function GetWindowAttrib(window::Window, attrib::Integer)
+	require_main_thread()
+	ccall((:glfwGetWindowAttrib, libglfw), Cint, (Window, Cint), window, attrib)
+end
 
 function SetWindowAttrib(window::Window, attrib::Integer, value::Integer)
+	require_main_thread()
 	ccall((:glfwSetWindowAttrib, libglfw), Cvoid, (Window, Cint, Cint), window, attrib, value)
 end
 
 function WindowHintString(hint::Integer, value::AbstractString)
+	require_main_thread()
 	ccall((:glfwWindowHintString, libglfw), Cvoid, (Cint, Cstring), hint, value)
 end
 
-RequestWindowAttention(window::Window) = ccall((:glfwRequestWindowAttention, libglfw), Cvoid, (Window,), window)
+RequestWindowAttention(window::Window) = @require_main_thread ccall((:glfwRequestWindowAttention, libglfw), Cvoid, (Window,), window)
 
-GetWindowOpacity(window::Window) = ccall((:glfwGetWindowOpacity, libglfw), Cfloat, (Window,), window)
-SetWindowOpacity(window::Window, opacity::AbstractFloat) = ccall((:glfwSetWindowOpacity, libglfw), Cvoid, (Window, Cfloat), window, opacity)
+GetWindowOpacity(window::Window) = @require_main_thread ccall((:glfwGetWindowOpacity, libglfw), Cfloat, (Window,), window)
+function SetWindowOpacity(window::Window, opacity::AbstractFloat)
+	require_main_thread()
+	ccall((:glfwSetWindowOpacity, libglfw), Cvoid, (Window, Cfloat), window, opacity)
+end
 
 
-IconifyWindow(window::Window) = ccall((:glfwIconifyWindow, libglfw), Cvoid, (Window,), window)
-RestoreWindow(window::Window) = ccall((:glfwRestoreWindow, libglfw), Cvoid, (Window,), window)
-MaximizeWindow(window) = ccall((:glfwMaximizeWindow, libglfw), Cvoid, (Window,), window)
-ShowWindow(window::Window) = ccall((:glfwShowWindow, libglfw), Cvoid, (Window,), window)
-HideWindow(window::Window) = ccall((:glfwHideWindow, libglfw), Cvoid, (Window,), window)
-GetWindowMonitor(window::Window) = ccall((:glfwGetWindowMonitor, libglfw), Monitor, (Window,), window)
+IconifyWindow(window::Window) = @require_main_thread ccall((:glfwIconifyWindow, libglfw), Cvoid, (Window,), window)
+RestoreWindow(window::Window) = @require_main_thread ccall((:glfwRestoreWindow, libglfw), Cvoid, (Window,), window)
+MaximizeWindow(window) = @require_main_thread ccall((:glfwMaximizeWindow, libglfw), Cvoid, (Window,), window)
+ShowWindow(window::Window) = @require_main_thread ccall((:glfwShowWindow, libglfw), Cvoid, (Window,), window)
+HideWindow(window::Window) = @require_main_thread ccall((:glfwHideWindow, libglfw), Cvoid, (Window,), window)
+GetWindowMonitor(window::Window) = @require_main_thread ccall((:glfwGetWindowMonitor, libglfw), Monitor, (Window,), window)
 # TODO: Add SetWindowMonitor variants:
 # - Monitor with video mode
 # - Nothing with size and position
-SetWindowMonitor(window, monitor, xpos, ypos, width, height, refreshRate) = ccall((:glfwSetWindowMonitor, libglfw),
-	Cvoid, (Window, Monitor, Cint, Cint, Cint, Cint, Cint), window, monitor, xpos, ypos, width, height, refreshRate)
+function SetWindowMonitor(window, monitor, xpos, ypos, width, height, refreshRate)
+	require_main_thread()
+	ccall((:glfwSetWindowMonitor, libglfw),	Cvoid, (Window, Monitor, Cint, Cint, Cint, Cint, Cint),
+		window, monitor, xpos, ypos, width, height, refreshRate)
+end
+
 @windowcallback WindowPos(window::Window, x::Cint, y::Cint)
 @windowcallback WindowSize(window::Window, width::Cint, height::Cint)
 @windowcallback WindowClose(window::Window)
@@ -699,13 +743,15 @@ SetWindowMonitor(window, monitor, xpos, ypos, width, height, refreshRate) = ccal
 @windowcallback FramebufferSize(window::Window, width::Cint, height::Cint)
 @windowcallback WindowContentScale(window::Window, xscale::Cfloat, yscale::Cfloat)
 @windowcallback WindowMaximize(window::Window, maximized::Cint) -> (window, Bool(maximized))
-PollEvents() = ccall((:glfwPollEvents, libglfw), Cvoid, ())
-WaitEvents() = ccall((:glfwWaitEvents, libglfw), Cvoid, ())
-WaitEvents(timeout) = ccall((:glfwWaitEventsTimeout, libglfw), Cvoid, (Cdouble,), timeout)
-PostEmptyEvent() = ccall((:glfwPostEmptyEvent, libglfw), Cvoid, ())
+
+PollEvents() = @require_main_thread ccall((:glfwPollEvents, libglfw), Cvoid, ())
+WaitEvents() = @require_main_thread ccall((:glfwWaitEvents, libglfw), Cvoid, ())
+WaitEvents(timeout) = @require_main_thread ccall((:glfwWaitEventsTimeout, libglfw), Cvoid, (Cdouble,), timeout)
+PostEmptyEvent() = ccall((:glfwPostEmptyEvent, libglfw), Cvoid, ()) # any thread valid
 
 # Input handling
 function GetInputMode(window::Window, mode::Integer)
+	require_main_thread()
 	value = ccall((:glfwGetInputMode, libglfw), Cint, (Window, Cint), window, mode)
 	if mode in (STICKY_KEYS, STICKY_MOUSE_BUTTONS)
 		value = Bool(value)
@@ -713,41 +759,47 @@ function GetInputMode(window::Window, mode::Integer)
 	value
 end
 
-SetInputMode(window::Window, mode::Integer, value::Integer) = ccall((:glfwSetInputMode, libglfw), Cvoid, (Window, Cint, Cint), window, mode, value)
+function SetInputMode(window::Window, mode::Integer, value::Integer)
+	require_main_thread()
+	ccall((:glfwSetInputMode, libglfw), Cvoid, (Window, Cint, Cint), window, mode, value)
+end
 
 function GetKeyName(key, scancode=0)
+	require_main_thread()
 	ptr = ccall((:glfwGetKeyName, libglfw), Cstring, (Cint, Cint), key, scancode)
 	if ptr != C_NULL
 		unsafe_string(ptr)
 	end
 end
 
-GetKey(window::Window, key) = Bool(ccall((:glfwGetKey, libglfw), Cint, (Window, Cint), window, key))
-GetMouseButton(window::Window, button) = Bool(ccall((:glfwGetMouseButton, libglfw), Cint, (Window, Cint), window, button))
+GetKey(window::Window, key) = @require_main_thread Bool(ccall((:glfwGetKey, libglfw), Cint, (Window, Cint), window, key))
+GetMouseButton(window::Window, button) = @require_main_thread Bool(ccall((:glfwGetMouseButton, libglfw), Cint, (Window, Cint), window, button))
 
 function GetCursorPos(window::Window)
+	require_main_thread()
 	x, y = Ref{Cdouble}(), Ref{Cdouble}()
 	ccall((:glfwGetCursorPos, libglfw), Cvoid, (Window, Ref{Cdouble}, Ref{Cdouble}), window, x, y)
 	(x=x[], y=y[])
 end
 
-SetCursorPos(window::Window, x::Real, y::Real) = ccall((:glfwSetCursorPos, libglfw), Cvoid, (Window, Cdouble, Cdouble), window, x, y)
-# TODO: Add glfwCreateCursor
-CreateStandardCursor(shape::StandardCursorShape) = ccall((:glfwCreateStandardCursor, libglfw), Cursor, (Cint,), shape)
-DestroyCursor(cursor::Cursor) = ccall((:glfwDestroyCursor, libglfw), Cvoid, (Cursor,), cursor)
-SetCursor(window::Window, cursor::Cursor) = ccall((:glfwSetCursor, libglfw), Cvoid, (Window, Cursor), window, cursor)
+SetCursorPos(window::Window, x::Real, y::Real) = @require_main_thread ccall((:glfwSetCursorPos, libglfw), Cvoid, (Window, Cdouble, Cdouble), window, x, y)
+# TODO: Add glfwCreateCursor (requires main thread)
+CreateStandardCursor(shape::StandardCursorShape) = @require_main_thread ccall((:glfwCreateStandardCursor, libglfw), Cursor, (Cint,), shape)
+DestroyCursor(cursor::Cursor) = @require_main_thread ccall((:glfwDestroyCursor, libglfw), Cvoid, (Cursor,), cursor)
+SetCursor(window::Window, cursor::Cursor) = @require_main_thread ccall((:glfwSetCursor, libglfw), Cvoid, (Window, Cursor), window, cursor)
 SetCursor(window::Window, ::Nothing) = SetCursor(window, Cursor(C_NULL))
 @windowcallback Key(window::Window, key::Key, scancode::Cint, action::Action, mods::Cint)
 @windowcallback Char(window::Window, codepoint::Cuint) -> (window, convert(Char, codepoint))
-@windowcallback CharMods(window::Window, codepoint::Cuint, mods::Cint) -> (window, convert(Char, codepoint), mods)
+@windowcallback CharMods(window::Window, codepoint::Cuint, mods::Cint) -> (window, convert(Char, codepoint), mods) # to be removed in GLFW 4.0
 @windowcallback MouseButton(window::Window, button::MouseButton, action::Action, mods::Cint)
 @windowcallback CursorPos(window::Window, x::Cdouble, y::Cdouble)
 @windowcallback CursorEnter(window::Window, entered::Cint) -> (window, Bool(entered))
 @windowcallback Scroll(window::Window, xoffset::Cdouble, yoffset::Cdouble)
 @windowcallback Drop(window::Window, count::Cint, paths::Ptr{Cstring}) -> (window, map(unsafe_string, unsafe_wrap(Array, paths, count)))
-JoystickPresent(joy::Joystick) = Bool(ccall((:glfwJoystickPresent, libglfw), Cint, (Cint,), joy))
+JoystickPresent(joy::Joystick) = @require_main_thread Bool(ccall((:glfwJoystickPresent, libglfw), Cint, (Cint,), joy))
 
 function GetJoystickAxes(joy::Joystick)
+	require_main_thread()
 	count = Ref{Cint}()
 	ptr = ccall((:glfwGetJoystickAxes, libglfw), Ptr{Cfloat}, (Cint, Ref{Cint}), joy, count)
 	if ptr != C_NULL
@@ -756,6 +808,7 @@ function GetJoystickAxes(joy::Joystick)
 end
 
 function GetJoystickButtons(joy::Joystick)
+	require_main_thread()
 	count = Ref{Cint}()
 	ptr = ccall((:glfwGetJoystickButtons, libglfw), Ptr{Cuchar}, (Cint, Ref{Cint}), joy, count)
 	if ptr != C_NULL
@@ -764,6 +817,7 @@ function GetJoystickButtons(joy::Joystick)
 end
 
 function GetJoystickName(joy::Joystick)
+	require_main_thread()
 	ptr = ccall((:glfwGetJoystickName, libglfw), Cstring, (Cint,), joy)
 	if ptr != C_NULL
 		unsafe_string(ptr)
@@ -773,12 +827,12 @@ end
 @callback Joystick(joy::Joystick, event::DeviceConfigEvent)
 
 # Context handling
-MakeContextCurrent(window::Window) = ccall((:glfwMakeContextCurrent, libglfw), Cvoid, (Window,), window)
-GetCurrentContext() = Base.cconvert(Window, ccall((:glfwGetCurrentContext, libglfw), Window, ()))
-SwapBuffers(window::Window) = ccall((:glfwSwapBuffers, libglfw), Cvoid, (Window,), window)
-SwapInterval(interval::Integer) = ccall((:glfwSwapInterval, libglfw), Cvoid, (Cint,), interval)
-ExtensionSupported(extension::AbstractString) = Bool(ccall((:glfwExtensionSupported, libglfw), Cint, (Cstring,), extension))
-GetProcAddress(procname::AbstractString) = ccall((:glfwGetProcAddress, libglfw), Ptr{Cvoid}, (Cstring,), procname)
+MakeContextCurrent(window::Window) = ccall((:glfwMakeContextCurrent, libglfw), Cvoid, (Window,), window) # any thread
+GetCurrentContext() = Base.cconvert(Window, ccall((:glfwGetCurrentContext, libglfw), Window, ())) # any thread
+SwapBuffers(window::Window) = ccall((:glfwSwapBuffers, libglfw), Cvoid, (Window,), window) # any thread according to GLFW docs
+SwapInterval(interval::Integer) = ccall((:glfwSwapInterval, libglfw), Cvoid, (Cint,), interval) # any thread
+ExtensionSupported(extension::AbstractString) = Bool(ccall((:glfwExtensionSupported, libglfw), Cint, (Cstring,), extension)) # any thread
+GetProcAddress(procname::AbstractString) = ccall((:glfwGetProcAddress, libglfw), Ptr{Cvoid}, (Cstring,), procname) # any thread
 
 #came from GLWindow/core.jl
 """

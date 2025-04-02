@@ -1,4 +1,4 @@
-# GLFW.jl 
+# GLFW.jl
 
 [![CI](https://github.com/JuliaGL/GLFW.jl/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/JuliaGL/GLFW.jl/actions/workflows/ci.yml)
 
@@ -44,6 +44,7 @@ Read the [GLFW documentation][docs] for detailed instructions on how to use the 
 
 * Clipboard (`glfwGetClipboard`, `glfwSetClipboard`) and time (`glfwGetTime`, `glfwSetTime`) functions have been omitted because Julia's standard library already supports similar functionality.
 * `glfwInit` and `glfwTerminate` are called automatically using the `__init__` and `atexit` functions. While it is okay to still call them explicitly, it is redundant and not required.
+* Thread restrictions are explicitly checked and throw errors when they are not respected. This can be turned off by setting `GLFW.ENABLE_THREAD_ASSERTIONS[] = false` or by setting an environment variable of the same name.
 
 [docs]: https://www.glfw.org/docs/latest/
 
