@@ -783,7 +783,12 @@ function GetCursorPos(window::Window)
 end
 
 SetCursorPos(window::Window, x::Real, y::Real) = @require_main_thread ccall((:glfwSetCursorPos, libglfw), Cvoid, (Window, Cdouble, Cdouble), window, x, y)
-# TODO: Add glfwCreateCursor (requires main thread)
+
+function CreateCursor(image::AbstractMatrix{NTuple{4,UInt8}}, hotspot)
+	require_main_thread()
+  ccall((:glfwCreateCursor, libglfw), Cursor, (Ref{GLFWImage}, Cint, Cint), image, hotspot[1], hotspot[2])
+end
+
 CreateStandardCursor(shape::StandardCursorShape) = @require_main_thread ccall((:glfwCreateStandardCursor, libglfw), Cursor, (Cint,), shape)
 DestroyCursor(cursor::Cursor) = @require_main_thread ccall((:glfwDestroyCursor, libglfw), Cvoid, (Cursor,), cursor)
 SetCursor(window::Window, cursor::Cursor) = @require_main_thread ccall((:glfwSetCursor, libglfw), Cvoid, (Window, Cursor), window, cursor)
