@@ -638,6 +638,12 @@ function SetWindowIcon(window::Window, image::AbstractMatrix{NTuple{4,UInt8}})
 	ccall((:glfwSetWindowIcon, libglfw), Cvoid, (Window, Cint, Ref{GLFWImage}), window, 1, image)
 end
 
+function GetWin32Window(window::Window)
+	require_main_thread()
+	HWND = ccall((:glfwGetWin32Window, libglfw),  Ptr{Cvoid}, (Window,), window)
+	return HWND
+end
+
 function GetWindowPos(window::Window)
 	require_main_thread()
 	x, y = Ref{Cint}(), Ref{Cint}()
