@@ -496,9 +496,12 @@ is_initialized() = INITIALIZED[]
 # Initialization and version information
 InitHint(hint, value) = @require_main_thread ccall((:glfwInitHint, libglfw), Cvoid, (Cint, Cint), hint, value)
 
-function Init(; platform::Platform = @static Sys.islinux() ? PLATFORM_X11 : ANY_PLATFORM)
+function Init()
 	require_main_thread()
-	# TODO: Resolve why trying Wayland backend causes errors
+	platform::Platform = ANY_PLATFORM
+	if Sys.islinux()
+		platform = ENV["XDG_SESSION_TYPE"] == "wayland" ? PLATFORM_WAYLAND : PLATFORM_X11
+	end
 	InitHint(PLATFORM, platform)
 	INITIALIZED[] = Bool(ccall((:glfwInit, libglfw), Cint, ())) || error("glfwInit failed")
 end
