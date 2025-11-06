@@ -500,7 +500,11 @@ function Init()
 	require_main_thread()
 	platform::Platform = ANY_PLATFORM
 	if Sys.islinux()
-		platform = ENV["XDG_SESSION_TYPE"] == "wayland" ? PLATFORM_WAYLAND : PLATFORM_X11
+		if haskey(ENV, "XDG_SESSION_TYPE")
+			platform = ENV["XDG_SESSION_TYPE"] == "wayland" ? PLATFORM_WAYLAND : PLATFORM_X11
+		else
+			platform = PLATFORM_X11
+		end
 	end
 	InitHint(PLATFORM, platform)
 	INITIALIZED[] = Bool(ccall((:glfwInit, libglfw), Cint, ())) || error("glfwInit failed")
