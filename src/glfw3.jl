@@ -496,16 +496,8 @@ is_initialized() = INITIALIZED[]
 # Initialization and version information
 InitHint(hint, value) = @require_main_thread ccall((:glfwInitHint, libglfw), Cvoid, (Cint, Cint), hint, value)
 
-function Init()
+function Init(; platform::Platform = ANY_PLATFORM)
 	require_main_thread()
-	platform::Platform = ANY_PLATFORM
-	if Sys.islinux()
-		if haskey(ENV, "XDG_SESSION_TYPE")
-			platform = ENV["XDG_SESSION_TYPE"] == "wayland" ? PLATFORM_WAYLAND : PLATFORM_X11
-		else
-			platform = PLATFORM_X11
-		end
-	end
 	InitHint(PLATFORM, platform)
 	INITIALIZED[] = Bool(ccall((:glfwInit, libglfw), Cint, ())) || error("glfwInit failed")
 end
