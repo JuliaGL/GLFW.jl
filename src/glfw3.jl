@@ -498,9 +498,29 @@ InitHint(hint, value) = @require_main_thread ccall((:glfwInitHint, libglfw), Cvo
 
 function Init(; platform::Platform = @static Sys.islinux() ? PLATFORM_X11 : ANY_PLATFORM)
 	require_main_thread()
-	# TODO: Resolve why trying Wayland backend causes errors
+	if haskey(ENV, "JULIA_GLFW_PLATFORM")
+		platform = HandlePlatformSelection()
+	end
 	InitHint(PLATFORM, platform)
 	INITIALIZED[] = Bool(ccall((:glfwInit, libglfw), Cint, ())) || error("glfwInit failed")
+end
+
+function HandlePlatformSelection()::Platform
+	platform::String = ENV["JULIA_GLFW_PLATFORM"]
+
+	if platform == "PLATFORM_WIN32"
+		return PLATFORM_WIN32
+	elseif platform == "PLATFORM_COCOA"
+		return PLATFORM_COCOA
+	elseif platform == "PLATFORM_WAYLAND"
+		return PLATFORM_WAYLAND
+	elseif platform == "PLATFORM_X11"
+		return PLATFORM_X11
+	elseif platform == "PLATFORM_NULL"
+		return PLATFORM_NULL
+	else
+		return ANY_PLATFORM
+	end
 end
 
 function Terminate()
