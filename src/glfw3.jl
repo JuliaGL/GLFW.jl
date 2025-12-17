@@ -508,15 +508,15 @@ end
 function HandlePlatformSelection()::Platform
 	platform::String = ENV["JULIA_GLFW_PLATFORM"]
 
-	if platform == "PLATFORM_WIN32"
+	if platform == "win32"
 		return PLATFORM_WIN32
-	elseif platform == "PLATFORM_COCOA"
+	elseif platform == "cocoa"
 		return PLATFORM_COCOA
-	elseif platform == "PLATFORM_WAYLAND"
+	elseif platform == "wayland"
 		return PLATFORM_WAYLAND
-	elseif platform == "PLATFORM_X11"
+	elseif platform == "x11"
 		return PLATFORM_X11
-	elseif platform == "PLATFORM_NULL"
+	elseif platform == "null"
 		return PLATFORM_NULL
 	else
 		return ANY_PLATFORM
