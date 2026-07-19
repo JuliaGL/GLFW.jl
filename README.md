@@ -9,6 +9,16 @@
 [glfw]:   https://www.glfw.org
 [opengl]: https://wikipedia.org/wiki/OpenGL
 
+Installation
+-------
+1. import Julia's package manager
+	```julia
+	import Pkg
+	```
+2. add "GLFW" to your packages
+	```julia
+	Pkg.add("GLFW")
+	```
 
 Example
 -------
