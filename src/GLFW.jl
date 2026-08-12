@@ -56,9 +56,29 @@ function __init__()
 		Init()
 	catch err
 		push!(errors, err)
-	finally
-		SetErrorCallback(throw)
 	end
+
+	# Without a display server (headless CI, cluster nodes, batch jobs) the
+	# default platform fails and loading the package would throw. Fall back
+	# to the NULL platform so the package still loads; windows cannot be
+	# created there, and `GetPlatform() == PLATFORM_NULL` lets downstream
+	# code detect that it is headless. An explicitly requested platform is
+	# honored as stated: if JULIA_GLFW_PLATFORM is set and does not work,
+	# loading fails rather than being second-guessed.
+	if !is_initialized() && !haskey(ENV, "JULIA_GLFW_PLATFORM") && PlatformSupported(PLATFORM_NULL)
+		try
+			Init(platform = PLATFORM_NULL)
+			@warn "GLFW could not connect to a display and fell back to its NULL platform: " *
+			      "the package is usable, but windows cannot be created or shown. Detect this " *
+			      "with `GLFW.GetPlatform() == GLFW.PLATFORM_NULL`. To make a missing display " *
+			      "fatal again, set the JULIA_GLFW_PLATFORM environment variable to the " *
+			      "required platform (e.g. \"x11\")."
+		catch err
+			push!(errors, err)
+		end
+	end
+
+	SetErrorCallback(throw)
 
 	if is_initialized()
 		atexit(Terminate)
