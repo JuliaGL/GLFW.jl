@@ -496,31 +496,48 @@ is_initialized() = INITIALIZED[]
 # Initialization and version information
 InitHint(hint, value) = @require_main_thread ccall((:glfwInitHint, libglfw), Cvoid, (Cint, Cint), hint, value)
 
-function Init(; platform::Platform = @static Sys.islinux() ? PLATFORM_X11 : ANY_PLATFORM)
-	require_main_thread()
-	if haskey(ENV, "JULIA_GLFW_PLATFORM")
-		platform = HandlePlatformSelection()
-	end
-	InitHint(PLATFORM, platform)
-	INITIALIZED[] = Bool(ccall((:glfwInit, libglfw), Cint, ())) || error("glfwInit failed")
-end
+const PLATFORM_BY_NAME = Dict{String, Platform}(
+	"win32"   => PLATFORM_WIN32,
+	"cocoa"   => PLATFORM_COCOA,
+	"wayland" => PLATFORM_WAYLAND,
+	"x11"     => PLATFORM_X11,
+	"null"    => PLATFORM_NULL,
+	"any"     => ANY_PLATFORM,
+)
 
-function HandlePlatformSelection()::Platform
-	platform::String = ENV["JULIA_GLFW_PLATFORM"]
+# Used when neither the caller nor JULIA_GLFW_PLATFORM names a platform. The
+# Wayland backend is not preferred by default, see #238.
+const OS_DEFAULT_PLATFORM = @static Sys.islinux() ? PLATFORM_X11 : ANY_PLATFORM
 
-	if platform == "win32"
-		return PLATFORM_WIN32
-	elseif platform == "cocoa"
-		return PLATFORM_COCOA
-	elseif platform == "wayland"
-		return PLATFORM_WAYLAND
-	elseif platform == "x11"
-		return PLATFORM_X11
-	elseif platform == "null"
-		return PLATFORM_NULL
-	else
+"""
+    RequestedPlatform()
+
+The platform named by the `JULIA_GLFW_PLATFORM` environment variable, or
+`nothing` if it is unset. An unrecognized name warns and yields `ANY_PLATFORM`.
+"""
+function RequestedPlatform()::Union{Nothing, Platform}
+	name = get(ENV, "JULIA_GLFW_PLATFORM", nothing)
+	isnothing(name) && return nothing
+	platform = get(PLATFORM_BY_NAME, name, nothing)
+	if isnothing(platform)
+		@warn "Ignoring unrecognized JULIA_GLFW_PLATFORM=$(repr(name)), letting GLFW choose a " *
+		      "platform. Valid values are $(join(map(repr, sort!(collect(keys(PLATFORM_BY_NAME)))), ", "))."
 		return ANY_PLATFORM
 	end
+	return platform
+end
+
+"""
+    Init(; platform = something(RequestedPlatform(), OS_DEFAULT_PLATFORM))
+
+Initialize GLFW on `platform` and return whether it succeeded. What went wrong
+is reported to the error callback, which throws by default.
+"""
+function Init(; platform::Platform = something(RequestedPlatform(), OS_DEFAULT_PLATFORM))
+	require_main_thread()
+	InitHint(PLATFORM, platform)
+	INITIALIZED[] = Bool(ccall((:glfwInit, libglfw), Cint, ()))
+	return INITIALIZED[]
 end
 
 function Terminate()
@@ -598,6 +615,9 @@ const _window_callbacks = Dict{Window, Ref{Vector{Callback}}}()
 function CreateWindow(width::Integer, height::Integer, title::AbstractString, monitor::Monitor=Monitor(C_NULL), share::Window=Window(C_NULL))
 	require_main_thread()
 	window = ccall((:glfwCreateWindow, libglfw), Window, (Cint, Cint, Cstring, Monitor, Window), width, height, title, monitor, share)
+	# Details go to the error callback, which need not throw. Without this the
+	# null handle reaches glfwSetWindowUserPointer below and segfaults.
+	window.handle == C_NULL && error("glfwCreateWindow failed")
 	callbacks = Ref{Vector{Callback}}(fill(nothing, _window_callback_num[]))
 	_window_callbacks[window] = callbacks
 	ccall((:glfwSetWindowUserPointer, libglfw), Cvoid, (Window, Ref{Vector{Callback}}), window, callbacks) # any thread valid
