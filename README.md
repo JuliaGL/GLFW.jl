@@ -44,6 +44,8 @@ Read the [GLFW documentation][docs] for detailed instructions on how to use the 
 
 * Clipboard (`glfwGetClipboard`, `glfwSetClipboard`) and time (`glfwGetTime`, `glfwSetTime`) functions have been omitted because Julia's standard library already supports similar functionality.
 * `glfwInit` and `glfwTerminate` are called automatically using the `__init__` and `atexit` functions. While it is okay to still call them explicitly, it is redundant and not required.
+* Loading the package does not throw when the default platform cannot be initialized. It first lets GLFW pick any platform that is actually available (so a machine with Wayland but no X11 still gets a usable window system), and only if that fails too does it warn and fall back to GLFW's NULL platform, so packages that depend on GLFW still load. Windows cannot be created or shown on the NULL platform; check for it with `GLFW.GetPlatform() == GLFW.PLATFORM_NULL`.
+* The `JULIA_GLFW_PLATFORM` environment variable (`"win32"`, `"cocoa"`, `"wayland"`, `"x11"`, `"null"`, or `"any"`) forces a specific platform. A named platform is honored as stated: if it cannot be initialized, loading the package fails rather than falling back — this is how you make a missing display fatal. `"any"` and unrecognized values do not name a platform, so they still fall back as above; an unrecognized value additionally warns.
 * Thread restrictions are explicitly checked and throw errors when they are not respected. This can be turned off by setting `GLFW.ENABLE_THREAD_ASSERTIONS[] = false` or by setting an environment variable of the same name.
 
 [docs]: https://www.glfw.org/docs/latest/

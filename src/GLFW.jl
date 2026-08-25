@@ -47,27 +47,50 @@ include("glfw3.jl")
 include("vulkan.jl")
 include("monitor_properties.jl")
 
+# Platforms `__init__` tries, in order. A platform named by JULIA_GLFW_PLATFORM
+# is used alone, so failing to initialize it is fatal. Otherwise ANY_PLATFORM
+# catches a working platform the default misses (e.g. Wayland without X11), and
+# PLATFORM_NULL initializes without a display but cannot create windows.
+function InitCandidates()
+	requested = RequestedPlatform()
+	# ANY_PLATFORM asks GLFW to choose rather than naming a platform, so it
+	# still gets the fallbacks below. GLFW never chooses PLATFORM_NULL itself.
+	names_a_platform = !isnothing(requested) && requested !== ANY_PLATFORM
+	names_a_platform && return Platform[requested]
+
+	candidates = isnothing(requested) ? Platform[OS_DEFAULT_PLATFORM, ANY_PLATFORM] : Platform[ANY_PLATFORM]
+	PlatformSupported(PLATFORM_NULL) && push!(candidates, PLATFORM_NULL)
+	return unique!(candidates)
+end
+
 function __init__()
 	# Save errors that occur during initialization
 	errors = Vector{Exception}()
 	SetErrorCallback(err -> push!(errors, err))
 
+	candidates = InitCandidates()
 	try
-		Init()
-	catch err
-		push!(errors, err)
+		for platform in candidates
+			Init(platform = platform) && break
+		end
 	finally
 		SetErrorCallback(throw)
 	end
 
-	if is_initialized()
-		atexit(Terminate)
-		for err in errors
-			@warn err  # Warn about any non-fatal errors that may have occurred during initialization
-		end
-	else
-		throw(errors)  # Throw fatal errors
+	is_initialized() || throw(errors)  # Throw fatal errors
+
+	atexit(Terminate)
+	for err in errors
+		@warn err  # Warn about any non-fatal errors that may have occurred during initialization
 	end
+	if GetPlatform() === PLATFORM_NULL && candidates != [PLATFORM_NULL]
+		@warn "GLFW found no usable windowing platform and fell back to its NULL platform: the " *
+		      "package is usable, but windows cannot be created or shown. Detect this with " *
+		      "`GLFW.GetPlatform() == GLFW.PLATFORM_NULL`. To make this fatal instead, set the " *
+		      "JULIA_GLFW_PLATFORM environment variable to the platform you require " *
+		      "(e.g. \"x11\" or \"wayland\")."
+	end
+	return
 end
 
 end
