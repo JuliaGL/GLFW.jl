@@ -41,6 +41,8 @@ function callbackcode(
 	# All glfwSetFooCallbacks currently in use are restricted to the main thread.
 	# For reference the current ones are: glfwSetKeyCallback, glfwSetCharCallback, glfwSetCharModsCallback, glfwSetMouseButtonCallback, glfwSetCursorPosCallback, glfwSetCursorEnterCallback, glfwSetScrollCallback, glfwSetDropCallback, glfwSetWindowPosCallback, glfwSetWindowSizeCallback, glfwSetWindowCloseCallback, glfwSetWindowRefreshCallback, glfwSetWindowFocusCallback, glfwSetWindowIconifyCallback, glfwSetWindowMaximizeCallback, glfwSetFramebufferSizeCallback, glfwSetWindowContentScaleCallback, glfwSetJoystickCallback, glfwSetErrorCallback, glfwSetMonitorCallback
 
+	init = name == "Error" ? nothing : :(ensure_initialized())
+
 	quote
 		# Callback wrapper that can be passed to `cfunction`
 		$wrapper($(callback_params...)) = ($callback_ref($(callback_args...)); return nothing)
@@ -48,6 +50,7 @@ function callbackcode(
 		# Set the callback function
 		function $setter($(setter_param_names...), callback::Function)
 			require_main_thread()
+			$init
 			old_callback = $callback_ref
 			$callback_ref = callback  # Prevent callback function from being garbage-collected
 			cfunptr = @cfunction($wrapper, Cvoid, $callback_param_types)
@@ -58,6 +61,7 @@ function callbackcode(
 		# Unset the callback function
 		function $setter($(setter_param_names...), ::Nothing)
 			require_main_thread()
+			$init
 			ccall(($libsetter, libglfw), Ptr{Cvoid}, ($(setter_param_types...), Ptr{Cvoid}), $(setter_param_names...), C_NULL)
 			old_callback = $callback_ref
 			$callback_ref = nothing  # Allow former callback function to be garbage-collected
