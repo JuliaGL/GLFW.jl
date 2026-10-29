@@ -5,11 +5,9 @@ version = "4.0.0"
 
 [deps]
 GLFW_jll = "0656b61e-2033-5cc2-a64a-77c0f6c09b89"
-Libdl = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
 
 [compat]
 GLFW_jll = "3.5.1"
-Libdl = "1"
 julia = "1.6"
 
 [extras]

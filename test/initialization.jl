@@ -57,6 +57,43 @@
 				GLFW.DestroyWindow(window)
 			end
 
+			# Operations on acquired handles must not initialize a new session
+			# after Terminate, which would leave the old handles dangling.
+			window = GLFW.CreateWindow(16, 16, "session lifetime")
+			GLFW.SetMonitorCallback((monitor, event) -> nothing)
+			GLFW.SetJoystickCallback((joystick, event) -> nothing)
+			GLFW.Terminate()
+			@test isempty(GLFW._window_callbacks)
+			for operation in (
+				() -> GLFW.GetWindowPos(window),
+				() -> GLFW.GetWindowMonitor(window),
+				() -> GLFW.SetWindowCloseCallback(window, nothing),
+				() -> GLFW.MakeContextCurrent(window),
+			)
+				@test_throws GLFW.GLFWError operation()
+				@test !GLFW.is_initialized()
+			end
+			@test GLFW.Init()
+			@test GLFW.SetMonitorCallback(nothing) === nothing
+			@test GLFW.SetJoystickCallback(nothing) === nothing
+
+			# Explicit context choices and disabled callbacks still preserve
+			# GLFW's error code and description when creation fails.
+			GLFW.WindowHint(GLFW.CONTEXT_CREATION_API, GLFW.EGL_CONTEXT_API)
+			old = GLFW.SetErrorCallback(nothing)
+			try
+				err = try
+					GLFW.CreateWindow(0, 16, "invalid")
+				catch err
+					err
+				end
+				@test err isa GLFW.GLFWError
+				@test err.code == GLFW.INVALID_VALUE
+				@test occursin("Invalid window size", err.description)
+			finally
+				@test GLFW.SetErrorCallback(old) === nothing
+			end
+
 			# The direct CreateWindow entry point initializes too. Its default
 			# OpenGL context may fail without EGL or OSMesa, but must never segfault if
 			# the error callback is disabled.
