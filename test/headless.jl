@@ -5,6 +5,38 @@
 			for query in (GLFW.GetMonitorPos, GLFW.GetMonitorPhysicalSize, GLFW.GetMonitorContentScale,
 				GLFW.GetMonitorName, GLFW.GetVideoModes, GLFW.GetVideoMode, m -> GLFW.SetGamma(m, 1.0))
 				@test_throws ArgumentError query(GLFW.Monitor(C_NULL))
+				@test !GLFW.is_initialized()
+			end
+			@test sprint(show, GLFW.Monitor(C_NULL)) == "No Monitor"
+			@test !GLFW.is_initialized()
+			monitors = GLFW.GetMonitors()
+			@test eltype(monitors) === GLFW.Monitor
+			primary = GLFW.GetPrimaryMonitor()
+			if isempty(monitors)
+				@test primary == GLFW.Monitor(C_NULL)
+			else
+				# Some GLFW builds expose a virtual monitor on NULL. Exercise
+				# the same pointer conversion as a physical display uses.
+				@test primary in monitors
+				@test !isempty(GLFW.GetMonitorName(primary))
+				@test GLFW.GetVideoMode(primary).width > 0
+				@test !isempty(GLFW.GetVideoModes(primary))
+				@test length(GLFW.GetMonitorPos(primary)) == 2
+				@test length(GLFW.GetMonitorPhysicalSize(primary)) == 2
+				@test length(GLFW.GetMonitorContentScale(primary)) == 2
+				# The vector belongs to Julia rather than aliasing GLFW's array.
+				pop!(monitors)
+				@test primary in GLFW.GetMonitors()
+
+				seen = Tuple{GLFW.Monitor, GLFW.DeviceConfigEvent}[]
+				old_callback = GLFW.SetMonitorCallback((monitor, event) -> push!(seen, (monitor, event)))
+				try
+					callback = @cfunction(GLFW._MonitorCallbackWrapper, Cvoid, (Ptr{Cvoid}, GLFW.DeviceConfigEvent))
+					ccall(callback, Cvoid, (Ptr{Cvoid}, GLFW.DeviceConfigEvent), primary.handle, GLFW.CONNECTED)
+					@test seen == [(primary, GLFW.CONNECTED)]
+				finally
+					GLFW.SetMonitorCallback(old_callback)
+				end
 			end
 			window = try
 				GLFW.CreateWindow(32, 32, "offscreen")
@@ -63,6 +95,9 @@
 			window = GLFW.CreateWindow(16, 16, "no OpenGL dependency")
 			try
 				@test GLFW.GetWindowAttrib(window, GLFW.CLIENT_API) == GLFW.NO_API
+				@test GLFW.GetWindowMonitor(window) == GLFW.Monitor(C_NULL)
+				GLFW.SetWindowMonitor(window, GLFW.Monitor(C_NULL), 0, 0, 24, 24, GLFW.DONT_CARE)
+				@test GLFW.GetWindowSize(window) == (width = 24, height = 24)
 			finally
 				GLFW.DestroyWindow(window)
 				GLFW.Terminate()

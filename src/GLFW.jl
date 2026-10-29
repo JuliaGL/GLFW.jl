@@ -1,7 +1,6 @@
 module GLFW
 
 using GLFW_jll
-using Libdl
 
 struct ThreadAssertionError
 	target_thread::Int

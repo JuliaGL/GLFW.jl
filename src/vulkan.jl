@@ -76,7 +76,6 @@ Create a Vulkan surface for the specified window. Throws if the returned
 function CreateWindowSurface(instance, window, allocator=C_NULL)
     instance == C_NULL && throw(ArgumentError("CreateWindowSurface requires a valid Vulkan instance"))
     # any thread after initialization
-    ensure_initialized()
     surface = Ref{VkSurfaceKHR}(C_NULL)
     result = ccall((:glfwCreateWindowSurface, libglfw), VkResult, (VkInstance, Window, Ptr{VkAllocationCallbacks}, Ref{VkSurfaceKHR}), instance, window, allocator, surface)
     result == 0 || error("glfwCreateWindowSurface failed with VkResult $result")

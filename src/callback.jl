@@ -2,10 +2,11 @@ const Callback = Union{Function, Nothing}
 
 # Generate code for a global callback
 macro callback(ex)
-	ref = gensym()
+	name, params, args = extractargs(ex)
+	ref = Symbol("_", lowercase(name), "_callback")
 	esc(quote
 		const $ref = Ref{Callback}(nothing)
-		$(callbackcode(extractargs(ex)..., :($ref[])))
+		$(callbackcode(name, params, args, :($ref[])))
 	end)
 end
 
@@ -41,7 +42,7 @@ function callbackcode(
 	# All glfwSetFooCallbacks currently in use are restricted to the main thread.
 	# For reference the current ones are: glfwSetKeyCallback, glfwSetCharCallback, glfwSetCharModsCallback, glfwSetMouseButtonCallback, glfwSetCursorPosCallback, glfwSetCursorEnterCallback, glfwSetScrollCallback, glfwSetDropCallback, glfwSetWindowPosCallback, glfwSetWindowSizeCallback, glfwSetWindowCloseCallback, glfwSetWindowRefreshCallback, glfwSetWindowFocusCallback, glfwSetWindowIconifyCallback, glfwSetWindowMaximizeCallback, glfwSetFramebufferSizeCallback, glfwSetWindowContentScaleCallback, glfwSetJoystickCallback, glfwSetErrorCallback, glfwSetMonitorCallback
 
-	init = name == "Error" ? nothing : :(ensure_initialized())
+	init = name in ("Monitor", "Joystick") ? :(ensure_initialized()) : nothing
 
 	quote
 		# Callback wrapper that can be passed to `cfunction`
