@@ -58,7 +58,7 @@
 			end
 
 			# The direct CreateWindow entry point initializes too. Its default
-			# OpenGL context may fail without OSMesa, but must never segfault if
+			# OpenGL context may fail without EGL or OSMesa, but must never segfault if
 			# the error callback is disabled.
 			GLFW.Terminate()
 			old = GLFW.SetErrorCallback(nothing)
@@ -66,7 +66,8 @@
 				window = try
 					GLFW.CreateWindow(32, 32, "OpenGL")
 				catch err
-					@test err isa ErrorException
+					@test err isa GLFW.GLFWError
+					@test err.code == GLFW.API_UNAVAILABLE
 					nothing
 				end
 				@test GLFW.is_initialized()
