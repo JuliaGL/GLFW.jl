@@ -1,6 +1,8 @@
 using GLFW, Test
 
+@test !GLFW.is_initialized()
 println(GLFW.GetVersionString())
+@test !GLFW.is_initialized()
 
 # GLFWError uses enum for known error code
 @test isa(GLFW.GLFWError(GLFW.NOT_INITIALIZED, "").code, GLFW.ErrorCode)
@@ -49,7 +51,7 @@ println(GLFW.GetVersionString())
 end
 
 if Sys.islinux()
-	# Loading with no display at all must not throw: __init__ falls back to
+	# Importing does not initialize GLFW; first use falls back to
 	# the NULL platform (#169, #200, #253). Checked in subprocesses so this
 	# process's initialized GLFW is not disturbed. XDG_RUNTIME_DIR is pointed
 	# at an empty directory as well, otherwise libwayland still finds its
@@ -62,7 +64,7 @@ if Sys.islinux()
 	delete!(headless, "JULIA_GLFW_PLATFORM")
 	headless["XDG_RUNTIME_DIR"] = emptydir
 
-	loads_on_null = "using GLFW; print(GLFW.is_initialized() && GLFW.GetPlatform() == GLFW.PLATFORM_NULL)"
+	loads_on_null = "using GLFW; print(!GLFW.is_initialized() && GLFW.GetPlatform() == GLFW.PLATFORM_NULL && GLFW.is_initialized())"
 	if GLFW.PlatformSupported(GLFW.PLATFORM_NULL)
 		@test read(setenv(`$base -e $loads_on_null`, headless), String) == "true"
 
@@ -78,13 +80,21 @@ if Sys.islinux()
 		@test read(setenv(`$base -e $loads_on_null`, junk_env), String) == "true"
 	end
 
-	# An explicitly requested platform that cannot work must still fail.
+	# Import succeeds even with an unavailable requested platform. Explicit
+	# Init returns false; implicit initialization throws before using GLFW.
 	x11_env = copy(headless)
 	x11_env["JULIA_GLFW_PLATFORM"] = "x11"
-	failing = setenv(`$base -e "using GLFW"`, x11_env)
+	imports = setenv(`$base -e "using GLFW; print(!GLFW.is_initialized())"`, x11_env)
+	@test read(imports, String) == "true"
+	init_fails = setenv(`$base -e "using GLFW; print(!GLFW.Init() && !GLFW.is_initialized())"`, x11_env)
+	@test read(init_fails, String) == "true"
+	failing = setenv(`$base -e "using GLFW; GLFW.GetPlatform()"`, x11_env)
 	@test !success(pipeline(failing, stdout = devnull, stderr = devnull))
 end
 
-if !haskey(ENV, "CI")  # AppVeyor and Travis CI don't support OpenGL
+include("initialization.jl")
+include("headless.jl")
+
+if !haskey(ENV, "CI") && GLFW.GetPlatform() != GLFW.PLATFORM_NULL
 	include("windowclose.jl")
 end

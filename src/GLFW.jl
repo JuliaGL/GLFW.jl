@@ -1,6 +1,7 @@
 module GLFW
 
 using GLFW_jll
+using Libdl
 
 struct ThreadAssertionError
 	target_thread::Int
@@ -35,6 +36,21 @@ macro require_main_thread(code)
 	end)
 end
 
+# Initializing GLFW is restricted to the main thread, even for functions that
+# may otherwise be called from any thread once initialization has completed.
+function ensure_initialized()
+	is_initialized() || Init() || throw(GLFWError(NOT_INITIALIZED, "GLFW initialization failed"))
+	return
+end
+
+macro require_initialized(code)
+	esc(quote
+		require_main_thread()
+		ensure_initialized()
+		$code
+	end)
+end
+
 function GetVersion()
 	# any thread
 	major, minor, rev = Ref{Cint}(), Ref{Cint}(), Ref{Cint}()
@@ -47,12 +63,11 @@ include("glfw3.jl")
 include("vulkan.jl")
 include("monitor_properties.jl")
 
-# Platforms `__init__` tries, in order. A platform named by JULIA_GLFW_PLATFORM
-# is used alone, so failing to initialize it is fatal. Otherwise ANY_PLATFORM
+# Platforms `Init` tries, in order. An explicitly named platform
+# is used alone, so failing to initialize it does not fall back. Otherwise ANY_PLATFORM
 # catches a working platform the default misses (e.g. Wayland without X11), and
-# PLATFORM_NULL initializes without a display but cannot create windows.
-function InitCandidates()
-	requested = RequestedPlatform()
+# PLATFORM_NULL initializes without a display and has no visible windows.
+function InitCandidates(requested = RequestedPlatform())
 	# ANY_PLATFORM asks GLFW to choose rather than naming a platform, so it
 	# still gets the fallbacks below. GLFW never chooses PLATFORM_NULL itself.
 	names_a_platform = !isnothing(requested) && requested !== ANY_PLATFORM
@@ -64,32 +79,8 @@ function InitCandidates()
 end
 
 function __init__()
-	# Save errors that occur during initialization
-	errors = Vector{Exception}()
-	SetErrorCallback(err -> push!(errors, err))
-
-	candidates = InitCandidates()
-	try
-		for platform in candidates
-			Init(platform = platform) && break
-		end
-	finally
-		SetErrorCallback(throw)
-	end
-
-	is_initialized() || throw(errors)  # Throw fatal errors
-
+	SetErrorCallback(throw)
 	atexit(Terminate)
-	for err in errors
-		@warn err  # Warn about any non-fatal errors that may have occurred during initialization
-	end
-	if GetPlatform() === PLATFORM_NULL && candidates != [PLATFORM_NULL]
-		@warn "GLFW found no usable windowing platform and fell back to its NULL platform: the " *
-		      "package is usable, but windows cannot be created or shown. Detect this with " *
-		      "`GLFW.GetPlatform() == GLFW.PLATFORM_NULL`. To make this fatal instead, set the " *
-		      "JULIA_GLFW_PLATFORM environment variable to the platform you require " *
-		      "(e.g. \"x11\" or \"wayland\")."
-	end
 	return
 end
 
