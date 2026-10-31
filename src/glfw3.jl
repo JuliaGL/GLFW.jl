@@ -546,22 +546,25 @@ Initialize GLFW and return whether it succeeded. Without an explicit `platform`,
 honor `JULIA_GLFW_PLATFORM`, or try the OS default, any available window system,
 and finally the NULL platform. A named platform is tried alone.
 
-Initialization errors warn by default rather than throwing. A custom error
-callback receives these errors and may itself throw. Other GLFW calls still
-throw by default. Calling `Init` again after success returns `true` without
-changing platforms or resetting window hints.
+Initialization failures warn by default rather than throwing. Failed probes are
+logged at debug level when another platform succeeds; warnings from the selected
+platform are retained. A custom error callback receives all errors and may itself
+throw. Other GLFW calls still throw by default. Calling `Init` again after success
+returns `true` without changing platforms or resetting window hints.
 """
 function Init(; platform::Union{Nothing, Platform} = nothing)
 	require_main_thread()
 	is_initialized() && return true
 	candidates = isnothing(platform) ? InitCandidates() : InitCandidates(platform)
 	errors = GLFWError[]
+	failed_error_count = 0
 	callback = SetErrorCallback(err -> push!(errors, err))
 	try
 		for candidate in candidates
 			InitHint(PLATFORM, candidate)
 			INITIALIZED[] = Bool(ccall((:glfwInit, libglfw), Cint, ()))
 			is_initialized() && break
+			failed_error_count = length(errors)
 		end
 		if is_initialized()
 			CONTEXT_CREATION_API_HINT[] = nothing
@@ -570,14 +573,18 @@ function Init(; platform::Union{Nothing, Platform} = nothing)
 	finally
 		SetErrorCallback(callback)
 	end
-	for err in errors
+	for (i, err) in enumerate(errors)
 		if callback === throw
-			@warn err
+			if is_initialized() && i <= failed_error_count
+				@debug "GLFW platform probe failed" exception = err
+			else
+				@warn err
+			end
 		elseif callback !== nothing
 			callback(err)
 		end
 	end
-	if is_initialized() && GetPlatform() === PLATFORM_NULL && candidates != [PLATFORM_NULL]
+	if is_initialized() && current_platform() === PLATFORM_NULL && candidates != [PLATFORM_NULL]
 		@warn "GLFW found no usable windowing platform and fell back to its NULL platform. " *
 		      "Visible windows are unavailable; offscreen OpenGL and Vulkan remain usable " *
 		      "when supported by the installed drivers. Detect this with " *
