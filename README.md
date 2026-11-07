@@ -53,6 +53,7 @@ Read the [GLFW documentation][docs] for detailed instructions on how to use the 
 * The `JULIA_GLFW_PLATFORM` environment variable (`"win32"`, `"cocoa"`, `"wayland"`, `"x11"`, `"null"`, or `"any"`) selects a platform when initialization is first needed. An explicit `GLFW.Init(platform = ...)` takes precedence. Named platforms are tried alone: `Init()` returns `false` on failure instead of falling back. `"null"` enables intentional headless use without display probing or fallback warnings. `"any"` and unrecognized values retain the fallbacks above; an unrecognized value additionally warns.
 * `GLFW.GetRequiredInstanceExtensions()` returns an empty `Vector{String}` when Vulkan is available but window surface extensions are unavailable. `GLFW.CreateWindowSurface` throws on a failed `VkResult` even if the error callback does not throw.
 * Initialization must happen on the main thread. Operations documented as safe on any thread remain so after initialization; explicitly initialize on the main thread before calling them from another thread.
+* Failed platform probes are debug logs when a later platform succeeds. Automatic fallback to NULL produces one warning; warnings from the selected platform remain visible. Custom error callbacks still receive all probe errors.
 * Thread restrictions are explicitly checked and throw errors when they are not respected. This can be turned off by setting `GLFW.ENABLE_THREAD_ASSERTIONS[] = false` or by setting an environment variable of the same name.
 
 [docs]: https://www.glfw.org/docs/latest/
@@ -89,6 +90,10 @@ environment's bundled Wayland library provides, even for surfaceless rendering.
 For example, `wl_fixes_interface` requires a recent Wayland runtime. Update the
 graphics dependencies together or use a graphics environment with compatible
 versions. `Libdl.dlopen("libEGL_mesa.so.0")` can expose such vendor load errors.
+
+If Wayland reports that no Compose file was found, ensure X11 locale data is
+installed and set `XLOCALEDIR` to its location (commonly `/usr/share/X11/locale`
+on Linux). This controls keyboard compose-table lookup, independently of EGL.
 
 
 Footnotes
