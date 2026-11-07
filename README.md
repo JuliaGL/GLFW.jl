@@ -91,6 +91,10 @@ For example, `wl_fixes_interface` requires a recent Wayland runtime. Update the
 graphics dependencies together or use a graphics environment with compatible
 versions. `Libdl.dlopen("libEGL_mesa.so.0")` can expose such vendor load errors.
 
+If Wayland reports that no Compose file was found, ensure X11 locale data is
+installed and set `XLOCALEDIR` to its location (commonly `/usr/share/X11/locale`
+on Linux). This controls keyboard compose-table lookup, independently of EGL.
+
 
 Footnotes
 ---------

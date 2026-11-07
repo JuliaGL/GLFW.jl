@@ -1054,12 +1054,15 @@ function SwapBuffers(window::Window)
 	return ccall((:glfwSwapBuffers, libglfw), Cvoid, (Window,), window)
 end # any thread according to GLFW docs
 function SwapInterval(interval::Integer)
+	ensure_initialized()
 	return ccall((:glfwSwapInterval, libglfw), Cvoid, (Cint,), interval)
 end # any thread
 function ExtensionSupported(extension::AbstractString)
+	ensure_initialized()
 	return Bool(ccall((:glfwExtensionSupported, libglfw), Cint, (Cstring,), extension))
 end # any thread
 function GetProcAddress(procname::AbstractString)
+	ensure_initialized()
 	return ccall((:glfwGetProcAddress, libglfw), Ptr{Cvoid}, (Cstring,), procname)
 end # any thread
 
