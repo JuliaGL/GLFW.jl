@@ -64,7 +64,33 @@ if Sys.islinux()
 	delete!(headless, "JULIA_GLFW_PLATFORM")
 	headless["XDG_RUNTIME_DIR"] = emptydir
 
-	loads_on_null = "using GLFW; print(!GLFW.is_initialized() && GLFW.GetPlatform() == GLFW.PLATFORM_NULL && GLFW.is_initialized())"
+	loads_on_null = """
+		using GLFW, Test, Logging
+		@test !GLFW.is_initialized()
+		logger = Test.TestLogger(min_level = Logging.Debug)
+		with_logger(logger) do
+			@test GLFW.GetPlatform() == GLFW.PLATFORM_NULL
+		end
+		@test GLFW.is_initialized()
+		warnings = filter(log -> log.level == Logging.Warn, logger.logs)
+		@test count(log -> occursin("fell back", string(log.message)), warnings) == 1
+		@test length(warnings) == (get(ENV, "JULIA_GLFW_PLATFORM", "") == "not-a-platform" ? 2 : 1)
+		@test any(log -> log.level == Logging.Debug, logger.logs)
+		# Custom callbacks still receive failed probe errors, independently of logging.
+		GLFW.Terminate()
+		errors = GLFW.GLFWError[]
+		old = GLFW.SetErrorCallback(err -> push!(errors, err))
+		try
+			with_logger(Test.TestLogger()) do
+				@test GLFW.Init()
+			end
+			@test !isempty(errors)
+		finally
+			GLFW.SetErrorCallback(old)
+			GLFW.Terminate()
+		end
+		print(true)
+		"""
 	if GLFW.PlatformSupported(GLFW.PLATFORM_NULL)
 		@test read(setenv(`$base -e $loads_on_null`, headless), String) == "true"
 
@@ -86,7 +112,7 @@ if Sys.islinux()
 	x11_env["JULIA_GLFW_PLATFORM"] = "x11"
 	imports = setenv(`$base -e "using GLFW; print(!GLFW.is_initialized())"`, x11_env)
 	@test read(imports, String) == "true"
-	init_fails = setenv(`$base -e "using GLFW; print(!GLFW.Init() && !GLFW.is_initialized())"`, x11_env)
+	init_fails = setenv(`$base -e "using GLFW, Test; result = @test_logs (:warn,) GLFW.Init(); print(!result && !GLFW.is_initialized())"`, x11_env)
 	@test read(init_fails, String) == "true"
 	failing = setenv(`$base -e "using GLFW; GLFW.GetPlatform()"`, x11_env)
 	@test !success(pipeline(failing, stdout = devnull, stderr = devnull))

@@ -42,6 +42,22 @@
 				@test GLFW.GetPlatform() == GLFW.PLATFORM_NULL
 			end
 
+			for operation in (
+				() -> GLFW.SwapInterval(0),
+				() -> GLFW.ExtensionSupported("GL_ARB_texture_filter_anisotropic"),
+				() -> GLFW.GetProcAddress("glGetString"),
+			)
+				GLFW.Terminate()
+				err = try
+					operation()
+				catch err
+					err
+				end
+				@test GLFW.is_initialized()
+				@test err isa GLFW.GLFWError
+				@test err.code == GLFW.NO_CURRENT_CONTEXT
+			end
+
 			GLFW.Terminate()
 			GLFW.WindowHint(GLFW.CLIENT_API, GLFW.NO_API)
 			GLFW.WindowHint(GLFW.VISIBLE, false)
