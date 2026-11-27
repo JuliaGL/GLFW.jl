@@ -60,6 +60,11 @@
 					ccall(readpixels, Cvoid, (Cint, Cint, Cint, Cint, Cuint, Cuint, Ptr{UInt8}),
 						0, 0, 1, 1, 0x1908, 0x1401, pixel)
 					@test all(abs.(Int.(pixel) .- [64, 128, 191, 255]) .<= 1)
+					@test GLFW.GetCurrentContext().handle == window.handle
+					GLFW.MakeContextCurrent(GLFW.Window(C_NULL))
+					@test GLFW.GetCurrentContext().handle == C_NULL
+					@test GLFW.is_initialized()
+					GLFW.MakeContextCurrent(window)
 					@test_throws ErrorException GLFW.ShowWindow(window)
 					shared = GLFW.CreateWindow(16, 16, "shared", GLFW.Monitor(C_NULL), window)
 					try

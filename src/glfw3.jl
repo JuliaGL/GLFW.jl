@@ -503,6 +503,13 @@ Base.showerror(io::IO, e::GLFWError) = print(io, "GLFWError ($(e.code)): ", e.de
 
 const INITIALIZED = Ref(false)
 
+"""
+    is_initialized() -> Bool
+
+Return whether GLFW has an initialized session. This query does not initialize
+GLFW. It describes GLFW's session only, independently of contexts owned by
+other windowing toolkits.
+"""
 is_initialized() = INITIALIZED[]
 
 # Initialization and version information
@@ -1044,10 +1051,18 @@ end
 
 # Context handling
 function MakeContextCurrent(window::Window)
+	window.handle == C_NULL && !is_initialized() && return nothing
 	return ccall((:glfwMakeContextCurrent, libglfw), Cvoid, (Window,), window)
 end # any thread
+"""
+    GetCurrentContext() -> Window
+
+Return the current GLFW context on this thread, or `Window(C_NULL)` if none
+exists. Querying the current context leaves GLFW uninitialized if it has not
+been used yet.
+"""
 function GetCurrentContext()
-	ensure_initialized()
+	is_initialized() || return Window(C_NULL)
 	return Base.cconvert(Window, ccall((:glfwGetCurrentContext, libglfw), Window, ()))
 end # any thread
 function SwapBuffers(window::Window)

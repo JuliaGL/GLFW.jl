@@ -1,3 +1,19 @@
+@testset "querying or detaching a context while GLFW is idle" begin
+	GLFW.Terminate()
+	withenv("JULIA_GLFW_PLATFORM" => "null") do
+		results = Vector{NTuple{3, Bool}}(undef, Threads.nthreads())
+		Threads.@threads :static for i in eachindex(results)
+			context = GLFW.GetCurrentContext()
+			results[i] = (context.handle == C_NULL, isnothing(GLFW.MakeContextCurrent(context)), !GLFW.is_initialized())
+		end
+		for (empty, detached, idle) in results
+			@test empty
+			@test detached
+			@test idle
+		end
+	end
+end
+
 @testset "lazy initialization" begin
 	if GLFW.PlatformSupported(GLFW.PLATFORM_NULL)
 		withenv("JULIA_GLFW_PLATFORM" => "null") do
@@ -30,7 +46,7 @@
 			for first_use in (
 				GLFW.GetPlatform, GLFW.GetMonitors, GLFW.GetPrimaryMonitor,
 				GLFW.DefaultWindowHints, GLFW.PollEvents, GLFW.PostEmptyEvent,
-				GLFW.GetCurrentContext, GLFW.VulkanSupported,
+				GLFW.VulkanSupported,
 				() -> GLFW.WindowHint(GLFW.CLIENT_API, GLFW.NO_API),
 				() -> GLFW.WindowHintString(GLFW.X11_CLASS_NAME, "test"),
 				() -> GLFW.SetMonitorCallback(nothing),
